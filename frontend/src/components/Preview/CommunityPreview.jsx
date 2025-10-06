@@ -1,8 +1,36 @@
 import { NavLink } from "react-router-dom";
-import { posts } from "@/data/posts";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 //커뮤니티 최신글 5개 미리보기
 export default function CommunityPreview() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const res = await axios.get("http://localhost:4000/api/posts");
+        setPosts(Array.isArray(res.data?.items) ? res.data.items : []);
+      } catch (err) {
+        if (err.name !== "CanceledError") {
+          setError("게시글을 불러오는 중 오류가 발생했습니다.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPost();
+  }, []);
+
+  if (loading) return <div className="text-white">불러오는 중...</div>;
+  if (error) return <div className="text-red-400">{error}</div>;
+  if (posts.length === 0)
+    return <div className="text-white">게시글이 없습니다</div>;
+
   const latest = posts.slice().reverse().slice(0, 5); // 역으로 5개 복사
   let num = 0;
   return (

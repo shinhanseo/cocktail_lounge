@@ -9,8 +9,6 @@ export default function RecipeList() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const controller = new AbortController();
-
     const fetchCocktail = async () => {
       try {
         setLoading(true);
@@ -28,7 +26,6 @@ export default function RecipeList() {
     };
 
     fetchCocktail();
-    return () => controller.abort();
   }, []);
 
   if (loading) return <div className="text-white">불러오는 중...</div>;

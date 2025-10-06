@@ -67,7 +67,7 @@ export default function CommunityDetail() {
       </div>
 
       {/* 본문 */}
-      <div className="mt-6 font-bold whitespace-pre-line">{post.body}</div>
+      <div className="mt-6 font-bold">{post.body}</div>
     </article>
   );
 }

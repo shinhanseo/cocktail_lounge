@@ -1,9 +1,37 @@
-import { bars } from "@/data/bars";
 import { NavLink } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function RamdomBarList() {
+  const [bars, setBars] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchBar = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const res = await axios.get(`http://localhost:4000/api/bars`);
+        setBars(Array.isArray(res.data?.items) ? res.data.items : []);
+      } catch (err) {
+        if (err.name === "CanceledError" || err.code === "ERR_CANCELED") {
+        } else {
+          setError("Bar를 불러오는 중 오류가 발생했습니다.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBar();
+  }, []);
+
   const popularBars = bars.slice(0, 3);
 
+  if (loading) return <div className="text-white p-8">불러오는 중...</div>;
+  if (error) return <div className="text-red-400 p-8">{error}</div>;
+  if (!bars)
+    return <div className="text-white p-8">정보를 찾을 수 없습니다.</div>;
   return (
     <>
       {popularBars.map((bar) => (

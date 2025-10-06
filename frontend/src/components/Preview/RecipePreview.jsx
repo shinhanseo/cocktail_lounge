@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { cocktails } from "@/data/cocktails";
+import { useEffect, useState } from "react";
+import axios from "axios";
 // 홈화면 레시피 미리보기
 // 램덤 숫자 리턴
 function getRandomId(min = 1, max) {
@@ -9,17 +9,38 @@ function getRandomId(min = 1, max) {
 }
 
 export default function RecipePreView() {
-  const [id, setId] = useState(1); // id 1로 설정
-  const cocktailId = getRandomId(1, cocktails.length); // 램덤으로 숫자 지정
+  const [cocktails, setCocktails] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   useEffect(() => {
-    if (cocktails?.length > 0) {
-      const index = Math.floor(Math.random() * cocktails.length) + 1;
-      setId(cocktails[index]);
-    }
+    const fetchCocktail = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const res = await axios.get("http://localhost:4000/api/cocktails");
+        setCocktails(Array.isArray(res.data?.items) ? res.data.items : []);
+      } catch (err) {
+        if (err.name === "CanceledError" || err.code === "ERR_CANCELED") {
+        } else {
+          setError("칵테일을 불러오는 중 오류가 발생했습니다.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCocktail();
   }, []);
+
+  const cocktailId = getRandomId(1, cocktails.length); // 램덤으로 숫자 지정
 
   const cocktail = cocktails.find((c) => c.id === cocktailId); // id로 칵테일 찾기
 
+  if (loading) return <div className="text-white">불러오는 중...</div>;
+  if (error) return <div className="text-red-400">{error}</div>;
+  if (cocktails.length === 0)
+    return <div className="text-white">레시피가 없습니다</div>;
   return (
     <section className="rounded-2xl border border-white/10 p-5 text-white bg-white/5">
       <div className="flex items-center justify-between mb-3">

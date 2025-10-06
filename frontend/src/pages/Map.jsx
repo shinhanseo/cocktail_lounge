@@ -1,6 +1,3 @@
-import { useState } from "react";
-import MapCard from "@/components/Map/MapCard";
-import BarList from "@/components/Map/BarList";
 import BarCity from "@/components/Map/BarCity";
 
 export default function Map() {

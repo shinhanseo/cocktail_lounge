@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function CommunityList() {
-  const [posts, setPosts] = useState([]); // 게시글 데이터
-  const [loading, setLoading] = useState(true); // 로딩 상태
-  const [error, setError] = useState(""); // 에러 메시지
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchPost = async () => {
