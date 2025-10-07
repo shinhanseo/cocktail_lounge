@@ -1,3 +1,5 @@
+import postButton from "../../assets/post.jpg";
+
 export default function CommunityButton() {
   const addPost = (e) => {
     e.preventDefault();
@@ -5,12 +7,16 @@ export default function CommunityButton() {
   };
 
   return (
-    <form onSubmit={addPost} className="mt-6">
+    <form onSubmit={addPost} className="mb-4 text-right mr-8">
       <button
         type="submit"
-        className="text-white ml-5 px-4 py-2 bg-[#ff917D] rounded-2xl hover:bg-[#FF6B6B] hover:cursor-pointer"
+        className="text-white ml-5 p-2 bg-white rounded-full hover:scale-110 hover:cursor-pointer"
       >
-        글 작성
+        <img
+          src={postButton}
+          alt="글쓰기 버튼"
+          className="w-6 h-6 object-cover"
+        ></img>
       </button>
     </form>
   );

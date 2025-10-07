@@ -56,7 +56,7 @@ export default function CommunityList() {
       <ul className="divide-y divide-white/10">
         {items.map((p) => (
           <li
-            className="grid grid-cols-[80px_1fr_140px] sm:grid-cols-[80px_1fr_140px]
+            className="grid grid-cols-[80px_1fr_140px_120px] sm:grid-cols-[80px_1fr_140px_120px]
                        border-white/10 border-b-4 py-2 items-center hover:bg-white/5"
           >
             <div className="text-center">{p.id}</div>
@@ -68,6 +68,7 @@ export default function CommunityList() {
               {p.title}
             </NavLink>
             <div className="text-center">{p.user}</div>
+            <div className="text-center">{p.date}</div>
           </li>
         ))}
       </ul>

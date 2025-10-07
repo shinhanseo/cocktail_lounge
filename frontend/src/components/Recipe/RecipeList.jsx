@@ -42,13 +42,12 @@ export default function RecipeList() {
           state={{ cocktails: c }}
           className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden text-center hover:scale-105 transition-transform"
         >
-          {/* h-30 대신 임의값 사용 */}
           <img
             src={c.image}
             alt={c.name}
             className="w-full h-[160px] object-cover"
           />
-          <p className="py-3">{c.name}</p>
+          <p className="py-auto">{c.name}</p>
         </NavLink>
       ))}
     </div>

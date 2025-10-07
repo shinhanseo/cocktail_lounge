@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import search from "../assets/search.svg";
+import search from "@/assets/search.svg";
 
 const navClass = ({ isActive }) =>
   "hover:font-bold hover:cursor-pointer underline-offset-8 decoration-2 " +

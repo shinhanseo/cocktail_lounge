@@ -72,7 +72,7 @@ export default function MapCard({
           <div class="p-3 min-w-[200px] text-white text-sm bg-[#111827] border border-white rounded-md">
             <div class="font-bold text-base mb-1">${bar.name}</div>
             <div class="mb-1">📍 ${bar.address}</div>
-            <div class="mb-1">☎ ${bar.phone}</div>
+            <div class="mb-1">☎ ${bar.phone ? bar.phone : "전화번호 없음"}</div>
             <div class="mb-2">${bar.desc}</div>
             <a href="${bar.website}" target="_blank" rel="noopener"
                class="text-teal-400 hover:font-bold">네이버지도에서 보기</a>

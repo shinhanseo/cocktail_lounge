@@ -34,7 +34,7 @@ export default function RecipeDetail() {
 
   return (
     <article className="text-white max-w-4xl mx-auto flex gap-6 border-white/10 bg-white/5 rounded-4xl p-12 mt-12">
-      <div className="flex-1">
+      <div className="flex-1 mr-12">
         <NavLink to="/recipe" className="text-sm text-white/70 hover:font-bold">
           ← 목록으로
         </NavLink>
