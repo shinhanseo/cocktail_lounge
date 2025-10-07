@@ -85,7 +85,7 @@ export default function BarDetail() {
         </div>
 
         {/* 오른쪽: 리스트 */}
-        <aside className="w-[500px] shrink-0 text-white">
+        <aside className="w-[600px] shrink-0 text-white">
           <ul className="mr-12 h-[500px] overflow-y-auto overflow-x-hidden">
             {/* 헤더 */}
             <li className="grid grid-cols-[200px_1fr] font-bold text-2xl border-white/10 border-b-4 pb-2 mb-2 text-center sticky top-0 bg-header">

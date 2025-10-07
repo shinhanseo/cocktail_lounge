@@ -77,7 +77,7 @@ export default function CommunityList() {
         <button
           onClick={() => goPage(meta.page - 1)}
           disabled={!meta.hasPrev}
-          className="px-3 py-1 rounded-lg border border-white/10 disabled:opacity-40"
+          className="px-3 py-1 rounded-lg border border-white/10 disabled:opacity-40 hover:cursor-pointer"
         >
           ← 이전
         </button>
@@ -89,7 +89,7 @@ export default function CommunityList() {
         <button
           onClick={() => goPage(meta.page + 1)}
           disabled={!meta.hasNext}
-          className="px-3 py-1 rounded-lg border border-white/10 disabled:opacity-40"
+          className="px-3 py-1 rounded-lg border border-white/10 disabled:opacity-40 hover:cursor-pointer"
         >
           다음 →
         </button>
