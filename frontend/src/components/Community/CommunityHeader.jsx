@@ -2,7 +2,7 @@ export default function CommunityHeader() {
   return (
     <li
       className="grid grid-cols-[80px_1fr_140px] sm:grid-cols-[80px_1fr_140px]
-                 font-bold text-2xl border-white/10 border-b-4 pb-2 mb-2 text-center
+                 font-bold text-2xl border-white/10 border-b-4 p-2 text-center
                  sticky top-0 bg-header"
     >
       <div className="text-center">ID</div>

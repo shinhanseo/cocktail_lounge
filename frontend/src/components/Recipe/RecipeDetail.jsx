@@ -83,7 +83,9 @@ export default function RecipeDetail() {
           alt={cocktail.name}
           className="rounded-xl object-cover w-full h-auto"
         />
-        <p className="text-center mt-4 text-gray-300">{cocktail.comment}</p>
+        <p className="text-center mt-4 text-gray-300 px-2 py-1 bg-white/10 rounded-xl text-sm">
+          {cocktail.comment}
+        </p>
       </div>
     </article>
   );

@@ -34,7 +34,7 @@ export default function RecipeList() {
     return <div className="text-white">레시피가 없습니다</div>;
 
   return (
-    <div className="grid md:grid-cols-4 gap-6 my-4 text-white">
+    <div className="grid md:grid-cols-4 gap-6 my-4 text-white w-[800px]">
       {cocktails.map((c) => (
         <NavLink
           key={c.slug}
