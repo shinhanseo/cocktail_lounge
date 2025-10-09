@@ -57,9 +57,9 @@ export default function CommunityDetail() {
             {post.tags?.map((tag) => (
               <li
                 key={tag}
-                className="px-2 py-1 bg-white/10 rounded-full text-sm"
+                className="px-2 py-1 bg-white/10 rounded-full text-sm hover:scale-105 hover:cursor-pointer"
               >
-                {tag}
+                #{tag}
               </li>
             ))}
           </ul>
