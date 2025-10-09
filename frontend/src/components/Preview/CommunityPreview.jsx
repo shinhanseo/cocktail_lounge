@@ -13,7 +13,9 @@ export default function CommunityPreview() {
       try {
         setLoading(true);
         setError("");
-        const res = await axios.get("http://localhost:4000/api/posts");
+        const res = await axios.get("http://localhost:4000/api/posts/latest", {
+          params: { limit: 5 },
+        });
         setPosts(Array.isArray(res.data?.items) ? res.data.items : []);
       } catch (err) {
         if (err.name !== "CanceledError") {
@@ -31,7 +33,6 @@ export default function CommunityPreview() {
   if (posts.length === 0)
     return <div className="text-white">게시글이 없습니다</div>;
 
-  const latest = posts.slice().reverse().slice(0, 5); // 역으로 5개 복사
   let num = 0;
   return (
     <section className="rounded-2xl border border-white/10 p-5 text-white bg-white/5">
@@ -46,7 +47,7 @@ export default function CommunityPreview() {
       </div>
 
       <ul>
-        {latest.map((p) => (
+        {posts.map((p) => (
           <li
             key={p.id}
             className="py-2 flex items-center gap-3 hover:bg-white/5 hover:rounded-2xl border-b-2 border-white/10"

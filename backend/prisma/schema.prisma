@@ -59,3 +59,12 @@ model Post {
   @@index([date])
   @@index([author])
 }
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String
+  nickname     String
+  createdAt    DateTime  @default(now())
+}
+

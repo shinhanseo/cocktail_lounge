@@ -4,7 +4,24 @@ import prisma from "../db/client.js";
 
 const router = Router();
 
-// ✅ 전체 게시글 목록
+router.get("/latest", async (req, res, next) => {
+  try {
+    const limit = Number(req.query.limit ?? 5);
+    const posts = await prisma.post.findMany({
+      orderBy: { id: "desc" },                 
+      take: limit,                         
+      select: { id: true, title: true, author: true, createdAt: true },
+    }); 
+    const items = posts.map(p => ({
+      id: p.id,
+      title: p.title,
+      user: p.author,
+      createdAt : p.createdAt
+    }));
+    res.json({ items, meta: { total: items.length } });
+  } catch (e) { next(e); }
+});
+
 router.get("/", async (req, res, next) => {
   try {
     const page = Math.max(parseInt(req.query.page ?? "1", 10), 1);
@@ -21,7 +38,6 @@ router.get("/", async (req, res, next) => {
       take: limit,
     });
 
-    // 기존 프론트 포맷에 맞게 필드 매핑
     const items = posts.map((p) => ({
       id: p.id,
       title: p.title,
@@ -67,5 +83,6 @@ router.get("/:id", async (req, res, next) => {
     next(err);
   }
 });
+
 
 export default router;
