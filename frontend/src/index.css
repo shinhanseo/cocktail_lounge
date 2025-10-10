@@ -7,6 +7,18 @@
   --color-button : #ff917D;
   --color-button-hover : #FF6B6B;
   --color-header : #1a1f36;
+  extend: {
+    keyframes: {
+      fadeUp: {
+        '0%': { opacity: '0', transform: 'translateY(30px)' },
+        '100%': { opacity: '1', transform: 'translateY(0)' },
+      },
+    },
+    animation: {
+      fadeUp: 'fadeUp 0.8s ease-out forwards',
+      fadeInUp: 'fadeUp 1s ease-out',
+    },
+  },
 }
 
 @keyframes borderGlow {
