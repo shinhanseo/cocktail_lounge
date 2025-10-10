@@ -10,9 +10,15 @@ export default function Header() {
     <header>
       <nav className="flex items-center justify-between text-white text-sm p-6 border-b border-white/10 bg-white/200">
         {/* 왼쪽 상단 웹 이름 */}
-        <p className="font-bold text-xl text-title">
-          <Link to="/">Cocktail Rounge🍹</Link>
-        </p>
+        <Link
+          to="/"
+          className="relative inline-block font-raleway font-bold uppercase tracking-[4px]
+             text-title transition-all duration-500 hover:text-[#050801] hover:bg-title
+             p-4 hover:rounded-lg cursor-pointer "
+        >
+          <span className="absolute inset-0 border-2 border-title animate-borderGlow rounded-lg"></span>
+          <span className="relative z-10">Cocktail Lounge</span>
+        </Link>
 
         {/* 검색창 */}
         <form className="flex justify-center relative">

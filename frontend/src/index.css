@@ -2,7 +2,7 @@
 
 @theme {
   --color-bg: #0B132B;
-  --color-title: #17BEBB;
+  --color-title: #03e9f4;
   --color-underline : #A8FF60;
   --color-button : #ff917D;
   --color-button-hover : #FF6B6B;
@@ -12,20 +12,19 @@
 @keyframes borderGlow {
   0%, 100% {
     box-shadow:
-      0 0 5px #03e9f4,
-      0 0 25px #03e9f4,
-      0 0 50px #03e9f4,
-      0 0 200px #03e9f4;
+      0 0 3px #03e9f4,
+      0 0 10px #03e9f4,
+      0 0 20px #03e9f4;
   }
   50% {
     box-shadow:
-      0 0 10px #03e9f4,
-      0 0 40px #03e9f4,
-      0 0 80px #03e9f4,
-      0 0 300px #03e9f4;
+      0 0 5px #03e9f4,
+      0 0 15px #03e9f4,
+      0 0 30px #03e9f4;
   }
 }
 
+
 .animate-borderGlow {
-  animation: borderGlow 2s linear infinite;
+  animation: borderGlow 3s linear infinite;
 }

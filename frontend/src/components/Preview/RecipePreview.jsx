@@ -42,7 +42,11 @@ export default function RecipePreView() {
   if (cocktails.length === 0)
     return <div className="text-white">레시피가 없습니다</div>;
   return (
-    <section className="rounded-2xl border border-white/10 p-5 text-white bg-white/5">
+    <section
+      className="rounded-2xl border border-white/10 p-5 text-white bg-white/5 
+             shadow-[0_4px_10px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.4)] 
+             transition-shadow duration-300"
+    >
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-xl font-bold">🍸 오늘의 추천 한잔</h2>
         <NavLink

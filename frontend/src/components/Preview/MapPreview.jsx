@@ -3,7 +3,11 @@ import RamdomBarList from "@/components/Map/RamdomBarList";
 
 export default function MapPreView() {
   return (
-    <section className="rounded-2xl border border-white/10 p-5 bg-white/5">
+    <section
+      className="rounded-2xl border border-white/10 p-5 text-white bg-white/5 
+               shadow-[0_4px_10px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.4)] 
+               transition-shadow duration-300"
+    >
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl font-bold">🗺️ 칵테일여지도</h2>
         <NavLink
