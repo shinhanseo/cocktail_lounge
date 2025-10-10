@@ -7,7 +7,7 @@ export default function CommunityButton() {
   };
 
   return (
-    <form onSubmit={addPost} className="mb-4 text-right mr-8">
+    <form onSubmit={addPost} className="text-right mr-8">
       <button
         type="submit"
         className="text-white ml-5 p-2 bg-white rounded-full hover:scale-110 hover:cursor-pointer"

@@ -1,9 +1,11 @@
 export default function CommunityHeader() {
   return (
     <li
-      className="grid grid-cols-[80px_1fr_140px_120px] sm:grid-cols-[80px_1fr_140px_120px]
-                 font-bold text-2xl border-white/10 border-b-4 p-2 text-center
-                 sticky top-0 bg-header"
+      className="grid grid-cols-[70px_1fr_140px_120px]
+                 font-semibold text-sm sm:text-base text-white/80
+                 border-b border-white/10 px-6 py-3 text-center
+                 sticky top-0 bg-white/10 backdrop-blur-[4px]
+                 shadow-[0_2px_8px_rgba(0,0,0,0.25)] z-10"
     >
       <div className="text-center">No.</div>
       <div className="text-left pl-2">제목</div>
