@@ -44,7 +44,7 @@ export default function RecipePreView() {
   return (
     <section className="rounded-2xl border border-white/10 p-5 text-white bg-white/5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-xl font-bold">오늘의 추천 한잔</h2>
+        <h2 className="text-xl font-bold">🍸 오늘의 추천 한잔</h2>
         <NavLink
           to="/recipe"
           className="text-sm underline underline-offset-4 decoration-2 decoration-underline hover:font-bold"
@@ -52,19 +52,22 @@ export default function RecipePreView() {
           더보기 →
         </NavLink>
       </div>
-      <div className="rounded-2xl border border-white/10 bg-white/5 text-center w-[200px] mx-auto mt-4 hover:scale-105">
-        <NavLink
-          key={cocktail.slug}
-          to={`/cocktails/${cocktail.slug}`}
-          state={{ cocktails: cocktail }}
-        >
-          <img
-            src={cocktail.image}
-            alt={cocktail.name}
-            className="w-full h-40 object-cover rounded-t-2xl"
-          />
-          <p className="my-auto">{cocktail.name}</p>
-        </NavLink>
+      <div className="flex gap-6 justify-center mt-6">
+        <div className="bg-white/10 rounded-2xl p-4 w-[200px] hover:scale-105 transition-all cursor-pointer">
+          <NavLink
+            key={cocktail.slug}
+            to={`/cocktails/${cocktail.slug}`}
+            state={{ cocktails: cocktail }}
+          >
+            <img
+              src={cocktail.image}
+              alt={cocktail.name}
+              className="rounded-xl object-fill h-36 w-full"
+            />
+          </NavLink>
+          <h3 className="text-m font-semibold mt-2">{cocktail.name}</h3>
+          <p className="text-sm text-white/70">{cocktail.comment}</p>
+        </div>
       </div>
     </section>
   );

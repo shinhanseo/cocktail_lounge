@@ -3,14 +3,31 @@ import prisma from "../db/client.js";
 
 const router = Router();
 
+router.get("/hot", async (req, res, next) => {
+  try {
+    const limit = Number(req.query.limit ?? 4);
+    const bars = await prisma.bar.findMany({
+      orderBy: { id: "desc" },                 
+      take: limit,                         
+      select: { id: true, name: true, city: true, desc: true },
+    }); 
+    const items = bars.map(b => ({
+      id: b.id,
+      name: b.name,
+      desc: b.desc,
+      city: b.city?.name || null,
+    }));
+    res.json({ items, meta: { total: items.length } });
+  } catch (e) { next(e); }
+});
+
 router.get("/", async (req, res, next) => {
   try {
     const bars = await prisma.bar.findMany({
-      include: { city: true },      // 도시 이름 같이 불러오기
+      include: { city: true }, 
       orderBy: { id: "asc" },
     });
 
-    // 기존 응답 형태 그대로
     res.json({
       items: bars.map(b => ({
         id: b.id,
@@ -58,8 +75,7 @@ router.get("/:city", async (req, res, next) => {
         phone: b.phone,
         website: b.website,
         desc: b.desc,
-        image: b.image,
-      })),
+       })),
       meta: { total: bars.length },
     });
   } catch (err) {

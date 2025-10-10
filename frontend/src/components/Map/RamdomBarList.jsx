@@ -12,7 +12,9 @@ export default function RamdomBarList() {
       try {
         setLoading(true);
         setError("");
-        const res = await axios.get(`http://localhost:4000/api/bars`);
+        const res = await axios.get("http://localhost:4000/api/bars/hot", {
+          params: { limit: 4 },
+        });
         setBars(Array.isArray(res.data?.items) ? res.data.items : []);
       } catch (err) {
         if (err.name === "CanceledError" || err.code === "ERR_CANCELED") {
@@ -26,15 +28,13 @@ export default function RamdomBarList() {
     fetchBar();
   }, []);
 
-  const popularBars = bars.slice(0, 3);
-
   if (loading) return <div className="text-white p-8">불러오는 중...</div>;
   if (error) return <div className="text-red-400 p-8">{error}</div>;
   if (!bars)
     return <div className="text-white p-8">정보를 찾을 수 없습니다.</div>;
   return (
     <>
-      {popularBars.map((bar) => (
+      {bars.map((bar) => (
         <NavLink
           key={bar.id}
           to={`/bars/${bar.city}`}
