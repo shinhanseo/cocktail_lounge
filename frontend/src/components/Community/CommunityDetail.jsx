@@ -4,15 +4,16 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function CommunityDetail() {
-  const { id } = useParams(); // URL에서 id 추출
-  const [post, setPost] = useState(null); // 게시글 데이터
-  const [loading, setLoading] = useState(true); // 로딩 상태
-  const [error, setError] = useState(""); // 에러 메시지
+  const { id } = useParams();
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
         setLoading(true);
+        setError("");
         const res = await axios.get(`http://localhost:4000/api/posts/${id}`);
         setPost(res.data);
       } catch (err) {
@@ -21,21 +22,30 @@ export default function CommunityDetail() {
         setLoading(false);
       }
     };
-
     fetchPost();
   }, [id]);
 
-  // 로딩/에러/데이터 상태에 따라 분기 렌더링
-  if (loading) return <div className="text-white p-8">불러오는 중...</div>;
+  if (loading)
+    return (
+      <article className="w-full max-w-[960px] mx-auto mt-12 p-8 rounded-2xl bg-white/5 border border-white/10 text-white animate-pulse">
+        불러오는 중...
+      </article>
+    );
   if (error) return <div className="text-red-400 p-8">{error}</div>;
   if (!post)
     return <div className="text-white p-8">게시글을 찾을 수 없습니다.</div>;
 
   return (
-    <article className="w-full max-w-[960px] border border-white/10 text-white bg-white/5 rounded-2xl mx-auto p-6 mt-12">
-      <div className="flex justify-between items-start">
-        {/* 왼쪽 영역: 제목, 작성자, 작성일 */}
-        <div>
+    <article
+      className="w-full max-w-[960px] mx-auto mt-12 p-8 md:p-10
+                 rounded-2xl bg-white/5 border border-white/10 text-white
+                 shadow-[0_6px_20px_rgba(0,0,0,.35)] hover:shadow-[0_12px_28px_rgba(0,0,0,.45)]
+                 transition-shadow duration-300 backdrop-blur-[2px]"
+    >
+      {/* 상단: 좌 타이틀/메타, 우 태그 */}
+      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        {/* 왼쪽 */}
+        <div className="min-w-0">
           <NavLink
             to="/community"
             className="text-sm text-white/70 hover:font-bold"
@@ -43,31 +53,42 @@ export default function CommunityDetail() {
             ← 목록으로
           </NavLink>
 
-          <section className="text-3xl mt-2">{post.title}</section>
-          <section className="text-gray-500 text-sm">
-            작성자 : {post.user}
-          </section>
-          <section className="text-gray-500 text-sm">{post.date}</section>
+          <h1 className="mt-2 text-2xl md:text-3xl font-extrabold tracking-tight break-words">
+            {post.title}
+          </h1>
+
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-white/60">
+            <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10">
+              작성자 · {post.user}
+            </span>
+            <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10">
+              {post.date}
+            </span>
+          </div>
         </div>
 
-        {/* 오른쪽 영역: 태그 */}
-        <div>
-          <h2 className="text-xl mb-2">태그</h2>
-          <ul className="flex gap-2 flex-wrap justify-end">
+        {/* 오른쪽: 태그 */}
+        <aside className="md:text-right">
+          <h2 className="text-base font-semibold mb-2 text-white/80">태그</h2>
+          <ul className="flex flex-wrap gap-2 md:justify-end">
             {post.tags?.map((tag) => (
               <li
                 key={tag}
-                className="px-2 py-1 bg-white/10 rounded-full text-sm hover:scale-105 hover:cursor-pointer"
+                className="px-2 py-1 bg-white/10 border border-white/10 rounded-full text-sm
+                           hover:bg-white/15 hover:scale-105 transition-transform"
               >
                 #{tag}
               </li>
-            ))}
+            )) || <li className="text-white/50 text-sm">태그 없음</li>}
           </ul>
-        </div>
+        </aside>
       </div>
 
+      {/* 구분선 */}
+      <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+
       {/* 본문 */}
-      <div className="mt-6 font-bold">{post.body}</div>
+      <div className="leading-relaxed text-white/95">{post.body}</div>
     </article>
   );
 }
