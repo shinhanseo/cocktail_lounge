@@ -4,7 +4,6 @@ import prisma from "../db/client.js";
 
 const router = Router();
 
-// ✅ 전체 칵테일 목록
 router.get("/", async (req, res, next) => {
   try {
     const cocktails = await prisma.cocktail.findMany({
@@ -20,7 +19,6 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-// ✅ 개별 칵테일 (slug로 조회)
 router.get("/:slug", async (req, res, next) => {
   try {
     const slug = req.params.slug;

@@ -7,36 +7,49 @@
   --color-button : #ff917D;
   --color-button-hover : #FF6B6B;
   --color-header : #1a1f36;
-  extend: {
-    keyframes: {
-      fadeUp: {
-        '0%': { opacity: '0', transform: 'translateY(30px)' },
-        '100%': { opacity: '1', transform: 'translateY(0)' },
-      },
-    },
-    animation: {
-      fadeUp: 'fadeUp 0.8s ease-out forwards',
-      fadeInUp: 'fadeUp 1s ease-out',
-    },
-  },
 }
 
-@keyframes borderGlow {
+@keyframes neonGlow {
   0%, 100% {
-    box-shadow:
-      0 0 3px #03e9f4,
-      0 0 10px #03e9f4,
-      0 0 20px #03e9f4;
+    opacity: 1;
+    text-shadow:
+      0 0 6px #17BEBB,
+      0 0 12px #8B5CF6,
+      0 0 24px #17BEBB,
+      0 0 48px #8B5CF6;
   }
   50% {
-    box-shadow:
-      0 0 5px #03e9f4,
-      0 0 15px #03e9f4,
-      0 0 30px #03e9f4;
+    opacity: 0.85;
+    text-shadow:
+      0 0 3px #17BEBB,
+      0 0 8px #8B5CF6,
+      0 0 16px #17BEBB,
+      0 0 24px #8B5CF6;
   }
 }
 
-
-.animate-borderGlow {
-  animation: borderGlow 3s linear infinite;
+.animate-neonGlow {
+  animation: neonGlow 4s ease-in-out infinite;
 }
+
+@keyframes footerGlow {
+  0%, 100% {
+    opacity: 1;
+    text-shadow:
+      0 0 4px #17BEBB,
+      0 0 10px #8B5CF6,
+      0 0 20px #17BEBB;
+  }
+  50% {
+    opacity: 0.9;
+    text-shadow:
+      0 0 2px #17BEBB,
+      0 0 6px #8B5CF6,
+      0 0 10px #17BEBB;
+  }
+}
+
+.animate-footerGlow {
+  animation: footerGlow 6s ease-in-out infinite;
+}
+

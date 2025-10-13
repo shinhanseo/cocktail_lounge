@@ -12,7 +12,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 절대경로 지정 (OneDrive 경로 꼬임 방지)
 app.use(
   "/static",
   express.static("C:/Users/imkar/OneDrive/바탕 화면/Project/backend/public")

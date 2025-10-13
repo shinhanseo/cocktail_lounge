@@ -30,7 +30,7 @@ export default function CommunityList() {
         setLoading(true);
         setError("");
         const res = await axios.get("/api/posts", {
-          params: { page, limit }, // limit 하드코딩 X
+          params: { page, limit },
         });
         if (ignore) return;
         setItems(Array.isArray(res.data?.items) ? res.data.items : []);
@@ -118,7 +118,7 @@ export default function CommunityList() {
           onClick={() => goPage(meta.page - 1)}
           disabled={!meta.hasPrev}
           className="px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
-                     disabled:opacity-40 hover:bg-white/10 transition-colors"
+                     disabled:opacity-40 hover:bg-white/10 transition-colors hover:cursor-pointer"
         >
           ← 이전
         </button>
@@ -131,7 +131,7 @@ export default function CommunityList() {
           onClick={() => goPage(meta.page + 1)}
           disabled={!meta.hasNext}
           className="px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
-                     disabled:opacity-40 hover:bg-white/10 transition-colors"
+                     disabled:opacity-40 hover:bg-white/10 transition-colors hover:cursor-pointer"
         >
           다음 →
         </button>
