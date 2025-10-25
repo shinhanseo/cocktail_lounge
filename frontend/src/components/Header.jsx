@@ -1,7 +1,7 @@
 import HeaderLogin from "@/components/Header/HeaderLogin";
 import HeaderList from "@/components/Header/HeaderList";
 import HeaderSearch from "@/components/Header/HeaderSerach";
-import HeaderTitle from "./Header/HeaderTitle";
+import HeaderTitle from "@/components/Header/HeaderTitle";
 
 export default function Header() {
   return (

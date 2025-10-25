@@ -75,7 +75,7 @@ export default function CommunityDetail() {
               <li
                 key={tag}
                 className="px-2 py-1 bg-white/10 border border-white/10 rounded-full text-sm
-                           hover:bg-white/15 hover:scale-105 transition-transform"
+                           hover:bg-white/15 hover:scale-105 transition-transform hover:cursor-pointer"
               >
                 #{tag}
               </li>

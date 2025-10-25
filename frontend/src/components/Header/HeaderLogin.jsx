@@ -35,7 +35,7 @@ export default function HeaderLogin() {
         imkara
       </button>
 
-      {/* 드롭다운 메뉴 (위쪽으로 뜨게) */}
+      {/* 드롭다운 메뉴 */}
       {open && (
         <div
           className="absolute top-full mb-2 right-0 w-32 bg-[#1e293b] border border-white/20 rounded-xl
@@ -48,7 +48,7 @@ export default function HeaderLogin() {
             마이페이지
           </Link>
           <button
-            onClick={() => alert("로그아웃")}
+            onClick={() => setLogin(false)}
             className="block w-full text-left px-4 py-2 hover:bg-[#334155] rounded-b-xl"
           >
             로그아웃
