@@ -9,8 +9,6 @@ const pool =
   globalForPg.pgPool ||
   new Pool({
     connectionString: process.env.DATABASE_URL,
-    // 클라우드(railway, supabase 등)면 필요할 수 있음
-    // ssl: { rejectUnauthorized: false },
   });
 
 if (process.env.NODE_ENV !== 'production') globalForPg.pgPool = pool;

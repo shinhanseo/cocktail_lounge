@@ -51,8 +51,8 @@ router.get('/', async (req, res, next) => {
         address: b.address,
         phone: b.phone,
         website: b.website,
-        desc: b.comment ?? null,   // ← bars.comment 를 desc로 매핑
-        image: null,               // 스키마에 image 없음. 있으면 b.image
+        desc: b.comment ?? null,   
+        image: null,              
       })),
       meta: { total: rows.length },
     });

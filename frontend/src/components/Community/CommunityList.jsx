@@ -68,8 +68,15 @@ export default function CommunityList() {
   if (error) return <div className="text-red-400 p-6">{error}</div>;
   if (!items.length) {
     return (
-      <section className="w-full max-w-[960px] mx-auto mt-12 text-white bg-white/5 border border-white/10 rounded-2xl p-6 shadow-[0_6px_20px_rgba(0,0,0,.35)]">
-        게시글이 없습니다.
+      <section
+        className="w-full max-w-[960px] mx-auto mt-4 text-white bg-white/5 border border-white/10
+                 rounded-2xl shadow-[0_6px_20px_rgba(0,0,0,.35)] hover:shadow-[0_12px_28px_rgba(0,0,0,.45)]
+                 transition-shadow duration-300"
+      >
+        <div className="flex items-center justify-between px-6 py-4">
+          <h2 className="text-xl font-bold">💬 커뮤니티 게시글 목록</h2>
+          <span className="text-sm text-white/70">총 0개 게시글</span>
+        </div>
       </section>
     );
   }

@@ -6,17 +6,15 @@ import MapCard from "@/components/Map/MapCard";
 export default function BarDetail() {
   const { city } = useParams();
 
-  const [bars, setBars] = useState([]); // ← 바 목록 (서버에서 수신)
+  const [bars, setBars] = useState([]);
   const [selectedBar, setSelectedBar] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // 도시 바뀌면 선택 초기화
   useEffect(() => {
     setSelectedBar(null);
   }, [city]);
 
-  // 서버에서 해당 도시의 바 목록 로드
   useEffect(() => {
     const fetchBar = async () => {
       try {
@@ -25,8 +23,7 @@ export default function BarDetail() {
         const res = await axios.get(`http://localhost:4000/api/bars`);
         setBars(Array.isArray(res.data?.items) ? res.data.items : []);
       } catch (err) {
-        if (err.name === "CanceledError" || err.code === "ERR_CANCELED") {
-        } else {
+        if (!(err.name === "CanceledError" || err.code === "ERR_CANCELED")) {
           setError("Bar를 불러오는 중 오류가 발생했습니다.");
         }
       } finally {
@@ -63,7 +60,7 @@ export default function BarDetail() {
     <div className="w-full mt-12">
       {/* 제목 */}
       <div className="w-full text-white text-center mb-6">
-        <h2 className="text-2xl font-bold">{city}</h2>
+        <h2 className="text-3xl font-bold">{city}</h2>
       </div>
 
       <div className="mb-4">
@@ -87,27 +84,30 @@ export default function BarDetail() {
         {/* 오른쪽: 리스트 */}
         <aside className="w-[600px] shrink-0 text-white">
           <ul className="mr-12 h-[500px] overflow-y-auto overflow-x-hidden">
-            {/* 헤더 */}
-            <li className="grid grid-cols-[200px_1fr] font-bold text-2xl border-white/10 border-b-4 pb-2 mb-2 text-center sticky top-0 bg-header">
-              <div>매장명</div>
-              <div>위치</div>
+            <li className="grid grid-cols-[200px_1fr] font-bold text-2xl border-white/10 border-b-4 pb-2 mb-2 text-center sticky top-0 backdrop-blur">
+              <div className="mt-2">매장명</div>
+              <div className="mt-2">위치</div>
             </li>
 
-            {filteredBars.map((b) => (
-              <li
-                key={b.id}
-                className="grid grid-cols-[200px_1fr] border-white/10 border-b-4 py-2 hover:bg-white/5"
-              >
-                <button
-                  type="button"
-                  className="text-center cursor-pointer hover:text-teal-400 transition-colors"
-                  onClick={() => handleBarSelect(b)}
+            {filteredBars.map((b) => {
+              const isActive = selectedBar && selectedBar.id === b.id;
+              return (
+                <li
+                  key={b.id}
+                  className="grid grid-cols-[200px_1fr] border-white/10 border-b-4 py-2 px-2 transition"
                 >
-                  {b.name}
-                </button>
-                <div className="text-center">{b.address}</div>
-              </li>
-            ))}
+                  <button
+                    type="button"
+                    className="text-center cursor-pointer transition-colors font-medium"
+                    onClick={() => handleBarSelect(b)}
+                  >
+                    {b.name}
+                    {isActive && "📍 "}
+                  </button>
+                  <div className="text-center">{b.address}</div>
+                </li>
+              );
+            })}
           </ul>
         </aside>
       </div>

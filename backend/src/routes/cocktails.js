@@ -13,7 +13,7 @@ router.get("/", async (req, res, next) => {
       `SELECT
          id,
          name,
-         COALESCE(slug, id::text) AS slug,   -- ✅ slug 없으면 id로 대체
+         COALESCE(slug, id::text) AS slug,  
          abv,
          tags,
          ingredients,
@@ -21,7 +21,7 @@ router.get("/", async (req, res, next) => {
          image,
          comment
        FROM cocktails
-       ORDER BY id ASC`
+       ORDER BY id DESC`
     );
 
     res.json({ items, meta: { total: items.length } });

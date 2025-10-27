@@ -5,7 +5,7 @@ import TodayPreview from "@/components/Preview/TodayPreview";
 // 첫 홈 화면
 export default function Home() {
   return (
-    <main className="px-auto mt-12 text-white max-w-6xl mx-auto">
+    <main className="px-auto mt-12 text-white max-w-6xl mx-auto w-[900px]">
       <div className="grid md:grid-rows-2 md:grid-cols-2 gap-6">
         {/* 2사분면: 컨텐츠 예정 */}
         <TodayPreview />

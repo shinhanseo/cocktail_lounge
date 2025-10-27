@@ -6,7 +6,7 @@ export default function Login() {
     <main>
       <div className="w-100 h-70 border border-white/10 text-white bg-white/5 rounded-4xl">
         <p className="font-bold text-3xl text-[#17BEBB] text-center pt-5">
-          CockTail Rounge🍹
+          Login
         </p>
         <form className="text-center mt-4 text-gray-900 placeholder-gray-500">
           {/* 아이디 입력  */}
