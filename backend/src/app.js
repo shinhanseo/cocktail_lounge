@@ -19,6 +19,7 @@ app.use(cors({
   origin: "http://localhost:5173", // 프런트 주소 정확히
   credentials: true,               // 쿠키 주고받기 허용
 }));
+
 app.use(cookieParser());
 app.use(express.json());
 app.get("/healthz", (_, res) => res.send("ok"));

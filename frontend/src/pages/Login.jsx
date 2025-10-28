@@ -44,7 +44,7 @@ export default function Login() {
 
       setUser(res.data.user);
 
-      navigate("/"); // 홈으로
+      navigate("/");
     } catch (error) {
       const serverMsg =
         error?.response?.data?.message ||

@@ -14,6 +14,7 @@ import Recipe from "@/pages/Recipe";
 import RecipeDetail from "@/components/Recipe/RecipeDetail";
 import Map from "@/pages/Map";
 import BarDetail from "@/components/Map/BarDetail";
+import CommunityWriting from "@/components/Community/CommunityWriting";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -31,6 +32,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="recipe" element={<Recipe />} />
             <Route path="cocktails/:slug" element={<RecipeDetail />} />
             <Route path="bars/:city" element={<BarDetail />} />
+            <Route path="communitywriting" element={<CommunityWriting />} />
           </Route>
         </Route>
       </Routes>

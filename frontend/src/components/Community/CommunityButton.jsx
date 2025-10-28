@@ -1,23 +1,34 @@
 import postButton from "../../assets/post.jpg";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function CommunityButton() {
-  const addPost = (e) => {
+  const user = useAuthStore((s) => s.user);
+  const isLoggedIn = !!user;
+  const navigate = useNavigate();
+
+  const onClick = (e) => {
     e.preventDefault();
-    // 글 작성 로직 추가 예정
+    if (isLoggedIn) {
+      navigate("/communitywriting");
+    } else {
+      alert("로그인 상태여야 가능합니다.");
+      navigate("/login");
+    }
   };
 
   return (
-    <form onSubmit={addPost} className="text-right mr-8">
+    <div className="text-right mr-8">
       <button
-        type="submit"
+        onClick={onClick}
         className="text-white ml-5 p-2 bg-white rounded-full hover:scale-110 hover:cursor-pointer"
       >
         <img
           src={postButton}
           alt="글쓰기 버튼"
           className="w-6 h-6 object-cover"
-        ></img>
+        />
       </button>
-    </form>
+    </div>
   );
 }

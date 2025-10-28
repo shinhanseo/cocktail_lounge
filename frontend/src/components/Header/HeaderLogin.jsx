@@ -56,7 +56,7 @@ export default function HeaderLogin() {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        {user.name || user.login_id}
+        {user.login_id}
       </button>
 
       {open && (
@@ -75,7 +75,7 @@ export default function HeaderLogin() {
           </Link>
           <button
             onClick={onLogout}
-            className="block w-full text-left px-4 py-2 hover:bg-[#334155] rounded-b-xl"
+            className="block w-full text-left px-4 py-2 hover:bg-[#334155] hover:cursor-pointer rounded-b-xl"
             role="menuitem"
           >
             로그아웃

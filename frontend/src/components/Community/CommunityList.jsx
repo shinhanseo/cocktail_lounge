@@ -10,7 +10,6 @@ export default function CommunityList() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Number(searchParams.get("page") ?? 1);
   const limit = Number(searchParams.get("limit") ?? 10);
-
   const [items, setItems] = useState([]);
   const [meta, setMeta] = useState({
     total: 0,
@@ -96,13 +95,13 @@ export default function CommunityList() {
       <ul className="divide-y divide-white/10">
         <CommunityHeader />
 
-        {items.map((p) => (
+        {items.map((p, idx) => (
           <li
             key={p.id}
             className="grid grid-cols-[70px_1fr_140px_120px] items-center px-6 py-3
                        hover:bg-white/10 transition-colors"
           >
-            <div className="text-center text-white/70">{p.id}</div>
+            <div className="text-center text-white/70">{idx + 1}</div>
 
             <NavLink
               to={`/posts/${p.id}`}

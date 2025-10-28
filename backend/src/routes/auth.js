@@ -57,7 +57,7 @@ router.post("/login", async (req, res) => {
     }
 
     // 3) JWT 생성 (7일)
-    const payload = { uid: user.id, login_id: user.login_id, name: user.name };
+    const payload = { id: user.id, login_id: user.login_id, name: user.name };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 
     // 4) HttpOnly 쿠키로 내려줌

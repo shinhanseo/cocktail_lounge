@@ -1,8 +1,20 @@
 // backend/src/routes/posts.js
 import { Router } from "express";
 import db from "../db/client.js";
+import { z } from "zod";
 
 const router = Router();
+
+/* ===============================
+   유효성 스키마
+================================*/
+const CreatePostSchema = z.object({
+  // 세션에서 user_id를 읽는 게 정석이지만, 임시로 body.user_id도 허용
+  user_id: z.number().int().positive().optional(),
+  title: z.string().trim().min(1).max(200),
+  body: z.string().trim().min(1),
+  tags: z.array(z.string().trim().min(1).max(50)).max(10).optional().default([]),
+});
 
 /* ===============================
    GET /posts/latest?limit=5
@@ -112,6 +124,34 @@ router.get("/:id", async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+});
+
+router.post("/", async (req, res) => {
+  try {
+    const parsed = CreatePostSchema.parse(req.body);
+    const userId = req.user?.id ?? parsed.user_id;
+    if (!userId) return res.status(401).json({ message: "로그인이 필요합니다." });
+
+    const rows = await db.query(
+      `
+      INSERT INTO posts (user_id, title, body, tags)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, user_id, title, body, tags, created_at, updated_at, "like"
+      `,
+      [userId, parsed.title, parsed.body, parsed.tags]
+    );
+
+    return res.status(201).json({ post: rows[0] });
+  } catch (err) {
+    if (err?.issues) {
+      return res.status(400).json({ message: err.issues[0].message });
+    }
+    if (err?.code === "23503") {
+      return res.status(400).json({ message: "존재하지 않는 사용자입니다." });
+    }
+    console.error("[POST /api/posts] error:", err);
+    return res.status(500).json({ message: "서버 오류가 발생했습니다." });
   }
 });
 
