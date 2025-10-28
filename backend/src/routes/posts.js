@@ -13,7 +13,7 @@ router.get("/latest", async (req, res, next) => {
     const limit = Number(req.query.limit ?? 5);
 
     const rows = await db.query(
-      `SELECT p.id, p.title, u.nickname AS author, p.created_at
+      `SELECT p.id, p.title, u.login_id AS author, p.created_at
        FROM posts p
        LEFT JOIN users u ON u.id = p.user_id
        ORDER BY p.id DESC
@@ -50,7 +50,7 @@ router.get("/", async (req, res, next) => {
 
     // 게시글 조회
     const rows = await db.query(
-      `SELECT p.id, p.title, u.nickname AS author, p.created_at, p.tags, p.body
+      `SELECT p.id, p.title, u.login_id AS author, p.created_at, p.tags, p.body
        FROM posts p
        LEFT JOIN users u ON u.id = p.user_id
        ORDER BY p.id DESC
@@ -92,7 +92,7 @@ router.get("/:id", async (req, res, next) => {
     const id = req.params.id;
 
     const rows = await db.query(
-      `SELECT p.id, p.title, u.nickname AS author, p.created_at, p.tags, p.body
+      `SELECT p.id, p.title, u.login_id AS author, p.created_at, p.tags, p.body
        FROM posts p
        LEFT JOIN users u ON u.id = p.user_id
        WHERE p.id = $1`,

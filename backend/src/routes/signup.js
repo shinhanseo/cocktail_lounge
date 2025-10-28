@@ -29,11 +29,6 @@ router.post("/", async(req, res) => {
     return res.status(201).json({ user: rows[0] }); 
   }
   catch (err) {
-
-    if (err?.issues) {
-      return res.status(400).json({ message: err.issues[0].message });
-    }
-  
     if (err?.code === "23505") {
       const msg =
         err.constraint?.includes("users_login_id_key")

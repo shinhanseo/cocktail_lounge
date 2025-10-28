@@ -1,8 +1,10 @@
 // 회원가입 페이지
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function SignUp() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     id: "",
     password: "",
@@ -48,9 +50,11 @@ export default function SignUp() {
         birthday: form.birthday,
         phone: form.phone,
       });
-      alert("전송");
-    } catch (err) {
-      console.error(err);
+      alert("회원가입 완료!");
+      navigate("/login");
+    } catch (error) {
+      const msg = error.response?.data?.message || "회원가입에 실패했습니다.";
+      alert(msg);
     } finally {
       setLoading(false);
     }
