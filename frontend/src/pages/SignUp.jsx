@@ -13,6 +13,19 @@ export default function SignUp() {
 
   const [loading, setLoading] = useState(false);
 
+  const validate = () => {
+    if (
+      !/^[a-zA-Z0-9_]{4,20}$/.test(form.id) ||
+      !/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/.test(form.password) ||
+      !form.name.trim() ||
+      !/^\d{8}$/.test(form.birthday) ||
+      !/^\d{9,15}$/.test(form.phone)
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -20,26 +33,41 @@ export default function SignUp() {
 
   const onSubmit = async (e) => {
     e.preventDefault(); // 새로고침 방지
+
+    if (validate()) {
+      alert("회원가입 형식을 지켜야 합니다.");
+      return;
+    }
+
     try {
       setLoading(true);
-      // TODO: 실제 API 호출
-      // await axios.post("http://localhost:4000/api/auth/signup", { ... });
-      console.log("submit!", form);
-      alert("제출 테스트: 콘솔 확인");
+      await axios.post("http://localhost:4000/api/signup", {
+        login_id: form.id,
+        password: form.password,
+        name: form.name,
+        birthday: form.birthday,
+        phone: form.phone,
+      });
+      alert("전송");
     } catch (err) {
       console.error(err);
-      alert("에러가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <main>
       <div className="w-100 h-120 border border-white/10 text-white bg-white/5 rounded-4xl mt-12">
-        <p className="font-bold text-3xl text-[#17BEBB] text-center pt-5 mb-3">
+        <p className="font-bold text-3xl text-title text-center pt-5 mb-3">
           CockTail Rounge🍹
         </p>
-        <form className="text-gray-900 placeholder-gray-500">
+
+        <form
+          className="text-gray-900 placeholder-gray-500"
+          onSubmit={onSubmit}
+          noValidate
+        >
           {/* 아이디 */}
           <div className="flex flex-col items-start mx-10">
             <label className="block font-bold text-white">아이디</label>
@@ -51,9 +79,11 @@ export default function SignUp() {
               value={form.id}
               onChange={onChange}
               className="w-80 bg-white rounded-lg px-3 py-2"
-            ></input>
-            <div className="text-xs text-red">
-              아이디는 4~20자 영문/숫자/밑줄만 가능합니다.
+            />
+            <div className="text-xs text-button">
+              {form.id.length > 0 && !/^[a-zA-Z0-9_]{4,20}$/.test(form.id)
+                ? "아이디는 4~20자 영문/숫자/밑줄만 가능합니다."
+                : ""}
             </div>
           </div>
 
@@ -68,7 +98,15 @@ export default function SignUp() {
               value={form.password}
               onChange={onChange}
               className="w-80 bg-white rounded-lg px-3 py-2"
-            ></input>
+            />
+            <div className="text-xs text-button">
+              {form.password.length > 0 &&
+              !/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/.test(
+                form.password
+              )
+                ? "8자 이상, 영문·숫자·특수문자를 포함해야 합니다."
+                : ""}
+            </div>
           </div>
 
           {/* 이름 */}
@@ -82,7 +120,7 @@ export default function SignUp() {
               value={form.name}
               onChange={onChange}
               className="w-80 bg-white rounded-lg px-3 py-2"
-            ></input>
+            />
           </div>
 
           {/* 생년월일 */}
@@ -96,7 +134,12 @@ export default function SignUp() {
               value={form.birthday}
               onChange={onChange}
               className="w-80 bg-white rounded-lg px-3 py-2"
-            ></input>
+            />
+            <div className="text-xs text-button">
+              {form.birthday.length > 0 && !/^\d{8}$/.test(form.birthday)
+                ? "생년월일은 YYYYMMDD 형식의 8자리 숫자여야 합니다."
+                : ""}
+            </div>
           </div>
 
           {/* 전화번호 */}
@@ -106,20 +149,29 @@ export default function SignUp() {
               id="phone"
               type="tel"
               name="phone"
-              placeholder="전화번호"
+              placeholder="전화번호 '-' 제외"
               value={form.phone}
               onChange={onChange}
               className="w-80 bg-white rounded-lg px-3 py-2"
-            ></input>
+            />
+            <div className="text-xs text-button">
+              {form.phone.length > 0 && !/^\d{9,15}$/.test(form.phone)
+                ? "전화번호는 숫자 9~15자리여야 합니다. (- 제외)"
+                : ""}
+            </div>
           </div>
 
           {/* 회원가입 버튼 */}
           <div className="text-center">
-            <input
+            <button
               type="submit"
-              value={"회원 가입"}
-              className="text-white w-60 h-10 bg-button mt-4 rounded-2xl hover:bg-button-hover hover:cursor-pointer hover:font-bold"
-            ></input>
+              disabled={loading}
+              className={`text-white w-60 h-10 bg-button mt-4 rounded-2xl hover:bg-button-hover hover:cursor-pointer hover:font-bold ${
+                loading ? "opacity-60 cursor-not-allowed" : ""
+              }`}
+            >
+              {loading ? "처리 중..." : "회원 가입"}
+            </button>
           </div>
         </form>
       </div>

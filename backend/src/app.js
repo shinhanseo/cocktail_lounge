@@ -1,10 +1,10 @@
 import express from "express";
 import cors from "cors";
-import db from "./db/client.js"; // ⬅️ 추가
 import postsRouter from "./routes/posts.js";
 import cocktailsRouter from "./routes/cocktails.js";
 import citysRouter from "./routes/citys.js";
 import barsRouter from "./routes/bars.js";
+import signupRouter from "./routes/signup.js";
 
 const app = express();
 app.use(cors());
@@ -20,6 +20,7 @@ app.use("/api/posts", postsRouter);
 app.use("/api/cocktails", cocktailsRouter);
 app.use("/api/citys", citysRouter);
 app.use("/api/bars", barsRouter);
+app.use("/api/signup", signupRouter);
 
 app.use((req, res) => res.status(404).json({ message: "Not Found" }));
 app.use((err, req, res, next) => {
