@@ -15,7 +15,7 @@ router.get("/latest", async (req, res, next) => {
     const rows = await db.query(
       `SELECT p.id, p.title, u.nickname AS author, p.created_at
        FROM posts p
-       LEFT JOIN users u ON u.id = p.author_id
+       LEFT JOIN users u ON u.id = p.user_id
        ORDER BY p.id DESC
        LIMIT $1`,
       [limit]
@@ -52,7 +52,7 @@ router.get("/", async (req, res, next) => {
     const rows = await db.query(
       `SELECT p.id, p.title, u.nickname AS author, p.created_at, p.tags, p.body
        FROM posts p
-       LEFT JOIN users u ON u.id = p.author_id
+       LEFT JOIN users u ON u.id = p.user_id
        ORDER BY p.id DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset]
@@ -94,7 +94,7 @@ router.get("/:id", async (req, res, next) => {
     const rows = await db.query(
       `SELECT p.id, p.title, u.nickname AS author, p.created_at, p.tags, p.body
        FROM posts p
-       LEFT JOIN users u ON u.id = p.author_id
+       LEFT JOIN users u ON u.id = p.user_id
        WHERE p.id = $1`,
       [id]
     );

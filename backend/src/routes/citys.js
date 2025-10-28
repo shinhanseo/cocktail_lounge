@@ -10,7 +10,7 @@ router.get("/", async (req, res, next) => {
     const rows = await db.query(
       `SELECT id, name, image
        FROM cities
-       ORDER BY id DESC`
+       ORDER BY id ASC`
     );
 
     const items = rows.map(c => ({

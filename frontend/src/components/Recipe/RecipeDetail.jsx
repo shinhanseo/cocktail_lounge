@@ -116,7 +116,7 @@ export default function RecipeDetail() {
           <img
             src={cocktail.image}
             alt={cocktail.name}
-            className="object-cover w-full h-64 md:h-[340px] hover:scale-[1.02] transition-transform"
+            className="object-cover w-full h-64 md:h-[340px]"
           />
         </div>
         {cocktail.comment && (

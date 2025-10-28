@@ -83,28 +83,34 @@ export default function BarDetail() {
 
         {/* 오른쪽: 리스트 */}
         <aside className="w-[600px] shrink-0 text-white">
-          <ul className="mr-12 h-[500px] overflow-y-auto overflow-x-hidden">
-            <li className="grid grid-cols-[200px_1fr] font-bold text-2xl border-white/10 border-b-4 pb-2 mb-2 text-center sticky top-0 backdrop-blur">
-              <div className="mt-2">매장명</div>
-              <div className="mt-2">위치</div>
-            </li>
-
+          <ul className="mr-12 h-[500px] overflow-y-auto overflow-x-hidden space-y-3 pr-2">
             {filteredBars.map((b) => {
               const isActive = selectedBar && selectedBar.id === b.id;
               return (
                 <li
                   key={b.id}
-                  className="grid grid-cols-[200px_1fr] border-white/10 border-b-4 py-2 px-2 transition"
+                  className={`
+                    flex items-center justify-between gap-4 rounded-2xl px-4 py-3
+                    bg-white/5 border border-white/10 shadow-sm
+                    hover:bg-white/10 hover:border-pink-400/60 hover:shadow-pink-400/20
+                    transition-all duration-300 ease-out cursor-pointer
+                    ${
+                      isActive
+                        ? "border-pink-400 bg-pink-500/10 shadow-pink-500/40"
+                        : ""
+                    }
+                  `}
+                  onClick={() => handleBarSelect(b)}
                 >
-                  <button
-                    type="button"
-                    className="text-center cursor-pointer transition-colors font-medium"
-                    onClick={() => handleBarSelect(b)}
-                  >
-                    {b.name}
-                    {isActive && "📍 "}
-                  </button>
-                  <div className="text-center">{b.address}</div>
+                  <div className="flex flex-col text-left w-[200px]">
+                    <span className="font-semibold text-lg">{b.name}</span>
+                    {isActive && (
+                      <span className="text-pink-400 text-sm">📍 선택됨</span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-300 text-right">
+                    {b.address}
+                  </div>
                 </li>
               );
             })}
