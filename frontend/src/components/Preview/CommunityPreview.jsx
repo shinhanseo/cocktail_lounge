@@ -116,7 +116,7 @@ export default function CommunityPreview() {
             </NavLink>
 
             {/* 작성자 (오른쪽 정렬) */}
-            <span className="text-white/70 text-sm w-[90px] text-right">
+            <span className="text-white/70 text-sm w-[90px] text-right truncate overflow-hidden whitespace-nowrap">
               {p.user}
             </span>
           </li>

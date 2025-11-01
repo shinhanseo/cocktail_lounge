@@ -67,7 +67,7 @@ export default function Login() {
 
   return (
     <main>
-      <div className="w-[320px] h-[280px] border border-white/10 text-white bg-white/5 rounded-4xl">
+      <div className="w-[320px] h-[295px] border border-white/10 text-white bg-white/5 rounded-4xl mt-24">
         {" "}
         {/* 로그인 폼 컨테이너 */}
         <p className="font-bold text-3xl text-[#17BEBB] text-center pt-5">
