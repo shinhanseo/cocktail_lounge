@@ -1,21 +1,22 @@
-// 회원가입 페이지
+// src/pages/SignUp.jsx
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// 회원가입 페이지
 export default function SignUp() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    id: "",
-    password: "",
-    name: "",
-    birthday: "",
-    phone: "",
+    id: "", // 아이디
+    password: "", // 비밀번호
+    name: "", // 이름
+    birthday: "", // 생년월일
+    phone: "", // 전화번호
   });
-
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // 로딩 상태
 
   const validate = () => {
+    //  아이디 유효성 검사
     if (
       !/^[a-zA-Z0-9_]{4,20}$/.test(form.id) ||
       !/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/.test(form.password) ||
@@ -23,14 +24,14 @@ export default function SignUp() {
       !/^\d{8}$/.test(form.birthday) ||
       !/^\d{9,15}$/.test(form.phone)
     ) {
-      return true;
+      return true; // 유효하지 않은 경우
     }
-    return false;
+    return false; // 유효한 경우
   };
 
   const onChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value })); // 입력값 업데이트
   };
 
   const onSubmit = async (e) => {
@@ -38,11 +39,11 @@ export default function SignUp() {
 
     if (validate()) {
       alert("회원가입 형식을 지켜야 합니다.");
-      return;
+      return; // 유효하지 않은 경우
     }
 
     try {
-      setLoading(true);
+      setLoading(true); // 로딩 상태 업데이트
       await axios.post("http://localhost:4000/api/signup", {
         login_id: form.id,
         password: form.password,
@@ -66,13 +67,13 @@ export default function SignUp() {
         <p className="font-bold text-3xl text-title text-center pt-5 mb-3">
           CockTail Rounge🍹
         </p>
-
+        {/* 회원가입 폼 */}
         <form
           className="text-gray-900 placeholder-gray-500"
           onSubmit={onSubmit}
           noValidate
         >
-          {/* 아이디 */}
+          {/* 아이디 입력 */}
           <div className="flex flex-col items-start mx-10">
             <label className="block font-bold text-white">아이디</label>
             <input
@@ -91,7 +92,7 @@ export default function SignUp() {
             </div>
           </div>
 
-          {/* 비밀번호 */}
+          {/* 비밀번호 입력 */}
           <div className="flex flex-col items-start mx-10">
             <label className="block font-bold text-white">비밀번호</label>
             <input
@@ -113,7 +114,7 @@ export default function SignUp() {
             </div>
           </div>
 
-          {/* 이름 */}
+          {/* 이름 입력 */}
           <div className="flex flex-col items-start mx-10">
             <label className="block font-bold text-white">이름</label>
             <input
@@ -127,7 +128,7 @@ export default function SignUp() {
             />
           </div>
 
-          {/* 생년월일 */}
+          {/* 생년월일 입력 */}
           <div className="flex flex-col items-start mx-10">
             <label className="block font-bold text-white">생년월일</label>
             <input
@@ -146,7 +147,7 @@ export default function SignUp() {
             </div>
           </div>
 
-          {/* 전화번호 */}
+          {/* 전화번호 입력 */}
           <div className="flex flex-col items-start mx-10">
             <label className="block font-bold text-white">전화번호</label>
             <input
@@ -165,20 +166,22 @@ export default function SignUp() {
             </div>
           </div>
 
-          {/* 회원가입 버튼 */}
+          {/* 회원가입 버튼 클릭 시 회원가입 처리 시작 */}
           <div className="text-center">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading} // 로딩 상태에 따라 버튼 비활성화
               className={`text-white w-60 h-10 bg-button mt-4 rounded-2xl hover:bg-button-hover hover:cursor-pointer hover:font-bold ${
-                loading ? "opacity-60 cursor-not-allowed" : ""
+                loading ? "opacity-60 cursor-not-allowed" : "" // 로딩 상태에 따라 버튼 비활성화
               }`}
             >
-              {loading ? "처리 중..." : "회원 가입"}
+              {loading ? "처리 중..." : "회원 가입"}{" "}
+              {/* 로딩 상태에 따라 버튼 텍스트 변경 */}
             </button>
           </div>
         </form>
-      </div>
+      </div>{" "}
+      {/* 회원가입 폼 컨테이너 */}
     </main>
   );
 }

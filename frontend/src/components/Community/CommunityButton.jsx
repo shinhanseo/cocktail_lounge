@@ -1,3 +1,4 @@
+// 커뮤니티 게시판 상단 글쓰기 버튼튼
 import postButton from "../../assets/post.jpg";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";

@@ -1,3 +1,4 @@
+// main.jsx
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -16,6 +17,7 @@ import Map from "@/pages/Map";
 import BarDetail from "@/components/Map/BarDetail";
 import CommunityWriting from "@/components/Community/CommunityWriting";
 
+// 루트 엘리먼트 렌더링
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>

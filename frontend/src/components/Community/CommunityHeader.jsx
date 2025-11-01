@@ -1,3 +1,4 @@
+// 커뮤니티 게시판 Header 부분분
 export default function CommunityHeader() {
   return (
     <li
