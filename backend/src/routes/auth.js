@@ -53,7 +53,7 @@ router.post("/login", async (req, res) => {
     // 2) 비밀번호 검증
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
-      return res.status(401).json({ message: "아이디 또는 비밀번호가 올바르지 않습니다." });
+      return res.status(401).json({ message: "아이디 또는 비밀번호가 올바르지 않습니다." });S
     }
 
     // 3) JWT 생성 (7일)

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
+import naverLogin from "@/assets/naver.svg";
 
 axios.defaults.withCredentials = true;
 
@@ -28,6 +29,11 @@ export default function Login() {
     if (!form.password) e.password = "비밀번호를 입력하세요.";
     setFieldErr(e);
     return Object.keys(e).length > 0;
+  };
+
+  const handleGoogleLogin = () => {
+    const next = encodeURIComponent("/");
+    window.location.href = `http://localhost:4000/api/oauth/google?next=${next}`;
   };
 
   const onSubmit = async (e) => {
@@ -59,7 +65,7 @@ export default function Login() {
 
   return (
     <main>
-      <div className="w-100 h-75 border border-white/10 text-white bg-white/5 rounded-4xl">
+      <div className="w-[320px] h-[280px] border border-white/10 text-white bg-white/5 rounded-4xl">
         <p className="font-bold text-3xl text-[#17BEBB] text-center pt-5">
           Login
         </p>
@@ -124,6 +130,27 @@ export default function Login() {
             <Link to="/signup">회원가입하기</Link>
           </span>
         </div>
+      </div>
+      <div className="text-white text-center mt-2 mb-4 font-bold text-xl mt-6">
+        간편 로그인
+      </div>
+      <div className="flex justify-center gap-4 border-t border-white/10 pt-4">
+        <button
+          onClick={handleGoogleLogin}
+          className="bg-white border border-gray-300 rounded-lg p-2 shadow flex items-center space-x-3 hover:cursor-pointer hover:scale-105 transition"
+        >
+          <img
+            src="https://developers.google.com/identity/images/g-logo.png"
+            alt="Google logo"
+            className="w-7 h-7"
+          />
+        </button>
+        <button
+          //onClick={handleGoogleLogin}
+          className="bg-white border border-gray-300 rounded-lg p-2 shadow flex items-center space-x-3 hover:cursor-pointer hover:scale-105 transition"
+        >
+          <img src={naverLogin} alt="Naver logo" className="w-7 h-7" />
+        </button>
       </div>
     </main>
   );

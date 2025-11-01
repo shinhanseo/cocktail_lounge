@@ -101,7 +101,9 @@ export default function CommunityList() {
             className="grid grid-cols-[70px_1fr_140px_120px] items-center px-6 py-3
                        hover:bg-white/10 transition-colors"
           >
-            <div className="text-center text-white/70">{idx + 1}</div>
+            <div className="text-center text-white/70">
+              {meta.total - (meta.page - 1) * meta.limit - idx}
+            </div>
 
             <NavLink
               to={`/posts/${p.id}`}
