@@ -38,6 +38,12 @@ export default function Login() {
     window.location.href = `http://localhost:4000/api/oauth/google?next=${next}`;
   };
 
+  const handleNaverLogin = () => {
+    // 네이버버 로그인 처리
+    const next = encodeURIComponent("/");
+    window.location.href = `http://localhost:4000/api/oauth/naver?next=${next}`;
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     if (validate()) return;
@@ -152,7 +158,7 @@ export default function Login() {
 
         {/* 네이버 */}
         <button
-          //onClick={handleGoogleLogin}
+          onClick={handleNaverLogin}
           className="bg-white border border-gray-300 rounded-lg p-2 shadow flex items-center space-x-3 hover:cursor-pointer hover:scale-105 transition"
         >
           <img src={naverLogin} alt="Naver logo" className="w-7 h-7" />

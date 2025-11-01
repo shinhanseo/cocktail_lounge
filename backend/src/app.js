@@ -7,7 +7,9 @@ import barsRouter from "./routes/bars.js";
 import signupRouter from "./routes/signup.js";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.js";
-import oauthGoogleRouter from "./routes/oauth.google.js";
+import googleRouter from "./routes/oauth/google.js";
+import naverRouter from "./routes/oauth/naver.js";
+
 
 const app = express();
 app.use(express.json());
@@ -30,7 +32,8 @@ app.use("/api/citys", citysRouter);
 app.use("/api/bars", barsRouter);
 app.use("/api/signup", signupRouter);
 app.use("/api", authRouter); 
-app.use("/api/oauth", oauthGoogleRouter);
+app.use("/api/oauth", googleRouter);
+app.use("/api/oauth", naverRouter);
 
 app.use((req, res) => res.status(404).json({ message: "Not Found" }));
 app.use((err, req, res, next) => {
