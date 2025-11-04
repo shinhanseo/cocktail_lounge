@@ -21,7 +21,7 @@ export const useAuthStore = create((set) => ({
 
   async hydrateFromServer() {
     try {
-      const r = await axios.get("http://localhost:4000/api/me");
+      const r = await axios.get("http://localhost:4000/api/auth/me");
       set({ user: r.data?.user || null }); // 사용자 정보 설정  
       if (r.data?.user) localStorage.setItem("user", JSON.stringify(r.data.user)); // 사용자 정보 저장      
       else localStorage.removeItem("user"); // 사용자 정보 제거

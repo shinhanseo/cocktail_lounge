@@ -15,7 +15,7 @@ export default function HeaderSearch() {
       <input
         type="search"
         placeholder="오늘의 한잔을 찾아보세요."
-        className="w-150 h-10 bg-white rounded-4xl border-2 
+        className="w-130 h-10 bg-white rounded-4xl border-2 
                    border-black/50 px-4 pr-10
                    text-gray-900 placeholder-gray-500"
       />

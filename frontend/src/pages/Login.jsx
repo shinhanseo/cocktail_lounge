@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import naverLogin from "@/assets/naver.svg";
-
+import kakaoLogin from "@/assets/kakao.png";
 axios.defaults.withCredentials = true;
 
 // 로그인 페이지
@@ -44,6 +44,12 @@ export default function Login() {
     window.location.href = `http://localhost:4000/api/oauth/naver?next=${next}`;
   };
 
+  const handleKakaoLogin = () => {
+    // 카카오 로그인 처리
+    const next = encodeURIComponent("/");
+    window.location.href = `http://localhost:4000/api/oauth/kakao?next=${next}`;
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     if (validate()) return;
@@ -52,9 +58,13 @@ export default function Login() {
       setLoading(true); // 로딩 상태 업데이트
       setMsg("");
 
-      const res = await axios.post("http://localhost:4000/api/login", form, {
-        withCredentials: true,
-      });
+      const res = await axios.post(
+        "http://localhost:4000/api/auth/login",
+        form,
+        {
+          withCredentials: true,
+        }
+      );
 
       setUser(res.data.user); // 사용자 정보 설정
 
@@ -76,7 +86,7 @@ export default function Login() {
       <div className="w-[320px] h-[295px] border border-white/10 text-white bg-white/5 rounded-4xl mt-24">
         {" "}
         {/* 로그인 폼 컨테이너 */}
-        <p className="font-bold text-3xl text-[#17BEBB] text-center pt-5">
+        <p className="font-bold text-3xl text-title text-center pt-5">
           Login {/* 로그인 폼 제목 */}
         </p>
         {msg && (
@@ -91,7 +101,7 @@ export default function Login() {
             <input
               type="text"
               name="login_id"
-              placeholder="아이디를 입력하세요."
+              placeholder="아이디"
               className="bg-white w-60 h-10 pl-3 rounded"
               value={form.login_id}
               onChange={onChange}
@@ -108,7 +118,7 @@ export default function Login() {
             <input
               type="password"
               name="password"
-              placeholder="비밀번호를 입력하세요."
+              placeholder="비밀번호"
               className="bg-white mt-5 w-60 h-10 pl-3 rounded"
               value={form.password}
               onChange={onChange}
@@ -131,7 +141,7 @@ export default function Login() {
             {loading ? "처리 중..." : "로그인 하기"}
           </button>
         </form>
-        <div className="text-white text-center text-sm mt-2 mb-4">
+        <div className="text-white text-center text-sm mt-4 mb-4">
           회원이 아니신가요?{" "}
           <span className="text-button hover:cursor-pointer hover:text-button-hover">
             <Link to="/signup">회원가입하기</Link>
@@ -143,25 +153,43 @@ export default function Login() {
       <div className="text-white text-center mt-2 mb-4 font-bold text-xl mt-6">
         간편 로그인
       </div>
-      <div className="flex justify-center gap-4 border-t border-white/10 pt-4">
+      <div className="flex justify-center gap-8 border-t border-white/10 pt-4">
         {/* 구글 */}
         <button
           onClick={handleGoogleLogin}
-          className="bg-white border border-gray-300 rounded-lg p-2 shadow flex items-center space-x-3 hover:cursor-pointer hover:scale-105 transition"
+          className="w-12 h-12 bg-white border border-gray-300 rounded-full shadow overflow-hidden 
+             flex items-center justify-center hover:scale-105 hover:cursor-pointer transition"
         >
           <img
             src="https://developers.google.com/identity/images/g-logo.png"
             alt="Google logo"
-            className="w-7 h-7"
+            className="w-full h-full object-cover"
           />
         </button>
 
         {/* 네이버 */}
         <button
           onClick={handleNaverLogin}
-          className="bg-white border border-gray-300 rounded-lg p-2 shadow flex items-center space-x-3 hover:cursor-pointer hover:scale-105 transition"
+          className="w-12 h-12 bg-white border border-gray-300 rounded-full shadow overflow-hidden 
+             flex items-center justify-center hover:scale-105 hover:cursor-pointer transition"
         >
-          <img src={naverLogin} alt="Naver logo" className="w-7 h-7" />
+          <img
+            src={naverLogin}
+            alt="Naver logo"
+            className="w-full h-full object-cover"
+          />
+        </button>
+        {/* 카카오 */}
+        <button
+          onClick={handleKakaoLogin}
+          className="w-12 h-12 bg-white border border-gray-300 rounded-full shadow overflow-hidden 
+             flex items-center justify-center hover:scale-105 hover:cursor-pointer transition"
+        >
+          <img
+            src={kakaoLogin}
+            alt="Kakao logo"
+            className="w-full h-full object-cover"
+          />
         </button>
       </div>
     </main>

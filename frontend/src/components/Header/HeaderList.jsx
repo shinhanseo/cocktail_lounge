@@ -12,7 +12,7 @@ export default function HeaderList() {
   // --- NavLink의 활성 상태에 따라 스타일 지정 ---
   const navClass = ({ isActive }) =>
     "hover:font-bold hover:cursor-pointer underline-offset-8 decoration-2 " +
-    (isActive ? "underline decoration-underline" : "no-underline");
+    (isActive ? "text-title" : "text-white");
 
   return (
     <>

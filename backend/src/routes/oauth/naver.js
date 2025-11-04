@@ -21,17 +21,20 @@ const NAVER_REDIRECT_URI = process.env.NAVER_REDIRECT_URI;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 const IS_PROD = process.env.NODE_ENV === "production";
-
+dotenv.config();
 const state = "1225";
 // -------------------------------------------------------------
 // 1) 인가 요청: 동의화면으로 보내기
 // -------------------------------------------------------------
-router.get("/naver", (req, res) => {
-  const api_url = 'https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=' + NAVER_CLIENT_ID + '&redirect_uri=' + NAVER_REDIRECT_URI + '&state=' + state;
+router.get("/", (req, res) => {
+  const api_url = 'https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=' + NAVER_CLIENT_ID 
+  + '&redirect_uri=' + NAVER_REDIRECT_URI 
+  + '&state=' + state;
+
   res.redirect(api_url); 
 });
 
-router.get('/naver/callback', async (req, res) => {
+router.get('/callback', async (req, res) => {
   try {
     const { code } = req.query;
     if (!code) return res.status(400).send("Missing code");
@@ -60,10 +63,8 @@ router.get('/naver/callback', async (req, res) => {
       headers: { Authorization: `Bearer ${access_token}` },
     });
     
-    // 2) 실제 필드는 data.response 안에 있음
-    const n = data?.response ?? {};  // r: { id, email, name, nickname, birthyear, birthday, ... }
-    
-    // 3) 안전하게 꺼내 쓰기
+    // 2) 프로필 정보 꺼내기기
+    const n = data?.response ?? {};
     const provider = "naver";
     const providerUserId = n.id;
     const email = (n.email ?? null) || null;
@@ -77,8 +78,8 @@ router.get('/naver/callback', async (req, res) => {
 
     let userRow;
 
-    // 간단 업서트
-    await db.tx(async ({ query }) => {
+    await db.tx(async ({ query }) => 
+    {
       // 기존 계정(연동) 확인
       const acc = await query(
         `SELECT user_id FROM oauth_accounts WHERE provider=$1 AND provider_user_id=$2 LIMIT 1`,
@@ -137,7 +138,7 @@ router.get('/naver/callback', async (req, res) => {
         existing = inserted[0];
       }
       
-      // 3) oauth_accounts 업서트 동일 (userRow는 existing)
+      // 3) oauth_accounts 인서트
       await query(
         `INSERT INTO oauth_accounts
            (user_id, provider, provider_user_id, access_token, refresh_token, expires_at)
@@ -158,14 +159,13 @@ router.get('/naver/callback', async (req, res) => {
     const appToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 
     res.cookie("auth", appToken, {
-      httpOnly: true,
+      httpOnly: true, 
       sameSite: IS_PROD ? "none" : "lax",
       secure: IS_PROD,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7일 
       path: "/",
     });
 
-    // next/state 없이 홈으로
     return res.redirect(`${FRONTEND_URL}/`);
   } catch (err) {
     console.error("OAuth Error:", err?.response?.data || err?.message || err);

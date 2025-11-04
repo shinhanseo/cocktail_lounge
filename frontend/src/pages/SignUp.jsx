@@ -143,9 +143,9 @@ export default function SignUp() {
       setLoading(true);
 
       await axios.post("http://localhost:4000/api/signup", {
-        login_id: form.id, // 로컬 설계에 맞게 login_id로 전달
+        login_id: form.id,
         password: form.password,
-        email: form.email, // ✅ 이메일 함께 전달 (서버 스키마에 email 컬럼 필요)
+        email: form.email,
         name: form.name,
         birthday: form.birthday,
         phone: form.phone,
@@ -166,7 +166,7 @@ export default function SignUp() {
     <main>
       <div className="w-100 h-135 border border-white/10 text-white bg-white/5 rounded-4xl mt-12">
         <p className="font-bold text-3xl text-title text-center pt-5 mb-3">
-          CockTail Rounge🍹
+          Sign up
         </p>
 
         {/* 회원가입 폼 */}
@@ -211,7 +211,7 @@ export default function SignUp() {
             <div className="text-xs text-button">{err.password}</div>
           </div>
 
-          {/* ✅ 이메일 */}
+          {/* 이메일 */}
           <div className="flex flex-col items-start mx-10">
             <label htmlFor="email" className="block font-bold text-white">
               이메일

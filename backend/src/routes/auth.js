@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 
 const router = Router();
 
-// 환경 변수 (없으면 임시 값)
+// 환경 변수
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
 const IS_PROD = process.env.NODE_ENV === "production";
 
@@ -33,7 +33,6 @@ const LoginSchema = z.object({
 router.post("/login", async (req, res) => {
   try {
     const { login_id, password } = LoginSchema.parse(req.body);
-
     // 1) 유저 조회
     const rows = await db.query(
       `SELECT id, login_id, name, password_hash
@@ -69,7 +68,7 @@ router.post("/login", async (req, res) => {
       path: "/",
     });
 
-    // 프런트에서 쓸 최소 정보 응답
+    // 프런트에서 쓸 정보 응답
     return res.json({ user: { id: user.id, login_id: user.login_id, name: user.name } });
   } catch (err) {
     if (err?.issues) return res.status(400).json({ message: err.issues[0].message });

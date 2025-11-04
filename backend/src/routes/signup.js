@@ -79,7 +79,6 @@ router.post("/", async (req, res) => {
 
     // 5) Postgres UNIQUE 충돌 처리
     if (err?.code === "23505") {
-      // constraint 이름은 DB 스키마에 맞게 확인 (예: users_login_id_key, users_phone_key, users_email_key)
       const c = err.constraint || "";
       const msg =
         c.includes("users_login_id_key")

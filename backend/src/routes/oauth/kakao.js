@@ -1,8 +1,8 @@
-// src/routes/oauth.google.js
+// src/routes/oauth.kakao.js
 // -------------------------------------------------------------
-// 🔐 Google OAuth2 라우터
-// - /oauth/google            : Google 동의 화면으로 리다이렉트
-// - /oauth/google/callback   : code 수신 → 토큰 교환 → 구글 프로필 조회
+// 🔐 Kakao OAuth2 라우터
+// - /oauth/kakao            : Kakao 동의 화면으로 리다이렉트
+// - /oauth/kakao/callback   : code 수신 → 토큰 교환 → 구글 프로필 조회
 //                            → (users, oauth_accounts) 업서트
 //                            → 자체 JWT 발급하여 'auth' 쿠키로 세팅
 //                            → 프론트로 리디렉션
@@ -13,51 +13,37 @@ import dotenv from "dotenv";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import db from "../../db/client.js";
+
 dotenv.config();
+const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
+const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET;
+const KAKAO_REDIRECT_URI = process.env.KAKAO_REDIRECT_URI;
 
-const router = Router();
-
-// --- 환경변수 / 상수 ---
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 const IS_PROD = process.env.NODE_ENV === "production";
 
-// -------------------------------------------------------------
-// 1) 인가 요청: 동의화면으로 보내기
-// -------------------------------------------------------------
+const router = Router();
+
 router.get("/", (req, res) => {
-  const url =
-    "https://accounts.google.com/o/oauth2/v2/auth"
-    + `?client_id=${GOOGLE_CLIENT_ID}`
-    + `&redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}`
-    + `&response_type=code`
-    + `&scope=${encodeURIComponent("openid email profile")}`;
+  const url = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${KAKAO_REDIRECT_URI}&response_type=code&scope=profile_nickname,account_email`;
   res.redirect(url);
 });
 
-// -------------------------------------------------------------
-// 2) 콜백: code → 토큰 교환 → 유저정보 조회 → DB 업서트 → 앱 JWT 발급
-// - access_token: 구글 API 호출용
-// - refresh_token: offline access 시 재발급용(최초 동의 때 주로 발급)
-// - expires_in: access_token 만료(초) → expires_at으로 DB 저장
-// -------------------------------------------------------------
 router.get("/callback", async (req, res) => {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
     if (!code) return res.status(400).send("Missing code");
 
     // 토큰 교환
     const tokenRes = await axios.post(
-      "https://oauth2.googleapis.com/token",
+      "https://kauth.kakao.com/oauth/token",
       new URLSearchParams({
-        code,
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: GOOGLE_REDIRECT_URI,
         grant_type: "authorization_code",
+        client_id: KAKAO_CLIENT_ID,
+        redirect_uri: KAKAO_REDIRECT_URI,    // 콘솔값과 문자 하나까지 동일
+        code,
+        ...(KAKAO_CLIENT_SECRET ? { client_secret: KAKAO_CLIENT_SECRET } : {}),
       }).toString(),
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
@@ -66,21 +52,19 @@ router.get("/callback", async (req, res) => {
     if (!access_token) return res.status(400).send("No access_token");
 
     // 사용자 정보
-    const { data: g } = await axios.get(
-      "https://www.googleapis.com/oauth2/v2/userinfo",
-      { headers: { Authorization: `Bearer ${access_token}` } }
-    );
+    const { data } = await axios.get("https://kapi.kakao.com/v2/user/me", {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
 
-    const provider = "google";
-    const providerUserId = g.id || g.sub;
-    const email = g.email || null;
-    const displayNameBase =
-      g.name || (email?.split("@")[0]) || `google_${(providerUserId || "").slice(0,6)}`;
-
+    const provider = "kakao";
+    const providerUserId = String(data.id || "");
+    const kakaoAccount = data.kakao_account || {};
+    const email = kakaoAccount.email || null;
+    const nickname = kakaoAccount.profile.nickname;
     let userRow;
 
-    // 간단 업서트
-    await db.tx(async ({ query }) => {
+    await db.tx(async ({ query }) => 
+    {
       // 기존 계정(연동) 확인
       const acc = await query(
         `SELECT user_id FROM oauth_accounts WHERE provider=$1 AND provider_user_id=$2 LIMIT 1`,
@@ -89,7 +73,7 @@ router.get("/callback", async (req, res) => {
 
       const expiresAt = expires_in ? new Date(Date.now() + expires_in * 1000) : null;
 
-      //기존 구글로 로그인한 계정이 존재할 경우
+      //기존 카카오로 로그인한 계정이 존재할 경우
       if (acc.length) {
         const userId = acc[0].user_id;
         await query(
@@ -114,7 +98,7 @@ router.get("/callback", async (req, res) => {
       let existing = null;
       if (email) {
         const found = await query(
-          `SELECT id, login_id, name, email FROM users WHERE email=$1 LIMIT 1`,
+          `SELECT id, login_id, name, email FROM users WHERE email = $1 LIMIT 1`,
           [email]
         );
         existing = found[0] || null;
@@ -122,24 +106,22 @@ router.get("/callback", async (req, res) => {
       
       // 2) 없으면 새 유저 생성 
       if (!existing) {
-        let name = displayNameBase;
+        let name = nickname;
       
         const inserted = await query(
           `INSERT INTO users (login_id, name, email)
            VALUES ($1, $2, $3)
            RETURNING id, login_id, name, email`,
           [
-            // login_id를 사용자가 나중에 마이페이지에서 바꾸도록 임시값 부여 가능
-            // 예: 구글 id 기반 기본값
             email,
             name,
-            email,           // null 가능
+            email
           ]
         );
         existing = inserted[0];
       }
       
-      // 3) oauth_accounts 업서트 동일 (userRow는 existing)
+      // 3) oauth_accounts 인서트
       await query(
         `INSERT INTO oauth_accounts
            (user_id, provider, provider_user_id, access_token, refresh_token, expires_at)
@@ -160,18 +142,17 @@ router.get("/callback", async (req, res) => {
     const appToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 
     res.cookie("auth", appToken, {
-      httpOnly: true,
+      httpOnly: true, 
       sameSite: IS_PROD ? "none" : "lax",
       secure: IS_PROD,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7일 
       path: "/",
     });
 
-    // next/state 없이 홈으로
     return res.redirect(`${FRONTEND_URL}/`);
   } catch (err) {
-    console.error("OAuth Error:", err?.response?.data || err?.message || err);
-    res.status(500).json({ error: "OAuth failed" });
+    console.error("Kakao OAuth error:", err?.response?.status, err?.response?.data || err?.message);
+    return res.redirect(`${FRONTEND_URL}/login?error=kakao_oauth_failed`);
   }
 });
 

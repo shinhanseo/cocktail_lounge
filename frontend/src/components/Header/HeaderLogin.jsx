@@ -27,7 +27,7 @@ export default function HeaderLogin() {
   const onLogout = async () => {
     try {
       // 백엔드 세션/쿠키 삭제 요청
-      await axios.post("http://localhost:4000/api/logout");
+      await axios.post("http://localhost:4000/api/auth/logout");
     } finally {
       // 전역 스토어에서 사용자 정보 제거
       logout();
@@ -74,7 +74,7 @@ export default function HeaderLogin() {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        {user.login_id}
+        {user.name}님
       </button>
 
       {/* 드롭다운 메뉴 */}
