@@ -16,6 +16,7 @@ import RecipeDetail from "@/components/Recipe/RecipeDetail";
 import Map from "@/pages/Map";
 import BarDetail from "@/components/Map/BarDetail";
 import CommunityWriting from "@/components/Community/CommunityWriting";
+import CommunityEdit from "@/components/Community/CommunityEdit";
 
 // 루트 엘리먼트 렌더링
 createRoot(document.getElementById("root")).render(
@@ -35,6 +36,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="cocktails/:slug" element={<RecipeDetail />} />
             <Route path="bars/:city" element={<BarDetail />} />
             <Route path="communitywriting" element={<CommunityWriting />} />
+            <Route path="communityedit/:id" element={<CommunityEdit />} />
           </Route>
         </Route>
       </Routes>

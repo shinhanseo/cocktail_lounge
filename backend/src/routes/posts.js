@@ -127,7 +127,11 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-//게시글 삭제
+
+/* ===============================
+   delete /posts/:id
+   게시글 삭제제
+================================*/
 router.delete("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -146,7 +150,31 @@ router.delete("/:id", async (req, res, next) => {
   }
 });
 
-//게시글 작성
+router.put("/:id", async(req, res, next) => {
+  try{
+    const {id} = req.params;    
+    const {title, body, tags} = req.body;
+    const rows = await db.query("SELECT id FROM posts WHERE id = $1", [id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "게시글을 찾을 수 없습니다." });
+    }
+
+    await db.query(`
+      UPDATE posts
+      SET title=$1, body=$2, tags=$3, updated_at=NOW()
+      WHERE id = $4  
+    `, [title, body, tags, id]);
+
+    res.status(200).json({message:"수정 완료"});
+
+  }catch(err){
+    next(e);
+  }
+})
+/* ===============================
+   post /posts
+   게시글 작성
+================================*/
 router.post("/", async (req, res) => {
   try {
     const parsed = CreatePostSchema.parse(req.body);

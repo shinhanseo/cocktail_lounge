@@ -22,7 +22,9 @@ export default function CommunityDetail() {
   const [post, setPost] = useState(null); // 게시글 데이터
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const handleEdit = () => {};
+  const handleEdit = () => {
+    navigate(`/communityedit/${id}`);
+  };
   const handleDelete = async () => {
     if (!window.confirm("정말 삭제하시겠습니까?")) return;
 
