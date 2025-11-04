@@ -166,7 +166,7 @@ export default function SignUp() {
     <main>
       <div className="w-100 h-135 border border-white/10 text-white bg-white/5 rounded-4xl mt-12">
         <p className="font-bold text-3xl text-title text-center pt-5 mb-3">
-          Sign up
+          회원가입
         </p>
 
         {/* 회원가입 폼 */}

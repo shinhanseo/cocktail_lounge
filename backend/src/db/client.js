@@ -37,8 +37,7 @@ async function tx(fn) {
     client.release();
   }
 }
-console.log("🔗 DATABASE_URL =", process.env.DATABASE_URL);
-// 기존처럼 default export 유지(프로젝트 수정 최소화)
+
 const db = { query, tx, pool };
 export default db;
 export { query, tx, pool };

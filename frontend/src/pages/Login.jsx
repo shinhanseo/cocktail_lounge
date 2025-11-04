@@ -5,6 +5,8 @@ import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import naverLogin from "@/assets/naver.svg";
 import kakaoLogin from "@/assets/kakao.png";
+import gogleLogin from "@/assets/google.png";
+
 axios.defaults.withCredentials = true;
 
 // 로그인 페이지
@@ -39,7 +41,7 @@ export default function Login() {
   };
 
   const handleNaverLogin = () => {
-    // 네이버버 로그인 처리
+    // 네이버 로그인 처리
     const next = encodeURIComponent("/");
     window.location.href = `http://localhost:4000/api/oauth/naver?next=${next}`;
   };
@@ -87,7 +89,7 @@ export default function Login() {
         {" "}
         {/* 로그인 폼 컨테이너 */}
         <p className="font-bold text-3xl text-title text-center pt-5">
-          Login {/* 로그인 폼 제목 */}
+          로그인 {/* 로그인 폼 제목 */}
         </p>
         {msg && (
           <div className="text-center text-red-300 mt-3 text-sm">{msg}</div>
@@ -151,7 +153,7 @@ export default function Login() {
 
       {/* Oauth 관련 인터페이스스 */}
       <div className="text-white text-center mt-2 mb-4 font-bold text-xl mt-6">
-        간편 로그인
+        SNS 계정으로 간편하게 시작하기
       </div>
       <div className="flex justify-center gap-8 border-t border-white/10 pt-4">
         {/* 구글 */}
@@ -161,7 +163,7 @@ export default function Login() {
              flex items-center justify-center hover:scale-105 hover:cursor-pointer transition"
         >
           <img
-            src="https://developers.google.com/identity/images/g-logo.png"
+            src={gogleLogin}
             alt="Google logo"
             className="w-full h-full object-cover"
           />

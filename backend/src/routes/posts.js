@@ -127,6 +127,26 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
+//게시글 삭제
+router.delete("/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // 존재 확인
+    const rows = await db.query("SELECT id FROM posts WHERE id = $1", [id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "게시글을 찾을 수 없습니다." });
+    }
+
+    // 삭제 + 결과 반환
+    await db.query("DELETE FROM posts WHERE id = $1", [id]);
+    res.json({ message: "삭제 완료"});
+  } catch (e) {
+    next(e);
+  }
+});
+
+//게시글 작성
 router.post("/", async (req, res) => {
   try {
     const parsed = CreatePostSchema.parse(req.body);
