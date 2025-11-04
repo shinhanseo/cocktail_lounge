@@ -1,4 +1,3 @@
-// main.jsx
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -17,14 +16,20 @@ import Map from "@/pages/Map";
 import BarDetail from "@/components/Map/BarDetail";
 import CommunityWriting from "@/components/Community/CommunityWriting";
 import CommunityEdit from "@/components/Community/CommunityEdit";
+import MyPage from "@/pages/MyPage";
 
-// 루트 엘리먼트 렌더링
+import InfoMe from "@/components/MyPage/InfoMe";
+import MyPosts from "@/components/MyPage/MyPosts";
+import MyComments from "@/components/MyPage/MyComments";
+import MyLikes from "@/components/MyPage/MyLikes";
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />}>
           <Route element={<Main />}>
+            {/* 기본 페이지들 */}
             <Route index element={<Home />} />
             <Route path="community" element={<Community />} />
             <Route path="posts/:id" element={<CommunityDetail />} />
@@ -37,6 +42,14 @@ createRoot(document.getElementById("root")).render(
             <Route path="bars/:city" element={<BarDetail />} />
             <Route path="communitywriting" element={<CommunityWriting />} />
             <Route path="communityedit/:id" element={<CommunityEdit />} />
+
+            {/* 마이페이지 (중첩 라우팅) */}
+            <Route path="mypage" element={<MyPage />}>
+              <Route index element={<InfoMe />} />
+              <Route path="posts" element={<MyPosts />} />
+              <Route path="comments" element={<MyComments />} />
+              <Route path="likes" element={<MyLikes />} />
+            </Route>
           </Route>
         </Route>
       </Routes>

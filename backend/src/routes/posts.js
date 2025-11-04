@@ -2,14 +2,32 @@
 import { Router } from "express";
 import db from "../db/client.js";
 import { z } from "zod";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const router = Router();
+
+// 환경 변수
+const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
+const IS_PROD = process.env.NODE_ENV === "production";
+
+// 공용: JWT 확인 미들웨어
+function authRequired(req, res, next) {
+  const token = req.cookies?.auth;
+  if (!token) return res.status(401).json({ message: "인증이 필요합니다." });
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.user = payload; // { uid, login_id, name }
+    next();
+  } catch {
+    return res.status(401).json({ message: "세션이 만료되었거나 유효하지 않습니다." });
+  }
+}
 
 /* ===============================
    유효성 스키마
 ================================*/
 const CreatePostSchema = z.object({
-  // 세션에서 user_id를 읽는 게 정석이지만, 임시로 body.user_id도 허용
   user_id: z.number().int().positive().optional(),
   title: z.string().trim().min(1).max(200),
   body: z.string().trim().min(1),
@@ -45,6 +63,24 @@ router.get("/latest", async (req, res, next) => {
     next(e);
   }
 });
+
+/* ===============================
+   GET /mypost
+   내 게시글 조회
+================================*/
+router.get("/mypost", authRequired, async(req, res, next) => {
+  try{
+    const userId = req.user.id; 
+    const rows = await db.query(
+      "SELECT * FROM posts WHERE user_id = $1 ORDER BY created_at DESC",
+      [userId]
+    );
+
+    res.json({posts : rows});
+  }catch(err){
+    next(err);
+  }
+})
 
 /* ===============================
    GET /posts?page=1&limit=10
@@ -150,6 +186,10 @@ router.delete("/:id", async (req, res, next) => {
   }
 });
 
+/* ===============================
+   put /posts:id
+   게시글 수정
+================================*/
 router.put("/:id", async(req, res, next) => {
   try{
     const {id} = req.params;    
@@ -171,6 +211,7 @@ router.put("/:id", async(req, res, next) => {
     next(e);
   }
 })
+
 /* ===============================
    post /posts
    게시글 작성

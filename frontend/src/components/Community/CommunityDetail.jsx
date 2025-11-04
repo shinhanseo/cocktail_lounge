@@ -74,7 +74,7 @@ export default function CommunityDetail() {
     <section className="w-full max-w-[960px] mx-auto mt-12 text-white">
       {/* 상단 컨트롤 영역 */}
       <div className="flex justify-between items-center mb-3">
-        {user?.login_id === post.user && (
+        {user?.login_id === post.user ? (
           <div>
             <button
               className="text-whtie text-sm font-semibold bg-white/5 border border-white/10 p-2 rounded-2xl hover:scale-105 hover:text-m hover:cursor-pointer"
@@ -89,6 +89,8 @@ export default function CommunityDetail() {
               삭제
             </button>
           </div>
+        ) : (
+          <div></div>
         )}
 
         <NavLink

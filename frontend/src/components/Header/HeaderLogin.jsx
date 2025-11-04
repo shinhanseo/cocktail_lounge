@@ -22,7 +22,6 @@ export default function HeaderLogin() {
   // --- 로컬 상태 ---
   const [open, setOpen] = useState(false); // 드롭다운 열림 여부
   const boxRef = useRef(null); // 메뉴 박스 참조 (바깥 클릭 감지용)
-
   // --- 로그아웃 처리 ---
   const onLogout = async () => {
     try {
@@ -70,7 +69,7 @@ export default function HeaderLogin() {
         onClick={() => setOpen((v) => !v)}
         className="hover:font-bold hover:cursor-pointer text-white px-4 py-2
                    border border-button bg-button rounded-3xl 
-                   hover:bg-button-hover hover:border-button-hover hover:scale-105"
+                   hover:bg-button-hover hover:border-button-hover"
         aria-haspopup="menu"
         aria-expanded={open}
       >
