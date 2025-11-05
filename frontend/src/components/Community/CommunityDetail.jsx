@@ -3,14 +3,14 @@
 // 📝 CommunityDetail
 // - URL 파라미터(id)로 특정 게시글 상세를 조회/표시
 // - 로딩/에러/없음 상태 처리
-// - 상단 메타(작성자/날짜) + 태그 + 본문 렌더링
+// - 상단 메타(작성자/날짜) + 태그 + 본문 렌더링 + 좋아요 버튼
 // -------------------------------------------------------------
-import { useParams, NavLink } from "react-router-dom";
+import { useParams, NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useNavigate } from "react-router-dom";
 import Comment from "@/components/Comment/Comment";
+import Like from "@/components/Like/Like";
 
 export default function CommunityDetail() {
   // --- URL 파라미터 ---
@@ -19,12 +19,16 @@ export default function CommunityDetail() {
   const navigate = useNavigate();
 
   // --- 상태 ---
-  const [post, setPost] = useState(null); // 게시글 데이터
+  const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [likes, setLikes] = useState(0);
+
+  // --- 수정/삭제 ---
   const handleEdit = () => {
     navigate(`/communityedit/${id}`);
   };
+
   const handleDelete = async () => {
     if (!window.confirm("정말 삭제하시겠습니까?")) return;
 
@@ -37,6 +41,7 @@ export default function CommunityDetail() {
       alert("삭제 도중 오류가 발생했습니다.");
     }
   };
+
   // --- 데이터 불러오기 ---
   useEffect(() => {
     const fetchPost = async () => {
@@ -44,7 +49,6 @@ export default function CommunityDetail() {
         setLoading(true);
         setError("");
 
-        // 단건 조회
         const res = await axios.get(`http://localhost:4000/api/posts/${id}`);
         setPost(res.data);
       } catch {
@@ -65,7 +69,6 @@ export default function CommunityDetail() {
     );
 
   if (error) return <div className="text-red-400 p-8">{error}</div>;
-
   if (!post)
     return <div className="text-white p-8">게시글을 찾을 수 없습니다.</div>;
 
@@ -77,13 +80,13 @@ export default function CommunityDetail() {
         {user?.login_id === post.user ? (
           <div>
             <button
-              className="bg-button hover:bg-button-hover px-3 py-1 rounded-lg text-white hover:scale-105 hover:text-m hover:cursor-pointer"
+              className="bg-button hover:bg-button-hover px-3 py-1 rounded-lg text-white hover:scale-105 hover:cursor-pointer"
               onClick={handleEdit}
             >
               수정
             </button>
             <button
-              className="bg-white/50 hover:bg-white/30 px-3 py-1 rounded-lg text-white hover:scale-105 hover:text-m hover:cursor-pointer ml-2"
+              className="bg-white/50 hover:bg-white/30 px-3 py-1 rounded-lg text-white hover:scale-105 hover:cursor-pointer ml-2"
               onClick={handleDelete}
             >
               삭제
@@ -104,12 +107,11 @@ export default function CommunityDetail() {
       {/* 게시글 본문 박스 */}
       <article
         className="p-8 md:p-10 rounded-2xl bg-white/5 border border-white/10
-             shadow-[0_6px_20px_rgba(0,0,0,.35)] hover:shadow-[0_12px_28px_rgba(0,0,0,.45)]
+             shadow-[0_6px_20px_rgba(0,0,0,.35)]
              transition-shadow duration-300 backdrop-blur-[2px]"
       >
-        {/* 상단: 좌(제목/메타) | 우(태그) */}
+        {/* 상단: 제목/메타 + 태그 */}
         <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-          {/* 왼쪽: 제목/메타 */}
           <div className="min-w-0">
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight break-words">
               {post.title}
@@ -147,11 +149,18 @@ export default function CommunityDetail() {
         </header>
 
         {/* 구분선 */}
-        <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+        <div className="my-6 h-px w-full bg-white/20" />
 
         {/* 본문 */}
-        <div className="leading-relaxed text-white/95">{post.body}</div>
+        <div className="leading-relaxed text-white/95 mb-6">{post.body}</div>
+
+        {/* 좋아요 버튼 (오른쪽 아래) */}
+        <div className="flex justify-end mt-8">
+          <Like postId={id} />
+        </div>
       </article>
+
+      {/* 댓글 영역 */}
       <Comment postId={id} />
     </section>
   );

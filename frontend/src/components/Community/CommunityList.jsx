@@ -123,7 +123,7 @@ export default function CommunityList() {
           >
             {/* 번호: 최신이 위이므로 역순 번호 계산 */}
             <div className="text-center text-white/70">
-              {meta.total - (meta.page - 1) * meta.limit - idx}
+              {meta.total - (meta.page - 1) * meta.limit - idx}.
             </div>
 
             {/* 제목 */}
@@ -134,14 +134,15 @@ export default function CommunityList() {
               title={p.title}
             >
               {p.title}
+              <span className="text-center text-white/50 text-sm ml-2">
+                [{p.comment_count}개]
+              </span>
             </NavLink>
 
             {/* 작성자 / 작성일 */}
             <div className="text-center text-white/70 text-sm">{p.user}</div>
             <div className="text-center text-white/50 text-sm">{p.date}</div>
-            <div className="text-center text-white/50 text-sm">
-              {p.comment_count}개
-            </div>
+            <div className="text-center text-white/50 text-sm">👍️{}</div>
           </li>
         ))}
       </ul>

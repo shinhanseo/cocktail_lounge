@@ -9,10 +9,13 @@ export default function CommunityHeader() {
                  shadow-[0_2px_8px_rgba(0,0,0,0.25)] z-10"
     >
       <div className="text-center">No.</div>
-      <div className="text-left pl-2">제목</div>
+      <div className="text-left pl-2">
+        제목
+        <span className="text-center text-white/50 text-sm ml-4">[댓글]</span>
+      </div>
       <div className="text-center">작성자</div>
       <div className="text-center">작성일</div>
-      <div className="text-center">댓글</div>
+      <div className="text-center">좋아요</div>
     </li>
   );
 }

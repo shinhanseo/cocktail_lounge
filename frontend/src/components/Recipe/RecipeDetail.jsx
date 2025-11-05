@@ -9,7 +9,7 @@
 import { useParams, NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-
+import Like from "@/components/Like/like";
 export default function RecipeDetail() {
   // --- URL 파라미터(slug) 추출 ---
   const { slug } = useParams();
@@ -92,7 +92,7 @@ export default function RecipeDetail() {
         )}
 
         {/* 구분선 */}
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent my-6" />
+        <div className="my-6 h-px w-full bg-white/20" />
 
         {/* --- 재료 섹션 --- */}
         {Array.isArray(cocktail.ingredients) &&
@@ -110,7 +110,7 @@ export default function RecipeDetail() {
           )}
 
         {/* 구분선 */}
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent my-6" />
+        <div className="my-6 h-px w-full bg-white/20" />
 
         {/* --- 만드는 법 섹션 --- */}
         {Array.isArray(cocktail.steps) && cocktail.steps.length > 0 && (
@@ -147,6 +147,11 @@ export default function RecipeDetail() {
             {cocktail.comment}
           </p>
         )}
+
+        {/* 좋아요 버튼 (오른쪽 아래) */}
+        <div className="flex justify-end mt-8">
+          <Like />
+        </div>
       </aside>
     </article>
   );

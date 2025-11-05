@@ -298,5 +298,75 @@ router.post("/", authRequired, async (req, res) => {
   }
 });
 
+//게시글 좋아요
+router.post("/:id/like", authRequired, async(req, res, next) => {
+  const postId = req.params.id;
+  const userId = req.user.id;
+  try{
+    await db.query(
+      `INSERT INTO post_likes(post_id, user_id)
+       VALUES ($1, $2)
+       ON CONFLICT (post_id, user_id) DO NOTHING
+      `, [postId, userId]
+    );
+
+    const [{ like_count }] = await db.query(
+      `SELECT COUNT(*)::int AS like_count FROM post_likes WHERE post_id=$1`,
+      [postId]
+    );
+
+    return res.json({liked:true, like_count});
+
+  }catch(err){
+    next(err);
+  }
+});
+
+//게시글 좋아요 삭제
+router.delete("/:id/like", authRequired, async (req, res, next) => {
+  const postId = req.params.id;
+  const userId = req.user.id;
+
+  try {
+    await db.query(
+      `DELETE FROM post_likes WHERE post_id=$1 AND user_id=$2`,
+      [postId, userId]
+    );
+
+    const [{ like_count }] = await db.query(
+      `SELECT COUNT(*)::int AS like_count FROM post_likes WHERE post_id=$1`,
+      [postId]
+    );
+
+    return res.json({liked:false, like_count});
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get("/:id/like", authRequired, async (req, res, next) => {
+  const postId = req.params.id;
+  const userId = req.user.id; 
+
+  try {
+    const [{ like_count }] = await db.query(
+      `SELECT COUNT(*)::int AS like_count FROM post_likes WHERE post_id=$1`,
+      [postId]
+    );
+
+    let liked = false;
+    if (userId) {
+      const r = await db.query(
+        `SELECT 1 FROM post_likes WHERE post_id=$1 AND user_id=$2 LIMIT 1`,
+        [postId, userId]
+      );
+      liked = r.length > 0;
+    }
+
+    return res.json({ like_count, liked });
+  } catch (e) {
+    next(e);
+  }
+});
 
 export default router;

@@ -21,6 +21,59 @@ function authRequired(req, res, next) {
   }
 }
 
+router.get("/mycomment", authRequired, async(req, res, next) => {
+  try{
+    const userId = req.user.id;
+    const page = Math.max(parseInt(req.query.page ?? "1", 10), 1);
+    const limit = Math.max(parseInt(req.query.limit ?? "10", 10), 1);
+    const offset = (page - 1) * limit;
+
+    const [{ count }] = await db.query(`SELECT COUNT(*)::int AS count FROM comments WHERE user_id = $1`,[userId]);
+    const pageCount = Math.max(Math.ceil(count / limit), 1);
+
+    const rows = await db.query(
+      `
+      SELECT c.id, c.post_id, c.body, p.title, c.created_at
+      FROM comments c
+      LEFT JOIN posts p ON p.id = c.post_id
+      WHERE c.user_id = $1
+      ORDER BY c.created_at DESC
+      LIMIT $2
+      OFFSET $3
+      `,
+      [userId, limit, offset]
+    );
+    if (rows.length === 0) {
+      return res.status(200).json({ message: "작성한 댓글이 없습니다." });
+    }
+    
+    // 변환
+    const items = rows.map((c) => ({
+      id: c.id,
+      postId : c.post_id,
+      body: c.body,
+      title: c.title,
+      date: c.created_at
+        ? new Date(c.created_at).toISOString().slice(0, 10)
+        : null,
+    }));
+
+    res.status(200).json({
+      items,
+      meta: {
+        total: count,
+        page,
+        limit,
+        pageCount,
+        hasPrev: page > 1,
+        hasNext: page < pageCount,
+      },
+    });
+  }catch(err){
+    next(err);
+  }
+})
+
 // GET /api/comments/:id → 특정 게시글의 댓글 목록
 router.get("/:id", async (req, res, next) => {
   try {

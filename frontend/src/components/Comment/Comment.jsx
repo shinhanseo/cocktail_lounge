@@ -30,42 +30,36 @@ export default function Comment({ postId }) {
   const [editText, setEditText] = useState("");
 
   // --- 댓글 목록 불러오기 ---
+  const fetchComments = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await axios.get(
+        `http://localhost:4000/api/comment/${postId}`,
+        { params: { page, limit } }
+      );
+
+      setComments(Array.isArray(res.data?.comments) ? res.data.comments : []);
+      setMeta(
+        res.data?.meta ?? {
+          total: 0,
+          page,
+          limit,
+          pageCount: 1,
+          hasPrev: page > 1,
+          hasNext: false,
+        }
+      );
+    } catch (err) {
+      console.error(err);
+      setError("댓글을 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let ignore = false;
-    (async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const res = await axios.get(
-          `http://localhost:4000/api/comment/${postId}`,
-          {
-            params: { page, limit },
-          }
-        );
-        if (ignore) return;
-
-        setComments(Array.isArray(res.data?.comments) ? res.data.comments : []);
-        setMeta(
-          res.data?.meta ?? {
-            total: 0,
-            page,
-            limit,
-            pageCount: 1,
-            hasPrev: page > 1,
-            hasNext: false,
-          }
-        );
-      } catch (err) {
-        console.error(err);
-        setError("댓글을 불러오는 중 오류가 발생했습니다.");
-      } finally {
-        setLoading(false);
-      }
-    })();
-    return () => {
-      ignore = true;
-    };
+    fetchComments();
   }, [postId, page, limit]);
 
   // --- 페이지 이동 함수 ---
@@ -93,8 +87,8 @@ export default function Comment({ postId }) {
       if (res.status === 201) {
         alert("댓글이 등록되었습니다!");
         setPostComment("");
-        // 새 댓글 등록 시 첫 페이지로 이동
         goPage(1);
+        await fetchComments(); //등록 후 즉시 최신 댓글 다시 불러오기
       }
     } catch (err) {
       console.error(err);
@@ -195,7 +189,7 @@ export default function Comment({ postId }) {
                 {editCommentId === comment.id ? (
                   <div>
                     <textarea
-                      className="w-full bg-white/10 rounded-lg p-2 text-white resize-none focus:outline-none"
+                      className="w-full bg-white/10 rounded-lg p-2 text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
                       rows={2}
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
