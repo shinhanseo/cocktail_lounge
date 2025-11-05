@@ -114,4 +114,40 @@ router.delete("/:id", authRequired, async (req, res, next) => {
   }
 });
 
+router.put("/:id", authRequired, async (req, res, next) => {
+  try {
+    const userId = req.user.id;      // 로그인한 사용자 id
+    const commentId = req.params.id;
+    const { body } = req.body;
+
+    // 댓글 존재 + 작성자 확인
+    const rows = await db.query(
+      "SELECT id, user_id FROM comments WHERE id = $1",
+      [commentId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "댓글을 찾을 수 없습니다." });
+    }
+
+    if (rows[0].user_id !== userId) {
+      return res.status(403).json({ error: "본인 댓글만 수정할 수 있습니다." });
+    }
+
+    // 수정
+    await db.query(
+      `
+      UPDATE comments
+      SET body = $1, updated_at = NOW()
+      WHERE id = $2
+      `,
+      [body, commentId]
+    );
+
+    res.status(200).json({ message: "수정 완료" });
+  } catch (e) {
+    next(e);
+  }
+});
+
 export default router;

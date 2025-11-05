@@ -11,10 +11,45 @@ export default function Comment({ postId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [postcomment, setPostcomment] = useState("");
-  const handleEdit = () => {
-    //navigate(`/communityedit/${id}`);
+
+  // ✨ 추가: 댓글별 편집 상태 저장
+  const [editCommentId, setEditCommentId] = useState(null);
+  const [editText, setEditText] = useState("");
+
+  // 수정 버튼 클릭 시
+  const handleEdit = (comment) => {
+    setEditCommentId(comment.id);
+    setEditText(comment.body);
   };
+
+  // 수정 내용 저장
+  const handleSave = async (commentId) => {
+    if (!editText.trim()) {
+      alert("내용을 입력하세요!");
+      return;
+    }
+
+    try {
+      const res = await axios.put(
+        `http://localhost:4000/api/comment/${commentId}`,
+        { body: editText },
+        { withCredentials: true }
+      );
+      if (res.status === 200) {
+        setComments((prev) =>
+          prev.map((c) => (c.id === commentId ? { ...c, body: editText } : c))
+        );
+        alert("댓글이 수정되었습니다!");
+        setEditCommentId(null);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("수정 도중 오류가 발생했습니다.");
+    }
+  };
+
   const handleDelete = async (commentId) => {
+    //댓글 삭제
     if (!window.confirm("정말 삭제하시겠습니까?")) return;
     try {
       await axios.delete(`http://localhost:4000/api/comment/${commentId}`);
@@ -25,12 +60,11 @@ export default function Comment({ postId }) {
       alert("삭제 도중 오류가 발생했습니다.");
     }
   };
-  // 댓글 목록 불러오기
+
   useEffect(() => {
     const fetchComments = async () => {
       try {
         setLoading(true);
-        setError("");
         const res = await axios.get(
           `http://localhost:4000/api/comment/${postId}`
         );
@@ -47,30 +81,26 @@ export default function Comment({ postId }) {
 
   const onChange = (e) => setPostcomment(e.target.value);
 
-  // 댓글 등록
   const handleComment = async () => {
     if (!isLoggedIn) {
       alert("로그인 상태에서만 가능합니다.");
       navigate("/login");
       return;
     }
-
     if (!postcomment.trim()) {
       alert("댓글을 입력하세요!");
       return;
     }
-
     try {
       const res = await axios.post(
         "http://localhost:4000/api/comment",
         { postId, body: postcomment.trim() },
         { withCredentials: true }
       );
-
       if (res.status === 201) {
         alert("댓글이 등록되었습니다!");
-        setPostcomment(""); // 입력창 비우기
-        setComments((prev) => [res.data, ...prev]); // 새 댓글 목록에 추가
+        setPostcomment("");
+        setComments((prev) => [res.data, ...prev]);
       }
     } catch (err) {
       console.error(err);
@@ -95,8 +125,8 @@ export default function Comment({ postId }) {
         />
         <div className="flex justify-end mt-2">
           <button
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition"
-            onClick={() => handleComment}
+            className="bg-button hover:bg-button-hover text-white px-4 py-2 rounded-lg font-medium transition"
+            onClick={handleComment}
           >
             등록
           </button>
@@ -119,29 +149,53 @@ export default function Comment({ postId }) {
                 <span className="font-semibold">{comment.author}</span>
                 <span className="text-sm text-gray-400">{comment.date}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <p className="text-gray-200">{comment.body}</p>
+
+              {/* 수정 모드일 때 textarea로 표시 */}
+              {editCommentId === comment.id ? (
                 <div>
-                  {user?.login_id === comment.author ? (
+                  <textarea
+                    className="w-full bg-white/10 rounded-lg p-2 text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    rows={2}
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                  />
+                  <div className="flex justify-end gap-2 mt-2">
+                    <button
+                      className="bg-button hover:bg-button-hover px-3 py-1 rounded-lg text-white hover:scale-105 hover:text-m hover:cursor-pointer"
+                      onClick={() => handleSave(comment.id)}
+                    >
+                      저장
+                    </button>
+                    <button
+                      className="bg-white/50 hover:bg-white/30 px-3 py-1 rounded-lg text-white hover:scale-105 hover:text-m hover:cursor-pointer"
+                      onClick={() => setEditCommentId(null)}
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // 일반 표시 모드
+                <div className="flex justify-between items-center">
+                  <p className="text-gray-200">{comment.body}</p>
+                  {user?.login_id === comment.author && (
                     <div>
                       <button
-                        className="text-whtie text-sm font-semibold bg-white/5 border border-white/10 p-2 rounded-2xl hover:scale-105 hover:text-m hover:cursor-pointer"
-                        onClick={() => handleEdit}
+                        className="bg-button hover:bg-button-hover px-3 py-1 rounded-lg text-white hover:scale-105 hover:text-m hover:cursor-pointer"
+                        onClick={() => handleEdit(comment)}
                       >
                         수정
                       </button>
                       <button
-                        className="text-whtie text-sm font-semibold bg-white/5 border border-white/10 p-2 rounded-2xl hover:scale-105 hover:text-m hover:cursor-pointer ml-2"
+                        className="bg-white/50 hover:bg-white/30 px-3 py-1 rounded-lg text-white hover:scale-105 hover:text-m hover:cursor-pointer ml-2"
                         onClick={() => handleDelete(comment.id)}
                       >
                         삭제
                       </button>
                     </div>
-                  ) : (
-                    <div></div>
                   )}
                 </div>
-              </div>
+              )}
             </li>
           ))}
         </ul>

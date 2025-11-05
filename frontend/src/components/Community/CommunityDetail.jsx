@@ -77,13 +77,13 @@ export default function CommunityDetail() {
         {user?.login_id === post.user ? (
           <div>
             <button
-              className="text-whtie text-sm font-semibold bg-white/5 border border-white/10 p-2 rounded-2xl hover:scale-105 hover:text-m hover:cursor-pointer"
+              className="bg-button hover:bg-button-hover px-3 py-1 rounded-lg text-white hover:scale-105 hover:text-m hover:cursor-pointer"
               onClick={handleEdit}
             >
               수정
             </button>
             <button
-              className="text-whtie text-sm font-semibold bg-white/5 border border-white/10 p-2 rounded-2xl hover:scale-105 hover:text-m hover:cursor-pointer ml-2"
+              className="bg-white/50 hover:bg-white/30 px-3 py-1 rounded-lg text-white hover:scale-105 hover:text-m hover:cursor-pointer ml-2"
               onClick={handleDelete}
             >
               삭제
