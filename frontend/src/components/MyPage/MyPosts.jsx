@@ -1,36 +1,67 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function MyPosts() {
-  const [posts, setPosts] = useState([]);
+  // --- 쿼리스트링(page, limit) 파싱 ---
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Number(searchParams.get("page") ?? 1);
+  const limit = Number(searchParams.get("limit") ?? 5);
+
+  // --- 목록/메타/상태 ---
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState({
+    total: 0,
+    page: 1,
+    limit,
+    pageCount: 1,
+    hasPrev: false,
+    hasNext: false,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchMyPosts = async () => {
+    let ignore = false; // 언마운트 이후 setState 방지
+
+    (async () => {
       try {
         setLoading(true);
         setError("");
-        const res = await axios.get("http://localhost:4000/api/posts/mypost", {
-          withCredentials: true,
+
+        // 서버 페이징 요청
+        const res = await axios.get("/api/posts/mypost", {
+          params: { page, limit },
         });
-        setPosts(res.data.posts || []);
-      } catch (err) {
-        console.error(" 내 게시글 불러오기 실패:", err);
-        if (err.response?.status === 401) {
-          setError("로그인이 필요합니다.");
-        } else {
-          setError("게시글을 불러오는 중 오류가 발생했습니다.");
-        }
+        if (ignore) return;
+
+        // 목록/메타 갱신 (방어 코드 포함)
+        setItems(Array.isArray(res.data?.items) ? res.data.items : []);
+        setMeta(
+          res.data?.meta ?? {
+            total: 0,
+            page,
+            limit,
+            pageCount: 1,
+            hasPrev: page > 1,
+            hasNext: false,
+          }
+        );
+      } catch {
+        setError("게시글을 불러오는 중 오류가 발생했습니다.");
       } finally {
         setLoading(false);
       }
-    };
+    })();
 
-    fetchMyPosts();
-  }, []);
+    return () => {
+      ignore = true;
+    };
+  }, [page, limit]);
+  // --- 페이지 이동 ---
+  const goPage = (p) =>
+    setSearchParams({ page: String(p), limit: String(limit) });
 
   if (loading)
     return (
@@ -45,26 +76,47 @@ export default function MyPosts() {
         내가 쓴 게시글
       </h2>
 
-      {posts.length === 0 ? (
+      {items.length === 0 ? (
         <p className="text-gray-400 text-center">
           아직 작성한 게시글이 없습니다.
         </p>
       ) : (
         <ul className="space-y-4">
-          {posts.map((p) => (
+          {items.map((p) => (
             <li
               key={p.id}
               onClick={() => navigate(`/posts/${p.id}`)}
               className="flex gap-12 justify-between items-center border-b border-white/10 pb-3 hover:bg-white/5 hover:cursor-pointer rounded-lg px-3 py-2 transition"
             >
               <h3 className="text-lg font-semibold">{p.title}</h3>
-              <p className="text-gray-400 text-sm">
-                {new Date(p.created_at).toLocaleDateString()}
-              </p>
+              <p className="text-gray-400 text-sm">{p.date}</p>
             </li>
           ))}
         </ul>
       )}
+      <div className="flex items-center justify-center gap-3 py-5">
+        <button
+          onClick={() => goPage(meta.page - 1)}
+          disabled={!meta.hasPrev}
+          className="px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
+                     disabled:opacity-40 hover:bg-white/10 transition-colors hover:cursor-pointer"
+        >
+          ← 이전
+        </button>
+
+        <span className="text-sm text-white/70">
+          {meta.page} / {meta.pageCount}
+        </span>
+
+        <button
+          onClick={() => goPage(meta.page + 1)}
+          disabled={!meta.hasNext}
+          className="px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
+                     disabled:opacity-40 hover:bg-white/10 transition-colors hover:cursor-pointer"
+        >
+          다음 →
+        </button>
+      </div>
     </div>
   );
 }
