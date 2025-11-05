@@ -61,9 +61,8 @@ export default function RecipeList() {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 max-w-5xl mx-auto px-4">
         {cocktails.map((c) => (
           <NavLink
-            key={c.slug}
-            to={`/cocktails/${c.slug}`} // 상세 페이지 이동
-            state={{ cocktails: c }} // 상태로 데이터 전달
+            key={c.id}
+            to={`/cocktails/${c.id}`} // 상세 페이지 이동
             className="group rounded-2xl border border-white/10 bg-white/5 overflow-hidden
                        shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all duration-300
                        hover:scale-[1.03] hover:shadow-[0_8px_20px_rgba(0,0,0,0.4)]"

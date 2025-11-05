@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import Comment from "@/components/Comment/Comment";
-import Like from "@/components/Like/Like";
+import PostLike from "@/components/Like/PostLike";
 
 export default function CommunityDetail() {
   // --- URL 파라미터 ---
@@ -156,7 +156,7 @@ export default function CommunityDetail() {
 
         {/* 좋아요 버튼 (오른쪽 아래) */}
         <div className="flex justify-end mt-8">
-          <Like postId={id} />
+          <PostLike postId={id} />
         </div>
       </article>
 

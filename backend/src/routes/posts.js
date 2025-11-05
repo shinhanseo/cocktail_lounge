@@ -10,6 +10,18 @@ const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
 const IS_PROD = process.env.NODE_ENV === "production";
 
+// 공용 jwt 확인 그러나 로그인을 안해도 무방
+function optionalAuth(req, _res, next) {
+  const token = req.cookies?.auth;
+  if (token) {
+    try {
+      const payload = jwt.verify(token, JWT_SECRET);
+      req.user = payload; // 반드시 payload에 id가 들어 있어야 함!
+    } catch {}
+  }
+  next();
+}
+
 // 공용: JWT 확인 미들웨어
 function authRequired(req, res, next) {
   const token = req.cookies?.auth;
@@ -170,7 +182,13 @@ router.get("/:id", async (req, res, next) => {
     const id = req.params.id;
 
     const rows = await db.query(
-      `SELECT p.id, p.title, u.login_id AS author, p.created_at, p.tags, p.body
+      `SELECT p.id,
+              p.title,
+              u.login_id AS author,
+              p.created_at,
+              p.tags,
+              p.body,
+              p.like_count
        FROM posts p
        LEFT JOIN users u ON u.id = p.user_id
        WHERE p.id = $1`,
@@ -184,14 +202,18 @@ router.get("/:id", async (req, res, next) => {
       id: post.id,
       title: post.title,
       user: post.author ?? null,
-      date: post.created_at ? new Date(post.created_at).toISOString().slice(0, 10) : null,
+      date: post.created_at
+        ? new Date(post.created_at).toISOString().slice(0, 10)
+        : null,
       tags: post.tags ?? [],
       body: post.body,
+      like_count: post.like_count ?? 0,
     });
   } catch (err) {
     next(err);
   }
 });
+
 
 
 /* ===============================
@@ -299,28 +321,46 @@ router.post("/", authRequired, async (req, res) => {
 });
 
 //게시글 좋아요
-router.post("/:id/like", authRequired, async(req, res, next) => {
+router.post("/:id/like", authRequired, async (req, res, next) => {
   const postId = req.params.id;
   const userId = req.user.id;
-  try{
-    await db.query(
-      `INSERT INTO post_likes(post_id, user_id)
-       VALUES ($1, $2)
-       ON CONFLICT (post_id, user_id) DO NOTHING
-      `, [postId, userId]
-    );
 
-    const [{ like_count }] = await db.query(
-      `SELECT COUNT(*)::int AS like_count FROM post_likes WHERE post_id=$1`,
-      [postId]
-    );
+  try {
+    const result = await db.tx(async (t) => {
+      // 좋아요 추가 (중복 방지)
+      const { rowCount } = await t.raw.query(
+        `INSERT INTO post_likes (post_id, user_id)
+         VALUES ($1, $2)
+         ON CONFLICT (post_id, user_id) DO NOTHING`,
+        [postId, userId]
+      );
 
-    return res.json({liked:true, like_count});
+      // 새로 추가된 경우에만 like_count +1
+      if (rowCount > 0) {
+        await t.query(
+          `UPDATE posts
+           SET like_count = COALESCE(like_count, 0) + 1
+           WHERE id = $1`,
+          [postId]
+        );
+      }
 
-  }catch(err){
+      // 최신 좋아요 수 반환
+      const [{ like_count }] = await t.query(
+        `SELECT like_count FROM posts WHERE id=$1`,
+        [postId]
+      );
+
+      return { liked: true, like_count };
+    });
+
+    res.json(result);
+  } catch (err) {
     next(err);
   }
 });
+
+
 
 //게시글 좋아요 삭제
 router.delete("/:id/like", authRequired, async (req, res, next) => {
@@ -328,32 +368,50 @@ router.delete("/:id/like", authRequired, async (req, res, next) => {
   const userId = req.user.id;
 
   try {
-    await db.query(
-      `DELETE FROM post_likes WHERE post_id=$1 AND user_id=$2`,
-      [postId, userId]
-    );
+    const result = await db.tx(async (t) => {
+      const { rowCount } = await t.raw.query(
+        `DELETE FROM post_likes
+         WHERE post_id=$1 AND user_id=$2`,
+        [postId, userId]
+      );
 
-    const [{ like_count }] = await db.query(
-      `SELECT COUNT(*)::int AS like_count FROM post_likes WHERE post_id=$1`,
-      [postId]
-    );
+      // 삭제된 경우에만 like_count -1
+      if (rowCount > 0) {
+        await t.query(
+          `UPDATE posts
+           SET like_count = GREATEST(COALESCE(like_count, 0) - 1, 0)
+           WHERE id=$1`,
+          [postId]
+        );
+      }
 
-    return res.json({liked:false, like_count});
-  } catch (e) {
-    next(e);
+      const [{ like_count }] = await t.query(
+        `SELECT like_count FROM posts WHERE id=$1`,
+        [postId]
+      );
+
+      return { liked: false, like_count };
+    });
+
+    res.json(result);
+  } catch (err) {
+    next(err);
   }
 });
 
-router.get("/:id/like", authRequired, async (req, res, next) => {
-  const postId = req.params.id;
-  const userId = req.user.id; 
 
+router.get("/:id/like", optionalAuth, async (req, res, next) => {
   try {
+    const postId = req.params.id;
+    const userId = req.user?.id ?? null;
+
+    // 전체 좋아요 수
     const [{ like_count }] = await db.query(
-      `SELECT COUNT(*)::int AS like_count FROM post_likes WHERE post_id=$1`,
+      `SELECT like_count FROM posts WHERE id=$1`,
       [postId]
     );
 
+    // 내가 누른 상태
     let liked = false;
     if (userId) {
       const r = await db.query(
@@ -363,9 +421,9 @@ router.get("/:id/like", authRequired, async (req, res, next) => {
       liked = r.length > 0;
     }
 
-    return res.json({ like_count, liked });
-  } catch (e) {
-    next(e);
+    res.json({ like_count: like_count ?? 0, liked });
+  } catch (err) {
+    next(err);
   }
 });
 

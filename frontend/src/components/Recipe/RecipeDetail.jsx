@@ -9,10 +9,11 @@
 import { useParams, NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Like from "@/components/Like/like";
+import CocktailLike from "@/components/Like/CocktailLike";
+
 export default function RecipeDetail() {
-  // --- URL 파라미터(slug) 추출 ---
-  const { slug } = useParams();
+  // --- URL 파라미터(id) 추출 ---
+  const { id } = useParams();
 
   // --- 상태 관리 ---
   const [cocktail, setCocktail] = useState(null); // 현재 칵테일 데이터
@@ -25,9 +26,9 @@ export default function RecipeDetail() {
       try {
         setLoading(true);
         setError("");
-        // slug를 이용해 특정 칵테일 데이터 요청
+        // id를 이용해 특정 칵테일 데이터 요청
         const res = await axios.get(
-          `http://localhost:4000/api/cocktails/${slug}`
+          `http://localhost:4000/api/cocktails/${id}`
         );
         setCocktail(res.data || null);
       } catch (err) {
@@ -36,7 +37,7 @@ export default function RecipeDetail() {
         setLoading(false);
       }
     })();
-  }, [slug]);
+  }, [id]);
 
   // --- 상태별 렌더링 처리 ---
   if (loading) {
@@ -150,7 +151,7 @@ export default function RecipeDetail() {
 
         {/* 좋아요 버튼 (오른쪽 아래) */}
         <div className="flex justify-end mt-8">
-          <Like />
+          <CocktailLike cocktailId={id} />
         </div>
       </aside>
     </article>

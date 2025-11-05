@@ -38,7 +38,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="today" element={<Today />} />
             <Route path="map" element={<Map />} />
             <Route path="recipe" element={<Recipe />} />
-            <Route path="cocktails/:slug" element={<RecipeDetail />} />
+            <Route path="cocktails/:id" element={<RecipeDetail />} />
             <Route path="bars/:city" element={<BarDetail />} />
             <Route path="communitywriting" element={<CommunityWriting />} />
             <Route path="communityedit/:id" element={<CommunityEdit />} />

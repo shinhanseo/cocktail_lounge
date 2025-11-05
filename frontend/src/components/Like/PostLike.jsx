@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useNavigate } from "react-router-dom";
 
 export default function Like({ postId }) {
+  const user = useAuthStore((s) => s.user);
+  const isLogined = !!user;
   const [liked, setLiked] = useState(false); // 좋아요 눌렀는지 여부
   const [likes, setLikes] = useState(0); // 좋아요 총 개수
+  const navigate = useNavigate();
 
   // 초기 상태 불러오기 (카운트 + 내가 눌렀는지)
   useEffect(() => {
@@ -47,6 +52,11 @@ export default function Like({ postId }) {
         setLikes((prev) => prev + 1);
       }
     } catch (err) {
+      if (!isLogined) {
+        alert("로그인을 하셔야 해당 기능을 이용할 수 있습니다.");
+        navigate("/login");
+        return;
+      }
       console.log(err);
       alert("좋아요 처리 중 오류가 발생했습니다.");
     }
