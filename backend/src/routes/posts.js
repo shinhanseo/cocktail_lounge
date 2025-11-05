@@ -120,6 +120,66 @@ router.get("/mypost", authRequired, async (req, res, next) => {
   }
 });
 
+router.get("/mylike", authRequired, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    // page 파라미터 받기 (없으면 1)
+    const page = Math.max(parseInt(req.query.page ?? "1", 10), 1);
+    const limit = Math.max(parseInt(req.query.limit ?? "10", 10), 1);
+    const offset = (page - 1) * limit;
+
+    // 전체 개수 조회
+    const [{ count }] = await db.query(
+      `
+      SELECT COUNT(*)::int AS count
+      FROM post_likes pl
+      JOIN posts p ON p.id = pl.post_id
+      WHERE pl.user_id = $1
+      `,
+      [userId]
+    );
+    const pageCount = Math.max(Math.ceil(count / limit), 1);
+
+    // 실제 게시글 가져오기
+    const rows = await db.query(
+      `
+      SELECT p.id, p.title, p.created_at, u.login_id AS author, p.like_count
+      FROM post_likes pl
+      JOIN posts p ON p.id = pl.post_id
+      LEFT JOIN users u ON u.id = p.user_id
+      WHERE pl.user_id = $1
+      ORDER BY pl.created_at DESC
+      LIMIT $2 OFFSET $3
+      `,
+      [userId, limit, offset]
+    );
+
+    const items = rows.map(p => ({
+      id: p.id,
+      title: p.title,
+      user: p.author ?? null,
+      date: p.created_at
+        ? new Date(p.created_at).toISOString().slice(0, 10)
+        : null,
+      like_count: p.like_count ?? 0,
+    }));
+
+    res.json({
+      items,
+      meta: {
+        total: count,
+        page,
+        limit,
+        pageCount,
+        hasPrev: page > 1,
+        hasNext: page < pageCount,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 /* ===============================
    GET /posts?page=1&limit=10

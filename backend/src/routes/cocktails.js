@@ -45,7 +45,8 @@ router.get("/", async (req, res, next) => {
          ingredients,
          steps,
          image,
-         comment
+         comment,
+         like_count
        FROM cocktails
        ORDER BY id DESC`
     );
@@ -56,6 +57,61 @@ router.get("/", async (req, res, next) => {
     next(err);
   }
 });
+
+router.get("/mylike", authRequired, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const page  = Math.max(parseInt(req.query.page ?? "1", 10), 1);
+    const limit = Math.max(parseInt(req.query.limit ?? "6", 10), 1); // 기본 6
+    const offset = (page - 1) * limit;
+
+    // 총 개수
+    const [{ count }] = await db.query(
+      `SELECT COUNT(*)::int AS count
+       FROM cocktail_likes
+       WHERE user_id = $1`,
+      [userId]
+    );
+    const pageCount = Math.max(Math.ceil(count / limit), 1);
+
+    // 목록
+    const rows = await db.query(
+      `SELECT
+         c.id,
+         c.name,
+         c.image,
+         c.like_count,
+         cl.created_at AS liked_at
+       FROM cocktail_likes cl
+       JOIN cocktails c ON c.id = cl.cocktail_id
+       WHERE cl.user_id = $1
+       ORDER BY cl.created_at DESC, c.id DESC
+       LIMIT $2 OFFSET $3`,
+      [userId, limit, offset]
+    );
+
+    res.json({
+      items: rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        image: r.image,
+        like_count: r.like_count ?? 0,
+        liked_at: r.liked_at,
+      })),
+      meta: {
+        total: count,
+        page,
+        limit,
+        pageCount,
+        hasPrev: page > 1,
+        hasNext: page < pageCount,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 
 // 상세 (id 기준)
 router.get("/:id", async (req, res, next) => {

@@ -92,6 +92,9 @@ export default function RecipeList() {
               <p className="text-white text-sm md:text-base font-semibold tracking-wide truncate">
                 {c.name}
               </p>
+              <p className="text-xs text-white/60 mt-1 text-center">
+                ❤️ {c.like_count ?? 0}
+              </p>
             </div>
           </NavLink>
         ))}

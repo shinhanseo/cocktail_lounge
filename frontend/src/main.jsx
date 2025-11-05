@@ -17,11 +17,11 @@ import BarDetail from "@/components/Map/BarDetail";
 import CommunityWriting from "@/components/Community/CommunityWriting";
 import CommunityEdit from "@/components/Community/CommunityEdit";
 import MyPage from "@/pages/MyPage";
-
 import InfoMe from "@/components/MyPage/InfoMe";
 import MyPosts from "@/components/MyPage/MyPosts";
 import MyComments from "@/components/MyPage/MyComments";
-import MyLikes from "@/components/MyPage/MyLikes";
+import PostLike from "@/components/MyPage/PostLike";
+import CocktailLike from "@/components/MyPage/CocktailLike";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -48,7 +48,8 @@ createRoot(document.getElementById("root")).render(
               <Route index element={<InfoMe />} />
               <Route path="posts" element={<MyPosts />} />
               <Route path="comments" element={<MyComments />} />
-              <Route path="likes" element={<MyLikes />} />
+              <Route path="postlike" element={<PostLike />} />
+              <Route path="cocktaillike" element={<CocktailLike />} />
             </Route>
           </Route>
         </Route>

@@ -1,13 +1,17 @@
-import { useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 export default function MyPageHeader() {
-  const navigate = useNavigate();
+  const navClass = ({ isActive }) =>
+    `text-left px-3 py-2 rounded-lg transition font-medium hover:cursor-pointer ${
+      isActive ? "text-title bg-gray-800" : "text-white hover:bg-gray-800"
+    }`;
 
   const headertitle = [
-    { title: "내 정보", to: "/mypage" },
+    { title: "내 정보", to: "/mypage", exact: true },
     { title: "내가 쓴 게시글", to: "/mypage/posts" },
     { title: "내가 쓴 댓글", to: "/mypage/comments" },
-    { title: "내가 보낸 좋아요", to: "/mypage/likes" },
+    { title: "좋아요 보낸 게시글", to: "/mypage/postlike" },
+    { title: "좋아요 보낸 칵테일", to: "/mypage/cocktaillike" },
   ];
 
   return (
@@ -18,13 +22,9 @@ export default function MyPageHeader() {
 
       <div className="flex flex-col space-y-3">
         {headertitle.map((h, i) => (
-          <button
-            key={i}
-            onClick={() => navigate(h.to)}
-            className="text-left px-3 py-2 rounded-lg hover:bg-gray-800 transition font-medium hover:cursor-pointer"
-          >
+          <NavLink key={i} to={h.to} end={h.exact} className={navClass}>
             {h.title}
-          </button>
+          </NavLink>
         ))}
       </div>
     </div>

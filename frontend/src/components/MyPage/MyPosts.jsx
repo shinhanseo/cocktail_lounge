@@ -73,7 +73,7 @@ export default function MyPosts() {
   return (
     <div className="text-white bg-white/5 border border-white/10 rounded-2xl p-8 shadow-lg">
       <h2 className="text-xl font-semibold mb-6 border-b border-white/20 pb-3">
-        내가 쓴 게시글
+        🗒️ 내가 쓴 게시글
       </h2>
 
       {items.length === 0 ? (
