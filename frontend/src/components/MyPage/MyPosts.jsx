@@ -86,7 +86,12 @@ export default function MyPosts() {
             <li
               key={p.id}
               onClick={() => navigate(`/posts/${p.id}`)}
-              className="flex gap-12 justify-between items-center border-b border-white/10 pb-3 hover:bg-white/5 hover:cursor-pointer rounded-lg px-3 py-2 transition"
+              className="flex justify-between items-center border-b border-white/10 pb-3 hover:bg-white/5 hover:cursor-pointer rounded-lg px-3 py-2 transition"
+              style={{
+                width: "700px",
+                minWidth: "700px",
+                maxWidth: "700px",
+              }}
             >
               <h3 className="text-lg font-semibold">{p.title}</h3>
               <p className="text-gray-400 text-sm">{p.date}</p>

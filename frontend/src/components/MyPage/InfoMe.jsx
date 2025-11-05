@@ -4,7 +4,14 @@ export default function InfoMe() {
   const user = useAuthStore((s) => s.user);
 
   return (
-    <div className="bg-[#1a1b26] text-white border border-white/10 bg-white/5 rounded-4xl p-8 w-[350px] h-fit">
+    <div
+      className="bg-[#1a1b26] text-white border border-white/10 bg-white/5 rounded-4xl p-8 w-[350px] h-fit "
+      style={{
+        width: "700px",
+        minWidth: "700px",
+        maxWidth: "700px",
+      }}
+    >
       <h2 className="text-xl font-semibold mb-6 text-center border-b border-white/10 pb-3">
         내 정보
       </h2>

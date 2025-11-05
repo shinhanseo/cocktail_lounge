@@ -2,7 +2,6 @@
 import { Router } from "express";
 import db from "../db/client.js";
 import { z } from "zod";
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const router = Router();
@@ -193,62 +192,86 @@ router.get("/:id", async (req, res, next) => {
 
 
 /* ===============================
-   delete /posts/:id
-   게시글 삭제제
+   DELETE /posts/:id
+   게시글 삭제
 ================================*/
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", authRequired, async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const userId = req.user.id;       // 로그인한 사용자 id
+    const postId = req.params.id;     // 삭제할 게시글 id
 
-    // 존재 확인
-    const rows = await db.query("SELECT id FROM posts WHERE id = $1", [id]);
+    // 작성자 본인 게시글인지 확인
+    const rows = await db.query(
+      "SELECT id, user_id FROM posts WHERE id = $1",
+      [postId]
+    );
+
     if (rows.length === 0) {
       return res.status(404).json({ error: "게시글을 찾을 수 없습니다." });
     }
 
-    // 삭제 + 결과 반환
-    await db.query("DELETE FROM posts WHERE id = $1", [id]);
-    res.json({ message: "삭제 완료"});
+    if (rows[0].user_id !== userId) {
+      return res.status(403).json({ error: "본인 게시글만 삭제할 수 있습니다." });
+    }
+
+    // 삭제
+    await db.query("DELETE FROM posts WHERE id = $1", [postId]);
+    res.json({ message: "삭제 완료" });
   } catch (e) {
     next(e);
   }
 });
 
+
 /* ===============================
-   put /posts:id
+   PUT /posts/:id
    게시글 수정
 ================================*/
-router.put("/:id", async(req, res, next) => {
-  try{
-    const {id} = req.params;    
-    const {title, body, tags} = req.body;
-    const rows = await db.query("SELECT id FROM posts WHERE id = $1", [id]);
+router.put("/:id", authRequired, async (req, res, next) => {
+  try {
+    const userId = req.user.id;      // 로그인한 사용자 id
+    const postId = req.params.id;    // 수정할 게시글 id
+    const { title, body, tags } = req.body;
+
+    // 게시글 존재 + 작성자 확인
+    const rows = await db.query(
+      "SELECT id, user_id FROM posts WHERE id = $1",
+      [postId]
+    );
+
     if (rows.length === 0) {
       return res.status(404).json({ error: "게시글을 찾을 수 없습니다." });
     }
 
-    await db.query(`
+    if (rows[0].user_id !== userId) {
+      return res.status(403).json({ error: "본인 게시글만 수정할 수 있습니다." });
+    }
+
+    // 수정
+    await db.query(
+      `
       UPDATE posts
-      SET title=$1, body=$2, tags=$3, updated_at=NOW()
-      WHERE id = $4  
-    `, [title, body, tags, id]);
+      SET title = $1, body = $2, tags = $3, updated_at = NOW()
+      WHERE id = $4
+      `,
+      [title, body, tags, postId]
+    );
 
-    res.status(200).json({message:"수정 완료"});
-
-  }catch(err){
+    res.status(200).json({ message: "수정 완료" });
+  } catch (e) {
     next(e);
   }
-})
+});
+
 
 /* ===============================
    post /posts
    게시글 작성
 ================================*/
-router.post("/", async (req, res) => {
+router.post("/", authRequired, async (req, res) => {
   try {
     const parsed = CreatePostSchema.parse(req.body);
-    const userId = req.user?.id ?? parsed.user_id;
-    if (!userId) return res.status(401).json({ message: "로그인이 필요합니다." });
+    const userId = req.user.id;
 
     const rows = await db.query(
       `
@@ -271,5 +294,6 @@ router.post("/", async (req, res) => {
     return res.status(500).json({ message: "서버 오류가 발생했습니다." });
   }
 });
+
 
 export default router;

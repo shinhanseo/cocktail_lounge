@@ -16,7 +16,7 @@ export default function MyPage() {
         </div>
 
         {/* 오른쪽 내용 */}
-        <div className="flex-1">
+        <div className="flex-1 max-w-[800px]">
           <Outlet />
         </div>
       </div>

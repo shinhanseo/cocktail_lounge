@@ -57,10 +57,9 @@ export default function CommunityWriting() {
       setLoading(true);
 
       const res = await axios.post("http://localhost:4000/api/posts", {
-        user_id: user?.id, // 서버에서 쿠키/JWT로 재검증 권장
         title: title.trim(),
         body: body.trim(),
-        tags: parsedTags, // 배열로 전송
+        tags: parsedTags,
       });
 
       if (res.status === 201) {

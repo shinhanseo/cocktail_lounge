@@ -5,12 +5,12 @@
 // - 로딩/에러/없음 상태 처리
 // - 상단 메타(작성자/날짜) + 태그 + 본문 렌더링
 // -------------------------------------------------------------
-
 import { useParams, NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
+import Comment from "@/components/Comment/Comment";
 
 export default function CommunityDetail() {
   // --- URL 파라미터 ---
@@ -152,6 +152,7 @@ export default function CommunityDetail() {
         {/* 본문 */}
         <div className="leading-relaxed text-white/95">{post.body}</div>
       </article>
+      <Comment postId={id} />
     </section>
   );
 }

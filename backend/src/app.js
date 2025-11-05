@@ -8,6 +8,7 @@ import signupRouter from "./routes/signup.js";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.js";
 import oauthRouter from "./routes/oauth/index.js";
+import CommentRouter from "./routes/comment.js";
 
 const app = express();
 app.use(express.json());
@@ -31,6 +32,7 @@ app.use("/api/bars", barsRouter);
 app.use("/api/signup", signupRouter);
 app.use("/api/auth", authRouter); 
 app.use("/api/oauth", oauthRouter);
+app.use("/api/comment", CommentRouter);
 
 app.use((req, res) => res.status(404).json({ message: "Not Found" }));
 app.use((err, req, res, next) => {
