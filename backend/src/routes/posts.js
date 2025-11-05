@@ -137,7 +137,7 @@ router.get("/", async (req, res, next) => {
     
     // 게시글 조회
     const rows = await db.query(
-      `SELECT p.id, p.title, u.login_id AS author, p.created_at, p.tags, p.body, COUNT(c.id) AS comment_count
+      `SELECT p.id, p.title, u.login_id AS author, p.created_at, p.tags, p.body, COUNT(c.id) AS comment_count, p.like_count
        FROM posts p
        LEFT JOIN users u ON u.id = p.user_id
        LEFT JOIN comments c ON c.post_id = p.id
@@ -155,6 +155,7 @@ router.get("/", async (req, res, next) => {
       tags: p.tags ?? [],
       body: p.body,
       comment_count : p.comment_count,
+      like_count : p.like_count,
     }));
 
     res.json({

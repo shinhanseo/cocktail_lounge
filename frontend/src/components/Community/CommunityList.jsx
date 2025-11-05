@@ -142,7 +142,9 @@ export default function CommunityList() {
             {/* 작성자 / 작성일 */}
             <div className="text-center text-white/70 text-sm">{p.user}</div>
             <div className="text-center text-white/50 text-sm">{p.date}</div>
-            <div className="text-center text-white/50 text-sm">👍️{}</div>
+            <div className="text-center text-white/50 text-sm">
+              {p.like_count ?? 0}
+            </div>
           </li>
         ))}
       </ul>

@@ -103,7 +103,7 @@ export default function CommunityPreview() {
             className="py-2 flex items-center gap-3 hover:bg-white/5 hover:rounded-2xl border-b-2 border-white/10"
           >
             {/* 순번 (1부터) */}
-            <span className="text-white/50 w-10 text-center">{++num}</span>
+            <span className="text-white/50 w-10 text-center">{++num}.</span>
 
             {/* 제목: 15자 초과 시 ... 처리 */}
             <NavLink
