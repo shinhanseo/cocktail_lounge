@@ -25,6 +25,12 @@ function authRequired(req, res, next) {
 router.get("/:id", async (req, res, next) => {
   try {
     const postId = req.params.id;
+    const page = Math.max(parseInt(req.query.page ?? "1", 10), 1);
+    const limit = Math.max(parseInt(req.query.limit ?? "10", 10), 1);
+    const offset = (page - 1) * limit;
+
+    const [{ count }] = await db.query(`SELECT COUNT(*)::int AS count FROM comments WHERE post_id = $1`,[postId]);
+    const pageCount = Math.max(Math.ceil(count / limit), 1);
 
     const rows = await db.query(
       `
@@ -33,8 +39,10 @@ router.get("/:id", async (req, res, next) => {
       LEFT JOIN users u ON u.id = c.user_id
       WHERE c.post_id = $1
       ORDER BY c.created_at DESC
+      LIMIT $2
+      OFFSET $3
       `,
-      [postId]
+      [postId, limit, offset]
     );
     if (rows.length === 0) {
       return res.status(200).json({ message: "게시글에 댓글이 없습니다." });
@@ -50,7 +58,17 @@ router.get("/:id", async (req, res, next) => {
         : null,
     }));
 
-    res.json({ comments });
+    res.status(200).json({
+      comments,
+      meta: {
+        total: count,
+        page,
+        limit,
+        pageCount,
+        hasPrev: page > 1,
+        hasNext: page < pageCount,
+      },
+    });
   } catch (err) {
     next(err);
   }

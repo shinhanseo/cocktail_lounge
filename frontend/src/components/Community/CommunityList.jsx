@@ -118,7 +118,7 @@ export default function CommunityList() {
         {items.map((p, idx) => (
           <li
             key={p.id}
-            className="grid grid-cols-[70px_1fr_140px_120px] items-center px-6 py-3
+            className="grid grid-cols-[70px_1fr_140px_120px_60px] items-center px-6 py-3
                        hover:bg-white/10 transition-colors"
           >
             {/* 번호: 최신이 위이므로 역순 번호 계산 */}
@@ -139,6 +139,9 @@ export default function CommunityList() {
             {/* 작성자 / 작성일 */}
             <div className="text-center text-white/70 text-sm">{p.user}</div>
             <div className="text-center text-white/50 text-sm">{p.date}</div>
+            <div className="text-center text-white/50 text-sm">
+              {p.comment_count}개
+            </div>
           </li>
         ))}
       </ul>

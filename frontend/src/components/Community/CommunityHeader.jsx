@@ -2,7 +2,7 @@
 export default function CommunityHeader() {
   return (
     <li
-      className="grid grid-cols-[70px_1fr_140px_120px]
+      className="grid grid-cols-[70px_1fr_140px_120px_60px]
                  font-semibold text-sm sm:text-base text-white/80
                  border-b border-white/10 px-6 py-3 text-center
                  sticky top-0 bg-white/10 backdrop-blur-[4px]
@@ -12,6 +12,7 @@ export default function CommunityHeader() {
       <div className="text-left pl-2">제목</div>
       <div className="text-center">작성자</div>
       <div className="text-center">작성일</div>
+      <div className="text-center">댓글</div>
     </li>
   );
 }

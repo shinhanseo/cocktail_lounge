@@ -125,9 +125,11 @@ router.get("/", async (req, res, next) => {
     
     // 게시글 조회
     const rows = await db.query(
-      `SELECT p.id, p.title, u.login_id AS author, p.created_at, p.tags, p.body
+      `SELECT p.id, p.title, u.login_id AS author, p.created_at, p.tags, p.body, COUNT(c.id) AS comment_count
        FROM posts p
        LEFT JOIN users u ON u.id = p.user_id
+       LEFT JOIN comments c ON c.post_id = p.id
+       GROUP BY p.id, u.login_id
        ORDER BY p.id DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset]
@@ -140,6 +142,7 @@ router.get("/", async (req, res, next) => {
       date: p.created_at ? new Date(p.created_at).toISOString().slice(0, 10) : null,
       tags: p.tags ?? [],
       body: p.body,
+      comment_count : p.comment_count,
     }));
 
     res.json({
