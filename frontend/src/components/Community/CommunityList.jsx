@@ -143,6 +143,7 @@ export default function CommunityList() {
             <div className="text-center text-white/70 text-sm">{p.user}</div>
             <div className="text-center text-white/50 text-sm">{p.date}</div>
             <div className="text-center text-white/50 text-sm">
+              <span className="mr-2">❤️</span>
               {p.like_count ?? 0}
             </div>
           </li>

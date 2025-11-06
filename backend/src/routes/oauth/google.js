@@ -133,7 +133,7 @@ router.get("/callback", async (req, res) => {
             // 예: 구글 id 기반 기본값
             email,
             name,
-            email,           // null 가능
+            email,          
           ]
         );
         existing = inserted[0];
@@ -167,7 +167,6 @@ router.get("/callback", async (req, res) => {
       path: "/",
     });
 
-    // next/state 없이 홈으로
     return res.redirect(`${FRONTEND_URL}/`);
   } catch (err) {
     console.error("OAuth Error:", err?.response?.data || err?.message || err);

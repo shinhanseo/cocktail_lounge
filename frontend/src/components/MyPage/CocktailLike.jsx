@@ -77,7 +77,14 @@ export default function CocktailLike() {
         ) : (
           <>
             {/* 3 x 2 고정 그리드 */}
-            <div className="grid grid-cols-3 gap-6 mt-6">
+            <div
+              className="grid grid-cols-3 gap-6 mt-6"
+              style={{
+                width: "700px",
+                minWidth: "700px",
+                maxWidth: "700px",
+              }}
+            >
               {items.map((c) => (
                 <NavLink
                   key={c.id}

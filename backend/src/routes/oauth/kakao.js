@@ -41,7 +41,7 @@ router.get("/callback", async (req, res) => {
       new URLSearchParams({
         grant_type: "authorization_code",
         client_id: KAKAO_CLIENT_ID,
-        redirect_uri: KAKAO_REDIRECT_URI,    // 콘솔값과 문자 하나까지 동일
+        redirect_uri: KAKAO_REDIRECT_URI,
         code,
         ...(KAKAO_CLIENT_SECRET ? { client_secret: KAKAO_CLIENT_SECRET } : {}),
       }).toString(),

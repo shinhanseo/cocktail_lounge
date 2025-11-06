@@ -363,7 +363,7 @@ router.post("/", authRequired, async (req, res) => {
       `
       INSERT INTO posts (user_id, title, body, tags)
       VALUES ($1, $2, $3, $4)
-      RETURNING id, user_id, title, body, tags, created_at, updated_at, "like"
+      RETURNING id, user_id, title, body, tags, created_at, updated_at, like_count
       `,
       [userId, parsed.title, parsed.body, parsed.tags]
     );
