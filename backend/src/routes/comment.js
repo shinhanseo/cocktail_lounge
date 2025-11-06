@@ -8,7 +8,7 @@ const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
 const IS_PROD = process.env.NODE_ENV === "production";
 
-// 공용: JWT 확인 미들웨어
+// JWT 확인 미들웨어
 function authRequired(req, res, next) {
   const token = req.cookies?.auth;
   if (!token) return res.status(401).json({ message: "인증이 필요합니다." });
@@ -21,6 +21,7 @@ function authRequired(req, res, next) {
   }
 }
 
+//나의 댓글 조회
 router.get("/mycomment", authRequired, async(req, res, next) => {
   try{
     const userId = req.user.id;
@@ -74,7 +75,7 @@ router.get("/mycomment", authRequired, async(req, res, next) => {
   }
 })
 
-// GET /api/comments/:id → 특정 게시글의 댓글 목록
+//특정 게시글의 댓글 목록
 router.get("/:id", async (req, res, next) => {
   try {
     const postId = req.params.id;

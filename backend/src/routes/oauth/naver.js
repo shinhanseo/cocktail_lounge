@@ -1,6 +1,6 @@
 // src/routes/oauth.naver.js
 // -------------------------------------------------------------
-// 🔐 Naver OAuth2 라우터
+// Naver OAuth2 라우터
 // - /oauth/naver            : Naver 동의 화면으로 리다이렉트
 // - /oauth/naver/callback   : code 수신 → 토큰 교환 → 구글 프로필 조회
 //                            → (users, oauth_accounts) 업서트

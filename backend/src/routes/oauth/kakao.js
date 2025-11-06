@@ -1,6 +1,6 @@
 // src/routes/oauth.kakao.js
 // -------------------------------------------------------------
-// 🔐 Kakao OAuth2 라우터
+//   Kakao OAuth2 라우터
 // - /oauth/kakao            : Kakao 동의 화면으로 리다이렉트
 // - /oauth/kakao/callback   : code 수신 → 토큰 교환 → 구글 프로필 조회
 //                            → (users, oauth_accounts) 업서트

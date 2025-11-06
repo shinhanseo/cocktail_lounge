@@ -1,6 +1,6 @@
 // src/routes/oauth.google.js
 // -------------------------------------------------------------
-// 🔐 Google OAuth2 라우터
+//  Google OAuth2 라우터
 // - /oauth/google            : Google 동의 화면으로 리다이렉트
 // - /oauth/google/callback   : code 수신 → 토큰 교환 → 구글 프로필 조회
 //                            → (users, oauth_accounts) 업서트

@@ -4,7 +4,7 @@ import db from "../db/client.js";
 import bcrypt from "bcrypt";
 import { z } from "zod";
 
-// --- 유효성 스키마 (트림 + 정규식 + 길이) ---
+// 유효성 스키마
 const SignUpSchema = z.object({
   login_id: z
     .string()
@@ -23,7 +23,7 @@ const SignUpSchema = z.object({
     .toLowerCase()
     .email("올바른 이메일 형식이 아닙니다.")
     .optional()
-    .or(z.literal("")), // 빈 문자열 허용(원치 않으면 제거)
+    .or(z.literal("")), // 빈 문자열 허용
   name: z
     .string()
     .trim()
@@ -48,7 +48,7 @@ router.post("/", async (req, res) => {
       login_id,
       password,
       name,
-      birthday, // YYYYMMDD
+      birthday, 
       phone,
       email,
     } = parsed;
@@ -77,7 +77,7 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message });
     }
 
-    // 5) Postgres UNIQUE 충돌 처리
+    // 5) Postgres UNIQUE 충돌 오류 번호 : 23505
     if (err?.code === "23505") {
       const c = err.constraint || "";
       const msg =

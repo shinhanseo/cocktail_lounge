@@ -10,7 +10,7 @@ const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
 const IS_PROD = process.env.NODE_ENV === "production";
 
-// 공용 jwt 확인 그러나 로그인을 안해도 무방
+// jwt 확인 그러나 로그인을 안해도 무방
 function optionalAuth(req, _res, next) {
   const token = req.cookies?.auth;
   if (token) {
@@ -120,6 +120,7 @@ router.get("/mypost", authRequired, async (req, res, next) => {
   }
 });
 
+//내 좋아요
 router.get("/mylike", authRequired, async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -460,7 +461,7 @@ router.delete("/:id/like", authRequired, async (req, res, next) => {
   }
 });
 
-
+// 해당 게시글 좋아요 조회
 router.get("/:id/like", optionalAuth, async (req, res, next) => {
   try {
     const postId = req.params.id;

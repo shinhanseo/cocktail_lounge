@@ -141,6 +141,7 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
+//좋아요 추가
 router.post("/:id/like", authRequired, async (req, res, next) => {
   const cocktailId = req.params.id;
   const userId = req.user.id;
@@ -180,7 +181,7 @@ router.post("/:id/like", authRequired, async (req, res, next) => {
   }
 });
 
-//게시글 좋아요 삭제
+//좋아요 삭제
 router.delete("/:id/like", authRequired, async (req, res, next) => {
   const cocktailId = req.params.id;
   const userId = req.user.id;
@@ -217,7 +218,7 @@ router.delete("/:id/like", authRequired, async (req, res, next) => {
   }
 });
 
-
+// 좋아요 조회
 router.get("/:id/like", optionalAuth, async (req, res, next) => {
   try {
     const cocktailId = req.params.id;

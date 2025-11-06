@@ -4,7 +4,7 @@ import db from "../db/client.js";
 
 const router = Router();
 
-// ✅ GET /citys
+// GET /citys
 router.get("/", async (req, res, next) => {
   try {
     const rows = await db.query(
