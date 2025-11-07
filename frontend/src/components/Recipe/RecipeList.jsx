@@ -24,7 +24,6 @@ export default function RecipeList() {
         setError("");
         // 서버에서 칵테일 데이터 요청
         const res = await axios.get("http://localhost:4000/api/cocktails");
-        // 응답 데이터가 배열이면 cocktails에 저장
         setCocktails(Array.isArray(res.data?.items) ? res.data.items : []);
       } catch (err) {
         // 취소 오류 외의 에러 처리
@@ -92,6 +91,7 @@ export default function RecipeList() {
               <p className="text-white text-sm md:text-base font-semibold tracking-wide truncate">
                 {c.name}
               </p>
+              {/* 칵테일 좋아요 개수 표시 */}
               <p className="text-xs text-white/60 mt-1 text-center">
                 ❤️ {c.like_count ?? 0}
               </p>

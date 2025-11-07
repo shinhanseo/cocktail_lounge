@@ -25,14 +25,14 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.get("/healthz", (_, res) => res.send("ok"));
-app.use("/api/posts", postsRouter);
-app.use("/api/cocktails", cocktailsRouter);
-app.use("/api/citys", citysRouter);
-app.use("/api/bars", barsRouter);
-app.use("/api/signup", signupRouter);
-app.use("/api/auth", authRouter); 
-app.use("/api/oauth", oauthRouter);
-app.use("/api/comment", CommentRouter);
+app.use("/api/posts", postsRouter);         // 게시글 관련
+app.use("/api/cocktails", cocktailsRouter); // 칵테일 관련
+app.use("/api/citys", citysRouter);         // 바 관련 도시 네임 9개
+app.use("/api/bars", barsRouter);           // 각 도시별 바
+app.use("/api/signup", signupRouter);      // 자체 회원가입
+app.use("/api/auth", authRouter);          // 로그인
+app.use("/api/oauth", oauthRouter);        // naver, gogle, kakao Oauth2.0 관련
+app.use("/api/comment", CommentRouter);    // 댓글 관련
 
 app.use((req, res) => res.status(404).json({ message: "Not Found" }));
 app.use((err, req, res, next) => {

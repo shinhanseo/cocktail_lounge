@@ -151,25 +151,25 @@ export default function CommunityList() {
       </ul>
 
       {/* 페이지네이션 */}
-      <div className="flex items-center justify-center gap-3 py-5">
+      <div className="flex items-center justify-center gap-3 mt-8 mb-8">
         <button
           onClick={() => goPage(meta.page - 1)}
           disabled={!meta.hasPrev}
-          className="px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
-                     disabled:opacity-40 hover:bg-white/10 transition-colors hover:cursor-pointer"
+          className={`px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
+                      disabled:opacity-40 hover:bg-white/10 transition
+                      ${meta.hasPrev ? "cursor-pointer" : "cursor-default"}`}
         >
           ← 이전
         </button>
-
         <span className="text-sm text-white/70">
           {meta.page} / {meta.pageCount}
         </span>
-
         <button
           onClick={() => goPage(meta.page + 1)}
           disabled={!meta.hasNext}
-          className="px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
-                     disabled:opacity-40 hover:bg-white/10 transition-colors hover:cursor-pointer"
+          className={`px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
+                      disabled:opacity-40 hover:bg-white/10 transition
+                      ${meta.hasNext ? "cursor-pointer" : "cursor-default"}`}
         >
           다음 →
         </button>

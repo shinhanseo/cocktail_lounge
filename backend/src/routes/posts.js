@@ -15,8 +15,8 @@ function optionalAuth(req, _res, next) {
   const token = req.cookies?.auth;
   if (token) {
     try {
-      const payload = jwt.verify(token, JWT_SECRET);
-      req.user = payload; // 반드시 payload에 id가 들어 있어야 함!
+      const payload = jwt.verify(token, JWT_SECRET); // jwt.verify() -> 토근명, 키 
+      req.user = payload; 
     } catch {}
   }
   next();

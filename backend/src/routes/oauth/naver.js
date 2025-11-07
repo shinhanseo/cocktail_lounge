@@ -1,6 +1,8 @@
 // src/routes/oauth.naver.js
 // -------------------------------------------------------------
 // Naver OAuth2 라우터
+
+
 // - /oauth/naver            : Naver 동의 화면으로 리다이렉트
 // - /oauth/naver/callback   : code 수신 → 토큰 교환 → 구글 프로필 조회
 //                            → (users, oauth_accounts) 업서트
@@ -155,15 +157,15 @@ router.get('/callback', async (req, res) => {
     });
 
     // 앱 JWT 발급 + 쿠키
-    const payload = { id: userRow.id, login_id: userRow.login_id, name: userRow.name };
-    const appToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+    const payload = { id: userRow.id, login_id: userRow.login_id, name: userRow.name }; // 비밀번호같은 보안요소 넣기 금지
+    const appToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" }); 
 
     res.cookie("auth", appToken, {
-      httpOnly: true, 
-      sameSite: IS_PROD ? "none" : "lax",
-      secure: IS_PROD,
+      httpOnly: true, // JS로 접근 금지
+      sameSite: IS_PROD ? "none" : "lax", // 다른 사이트에 쿠기 전송 허용 X
+      secure: IS_PROD, // HTTPS에서만 쿠키 사용
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7일 
-      path: "/",
+      path: "/", // 쿠키를 사용할 수 있는 경로
     });
 
     return res.redirect(`${FRONTEND_URL}/`);

@@ -67,7 +67,7 @@ export default function CocktailLike() {
     <section className="max-w-5xl mx-auto text-white">
       <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-xl">
         <h1 className="text-2xl font-bold text-center pb-4 border-b border-white/10">
-          🍸 내가 좋아요한 칵테일
+          🍸 내가 좋아요 보낸 칵테일
         </h1>
 
         {items.length === 0 ? (
@@ -119,8 +119,11 @@ export default function CocktailLike() {
               <button
                 onClick={() => goPage(meta.page - 1)}
                 disabled={!meta.hasPrev}
-                className="px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
-                           disabled:opacity-40 hover:bg-white/10 transition"
+                className={`px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
+                            disabled:opacity-40 hover:bg-white/10 transition
+                            ${
+                              meta.hasPrev ? "cursor-pointer" : "cursor-default"
+                            }`}
               >
                 ← 이전
               </button>
@@ -130,8 +133,11 @@ export default function CocktailLike() {
               <button
                 onClick={() => goPage(meta.page + 1)}
                 disabled={!meta.hasNext}
-                className="px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
-                           disabled:opacity-40 hover:bg-white/10 transition"
+                className={`px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
+                            disabled:opacity-40 hover:bg-white/10 transition
+                            ${
+                              meta.hasNext ? "cursor-pointer" : "cursor-default"
+                            }`}
               >
                 다음 →
               </button>

@@ -24,7 +24,7 @@ export default function SignUp() {
   const [form, setForm] = useState({
     id: "", // 아이디(= login_id)
     password: "", // 비밀번호
-    email: "", // ✅ 이메일 추가
+    email: "", // 이메일 추가
     name: "", // 이름
     birthday: "", // 생년월일(YYYYMMDD)
     phone: "", // 전화번호(숫자만)
@@ -96,23 +96,6 @@ export default function SignUp() {
       birthday: form.birthday && BIRTH_RE.test(form.birthday),
       phone: form.phone && PHONE_RE.test(form.phone),
     };
-
-    // 필드별 에러메시지 업데이트
-    setErr({
-      id: results.id ? "" : "아이디는 4~20자 영문/숫자/밑줄만 가능합니다.",
-      password: results.password
-        ? ""
-        : "8자 이상, 영문·숫자·특수문자를 포함해야 합니다.",
-      email: results.email ? "" : "올바른 이메일 형식이 아닙니다.",
-      name: results.name ? "" : "이름을 입력하세요.",
-      birthday: results.birthday
-        ? ""
-        : "생년월일은 YYYYMMDD 형식의 8자리 숫자여야 합니다.",
-      phone: results.phone
-        ? ""
-        : "전화번호는 숫자 9~15자리여야 합니다. (- 제외)",
-    });
-
     return Object.values(results).every(Boolean);
   };
 

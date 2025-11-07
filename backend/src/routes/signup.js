@@ -21,7 +21,6 @@ const SignUpSchema = z.object({
     .string()
     .trim()
     .toLowerCase()
-    .email("올바른 이메일 형식이 아닙니다.")
     .optional()
     .or(z.literal("")), // 빈 문자열 허용
   name: z
@@ -42,7 +41,7 @@ const router = Router();
 
 router.post("/", async (req, res) => {
   try {
-    // 1) 파싱/정규화
+    // 1) 파싱
     const parsed = SignUpSchema.parse(req.body);
     const {
       login_id,

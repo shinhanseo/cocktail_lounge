@@ -9,7 +9,7 @@
 import { useParams, NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import CocktailLike from "@/components/Like/CocktailLike";
+import CocktailLikeButton from "@/components/Like/CocktailLikeButton";
 
 export default function RecipeDetail() {
   // --- URL 파라미터(id) 추출 ---
@@ -151,7 +151,7 @@ export default function RecipeDetail() {
 
         {/* 좋아요 버튼 (오른쪽 아래) */}
         <div className="flex justify-end mt-8">
-          <CocktailLike cocktailId={id} />
+          <CocktailLikeButton cocktailId={id} />
         </div>
       </aside>
     </article>
