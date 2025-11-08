@@ -1,0 +1,100 @@
+/* Basic editor styles */
+.tiptap {
+  /* 기본 텍스트 색/줄간격 */
+  line-height: 1.7;
+
+  /* 첫 요소 위 여백 제거 */
+  :first-child { margin-top: 0; }
+
+  /* ---------------------------
+   * List styles (마커 강제 복구)
+   * --------------------------- */
+  ul, ol {
+    /* 전역 리셋을 확실히 이김 */
+    list-style: revert !important;          /* 최신 브라우저에서 리셋 복구 */
+    padding-left: 1.25rem !important;       /* 왼쪽 들여쓰기 통일 */
+    margin: 0.75rem 0 0.75rem 0;            /* 위/아래만 여백 */
+  }
+
+  /* 각 타입별 마커 명시 (리셋이 집요할 때 대비) */
+  ul { list-style-type: disc !important; }
+  ol { list-style-type: decimal !important; }
+  li { margin: 0.25rem 0; }
+
+  /* 마커 색이 투명 처리된 리셋 방지 */
+  li::marker { color: currentColor !important; }
+
+  /* 리스트 안의 문단 여백 최소화 */
+  li p { margin: 0.25rem 0; }
+
+  /* 중첩 리스트도 깔끔하게 */
+  li ul, li ol {
+    margin: 0.25rem 0;
+    padding-left: 1.25rem;
+  }
+
+  /* ---------------------------
+   * Headings
+   * --------------------------- */
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.25;
+    text-wrap: pretty;
+    margin: 1.25rem 0 0.5rem;
+    font-weight: 700;
+  }
+  h1 { font-size: 1.5rem; font-weight: 800; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.15rem; }
+  h4, h5, h6 { font-size: 1rem; }
+
+  /* ---------------------------
+   * Code & Pre
+   * --------------------------- */
+  code {
+    background-color: var(--purple-light, #f4f1ff);
+    border-radius: 0.4rem;
+    color: var(--black, #111);
+    font-size: 0.85rem;
+    padding: 0.15em 0.3em;
+  }
+  pre {
+    background: var(--black, #111827);
+    border-radius: 0.5rem;
+    color: var(--white, #f9fafb);
+    font-family: 'JetBrainsMono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    margin: 1rem 0;
+    padding: 0.75rem 1rem;
+    overflow: auto;
+
+    code {
+      background: none;
+      color: inherit;
+      font-size: 0.85rem;
+      padding: 0;
+    }
+  }
+
+  /* ---------------------------
+   * Blockquote & HR
+   * --------------------------- */
+  blockquote {
+    border-left: 3px solid var(--gray-3, #e5e7eb);
+    margin: 0.75rem 0;
+    padding-left: 0.9rem;
+    color: #374151;
+  }
+  hr {
+    border: none;
+    border-top: 1px solid var(--gray-2, #e5e7eb);
+    margin: 1rem 0;
+  }
+
+  /* 문단 기본 여백 */
+  p { margin: 0.5rem 0; }
+}
+
+.tiptap .ProseMirror:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}

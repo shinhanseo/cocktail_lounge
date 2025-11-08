@@ -11,6 +11,7 @@ import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import Comment from "@/components/Comment/Comment";
 import PostLikeButton from "@/components/Like/PostLikeButton";
+import DOMPurify from "dompurify";
 
 export default function CommunityDetail() {
   // --- URL 파라미터 ---
@@ -152,7 +153,12 @@ export default function CommunityDetail() {
         <div className="my-6 h-px w-full bg-white/20" />
 
         {/* 본문 */}
-        <div className="leading-relaxed text-white/95 mb-6">{post.body}</div>
+        <div
+          className="tiptap leading-relaxed text-white/95 mb-6 prose prose-invert max-w-none"
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(post.body),
+          }}
+        />
 
         {/* 좋아요 버튼 (오른쪽 아래) */}
         <div className="flex justify-end mt-8">

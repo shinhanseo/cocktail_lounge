@@ -11,7 +11,7 @@ export default defineConfig({
       "/static": "http://localhost:4000",   // ★ 이 줄
     },
   },
-  plugins: [react(),tailwindcss()],
+  plugins: [react(),tailwindcss(),require('@tailwindcss/typography')],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),   // src 폴더를 @ 로 매핑
