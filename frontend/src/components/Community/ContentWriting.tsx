@@ -124,30 +124,9 @@ function MenuBar({ editor }: { editor: Editor }) {
         >
           1.
         </button>
-        <button
-          type='button'
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={`${btnBase} ${s.isBlockquote ? btnActive : ""}`}
-        >
-          “ Q
-        </button>
 
         <Sep />
 
-        <button
-          type='button'
-          onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          className={btnBase}
-        >
-          HR
-        </button>
-        <button
-          type='button'
-          onClick={() => editor.chain().focus().setHardBreak().run()}
-          className={btnBase}
-        >
-          BR
-        </button>
         <button
           type='button'
           onClick={() => editor.chain().focus().undo().run()}
