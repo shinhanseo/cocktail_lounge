@@ -24,6 +24,7 @@
     "@tiptap/starter-kit": "^3.10.3",
     "axios": "^1.12.2",
     "dompurify": "^3.3.0",
+    "lucide-react": "^0.553.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.30.1",
