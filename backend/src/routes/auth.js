@@ -58,6 +58,7 @@ router.post("/login", async (req, res) => {
       maxAge: 15 * 60 * 1000, // 15분
       path: "/",
     });
+    
     //refresh token 쿠키
     res.cookie("refresh", refreshToken, {
       httpOnly: true,
