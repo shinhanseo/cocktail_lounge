@@ -2,6 +2,7 @@ import { Router } from "express";
 import db from "../db/client.js";
 import jwt from "jsonwebtoken";
 import { authRequired } from "../middlewares/jwtauth.js";
+
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
 
@@ -32,15 +33,18 @@ router.get("/mycomment", authRequired, async (req, res, next) => {
         SELECT id, post_id, body, created_at, 'comment' AS type
         FROM comments
         WHERE user_id = $1
+
         UNION ALL
+
         SELECT id, post_id, body, created_at, 'subcomment' AS type
         FROM subcomments
         WHERE user_id = $1
       )
-      SELECT *
-      FROM combined
-      ORDER BY created_at DESC
-      LIMIT $2 OFFSET $3
+      SELECT c.*, p.title
+      FROM combined c
+      JOIN posts p ON p.id = c.post_id
+      ORDER BY c.created_at DESC
+      LIMIT $2 OFFSET $3;
       `,
       [userId, limit, offset]
     );
@@ -55,6 +59,7 @@ router.get("/mycomment", authRequired, async (req, res, next) => {
       postId: c.post_id,
       body: c.body,
       type: c.type, // comment / subcomment 구분
+      title : c.title,
       date: c.created_at ? new Date(c.created_at).toISOString().slice(0, 10) : null,
     }));
 

@@ -1,37 +1,10 @@
 import { Router } from "express";
 import db from "../db/client.js";
 import jwt from "jsonwebtoken";
+import { authRequired } from "../middlewares/jwtauth.js";
+import { optionalAuth } from "../middlewares/jwtauth.js";
 
 const router = Router();
-
-// 환경 변수
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
-const IS_PROD = process.env.NODE_ENV === "production";
-
-// 공용 jwt 확인 그러나 로그인을 안해도 무방
-function optionalAuth(req, _res, next) {
-  const token = req.cookies?.auth;
-  if (token) {
-    try {
-      const payload = jwt.verify(token, JWT_SECRET);
-      req.user = payload; // 반드시 payload에 id가 들어 있어야 함!
-    } catch {}
-  }
-  next();
-}
-
-// 공용: JWT 확인 미들웨어
-function authRequired(req, res, next) {
-  const token = req.cookies?.auth;
-  if (!token) return res.status(401).json({ message: "인증이 필요합니다." });
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload; // { uid, login_id, name }
-    next();
-  } catch {
-    return res.status(401).json({ message: "세션이 만료되었거나 유효하지 않습니다." });
-  }
-}
 
 // 전체 칵테일 목록
 router.get("/", async (req, res, next) => {
