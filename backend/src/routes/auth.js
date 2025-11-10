@@ -4,25 +4,9 @@ import db from "../db/client.js";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { authRequired } from "../middlewares/jwtauth.js";
 
 const router = Router();
-
-// 환경 변수
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
-const IS_PROD = process.env.NODE_ENV === "production";
-
-// 공용: JWT 확인 미들웨어
-function authRequired(req, res, next) {
-  const token = req.cookies?.auth;
-  if (!token) return res.status(401).json({ message: "인증이 필요합니다." });
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload; // { uid, login_id, name }
-    next();
-  } catch {
-    return res.status(401).json({ message: "세션이 만료되었거나 유효하지 않습니다." });
-  }
-}
 
 // 로그인
 const LoginSchema = z.object({

@@ -285,7 +285,7 @@ export default function Comment({ postId }) {
                   </p>
                   <div className="flex justify-between items-center">
                     <button
-                      className="text-button hover:text-button-hover text-sm"
+                      className="text-button hover:text-button-hover text-sm hover:cursor-pointer"
                       onClick={() => handleReply(comment.id)}
                     >
                       답글쓰기

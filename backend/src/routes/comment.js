@@ -1,22 +1,9 @@
 import { Router } from "express";
 import db from "../db/client.js";
 import jwt from "jsonwebtoken";
-
+import { authRequired } from "../middlewares/jwtauth.js";
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
-
-// 인증 미들웨어
-function authRequired(req, res, next) {
-  const token = req.cookies?.auth;
-  if (!token) return res.status(401).json({ message: "인증 필요" });
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload; // { id, login_id, name }
-    next();
-  } catch {
-    return res.status(401).json({ message: "유효하지 않은 토큰" });
-  }
-}
 
 router.get("/mycomment", authRequired, async (req, res, next) => {
   try {
