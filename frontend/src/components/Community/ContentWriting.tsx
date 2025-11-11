@@ -1,9 +1,11 @@
-import './styles.scss'
+import "./styles.scss";
 
-import { TextStyleKit } from '@tiptap/extension-text-style'
-import type { Editor } from '@tiptap/react'
-import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
+import { Color } from "@tiptap/extension-color";
+import { TextStyle } from "@tiptap/extension-text-style";
+import type { Editor } from "@tiptap/react";
+import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Image } from "@tiptap/extension-image";
 
 type Props = {
   initialHTML?: string;
@@ -11,7 +13,18 @@ type Props = {
   className?: string;
 };
 
-const extensions = [TextStyleKit, StarterKit]
+const extensions = [
+  StarterKit,
+  TextStyle,
+  Color.configure({
+    types: ["textStyle"], // Color가 적용될 노드 타입
+  }),
+  Image.configure({
+    HTMLAttributes: {
+      class: "tiptap-image",
+    },
+  }),
+];
 
 function MenuBar({ editor }: { editor: Editor }) {
   const s = useEditorState({
@@ -37,7 +50,6 @@ function MenuBar({ editor }: { editor: Editor }) {
     }),
   });
 
-  // 버튼 스타일 (높이 ↓, 폰트 ↓, 패딩 ↓)
   const btnBase =
     "h-6 px-2 rounded-md border text-xs leading-5 transition " +
     "bg-white text-gray-900 border-black/10 hover:bg-gray-50 " +
@@ -50,11 +62,20 @@ function MenuBar({ editor }: { editor: Editor }) {
     <span className="mx-1 h-4 w-px bg-black/10 inline-block align-middle" />
   );
 
+  // 🔹 이미지 URL로 추가
+  const handleAddImageByUrl = () => {
+    const url = window.prompt("이미지 URL을 입력하세요");
+    if (!url) return;
+
+    editor.chain().focus().setImage({ src: url }).run();
+  };
+
   return (
     <div className="mb-2">
       <div className={groupCls}>
+        {/* Bold / Italic / Strike */}
         <button
-          type='button'
+          type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
           disabled={!s.canBold}
           className={`${btnBase} ${s.isBold ? btnActive : ""}`}
@@ -62,7 +83,7 @@ function MenuBar({ editor }: { editor: Editor }) {
           B
         </button>
         <button
-          type='button'
+          type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
           disabled={!s.canItalic}
           className={`${btnBase} ${s.isItalic ? btnActive : ""}`}
@@ -70,39 +91,47 @@ function MenuBar({ editor }: { editor: Editor }) {
           I
         </button>
         <button
-          type='button'
+          type="button"
           onClick={() => editor.chain().focus().toggleStrike().run()}
           disabled={!s.canStrike}
           className={`${btnBase} ${s.isStrike ? btnActive : ""}`}
         >
           S
         </button>
+
         <Sep />
 
+        {/* Paragraph & Headings */}
         <button
-          type='button'
+          type="button"
           onClick={() => editor.chain().focus().setParagraph().run()}
           className={`${btnBase} ${s.isParagraph ? btnActive : ""}`}
         >
           P
         </button>
         <button
-          type='button'
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          type="button"
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 1 }).run()
+          }
           className={`${btnBase} ${s.isHeading1 ? btnActive : ""}`}
         >
           H1
         </button>
         <button
-          type='button'
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          type="button"
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 2 }).run()
+          }
           className={`${btnBase} ${s.isHeading2 ? btnActive : ""}`}
         >
           H2
         </button>
         <button
-          type='button'
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          type="button"
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 3 }).run()
+          }
           className={`${btnBase} ${s.isHeading3 ? btnActive : ""}`}
         >
           H3
@@ -110,15 +139,16 @@ function MenuBar({ editor }: { editor: Editor }) {
 
         <Sep />
 
+        {/* Lists */}
         <button
-          type='button'
+          type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className={`${btnBase} ${s.isBulletList ? btnActive : ""}`}
         >
-          • 
+          •
         </button>
         <button
-          type='button'
+          type="button"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           className={`${btnBase} ${s.isOrderedList ? btnActive : ""}`}
         >
@@ -127,8 +157,9 @@ function MenuBar({ editor }: { editor: Editor }) {
 
         <Sep />
 
+        {/* Undo / Redo */}
         <button
-          type='button'
+          type="button"
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!s.canUndo}
           className={btnBase}
@@ -136,19 +167,47 @@ function MenuBar({ editor }: { editor: Editor }) {
           ⤺
         </button>
         <button
-          type='button'
+          type="button"
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!s.canRedo}
           className={btnBase}
         >
           ⤼
         </button>
+
+        <Sep />
+
+        {/* 글자 색상 선택 */}
+        <input
+          type="color"
+          title="글자 색상"
+          onChange={(e) =>
+            editor.chain().focus().setColor(e.target.value).run()
+          }
+          className="w-6 h-6 cursor-pointer rounded border border-gray-300"
+        />
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().unsetColor().run()}
+          className={btnBase}
+        >
+          ✖
+        </button>
+
+        <Sep />
+
+        {/* 🖼 이미지(URL) 추가 버튼 */}
+        <button
+          type="button"
+          onClick={handleAddImageByUrl}
+          className={btnBase}
+        >
+          Img
+        </button>
       </div>
     </div>
   );
 }
-
-
 
 export default function ContentWriting({
   initialHTML = "<p>본문을 작성해주세요</p>",
@@ -163,7 +222,6 @@ export default function ContentWriting({
 
   return (
     <div className={className}>
-      {/* editor가 초기화되기 전에도 MenuBar는 렌더되므로, editor 단언 */}
       {editor && <MenuBar editor={editor as Editor} />}
       <EditorContent
         editor={editor}
