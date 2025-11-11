@@ -22,6 +22,7 @@ import MyPosts from "@/components/MyPage/MyPosts";
 import MyComments from "@/components/MyPage/MyComments";
 import PostLike from "@/components/MyPage/PostLike";
 import CocktailLike from "@/components/MyPage/CocktailLike";
+import SearchResult from "@/pages/SearchResult";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -42,6 +43,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="bars/:city" element={<BarDetail />} />
             <Route path="communitywriting" element={<CommunityWriting />} />
             <Route path="communityedit/:id" element={<CommunityEdit />} />
+            <Route path="search" element={<SearchResult />} />
 
             {/* 마이페이지 (중첩 라우팅) */}
             <Route path="mypage" element={<MyPage />}>

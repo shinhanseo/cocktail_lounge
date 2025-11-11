@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.js";
 import oauthRouter from "./routes/oauth/index.js";
 import CommentRouter from "./routes/comment.js";
+import SearchRouter from "./routes/search.js";
 
 const app = express();
 app.use(express.json());
@@ -33,6 +34,7 @@ app.use("/api/signup", signupRouter);      // 자체 회원가입
 app.use("/api/auth", authRouter);          // 로그인
 app.use("/api/oauth", oauthRouter);        // naver, gogle, kakao Oauth2.0 관련
 app.use("/api/comment", CommentRouter);    // 댓글 관련
+app.use("/api/search", SearchRouter);      // 검색
 
 app.use((req, res) => res.status(404).json({ message: "Not Found" }));
 app.use((err, req, res, next) => {
