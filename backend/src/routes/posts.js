@@ -158,19 +158,33 @@ router.get("/mylike", authRequired, async (req, res, next) => {
    GET /posts?page=1&limit=10
    전체 게시글 (페이지네이션)
 ================================*/
+// GET /api/posts
 router.get("/", async (req, res, next) => {
   try {
     const page = Math.max(parseInt(req.query.page ?? "1", 10), 1);
     const limit = Math.max(parseInt(req.query.limit ?? "10", 10), 1);
     const offset = (page - 1) * limit;
 
+    // 🔥 정렬 기준(sort) 파라미터: latest / likes
+    const sort = req.query.sort === "likes" ? "likes" : "latest";
+
     // 전체 개수
-    const [{ count }] = await db.query(`SELECT COUNT(*)::int AS count FROM posts`);
+    const [{ count }] = await db.query(
+      `SELECT COUNT(*)::int AS count FROM posts`
+    );
     const pageCount = Math.max(Math.ceil(count / limit), 1);
-    
+
+    // 🔥 ORDER BY 절 결정 (SQL 인젝션 방지: 미리 정해둔 문자열만 사용)
+    let orderByClause = "p.id DESC"; // 기본: 최신순
+    if (sort === "likes") {
+      // 좋아요 많은 순 + id 역순(동점일 때 안정적인 순서)
+      orderByClause = "p.like_count DESC NULLS LAST, p.id DESC";
+    }
+
     // 게시글 조회
     const rows = await db.query(
-      `SELECT 
+      `
+      SELECT 
         p.id, 
         p.title, 
         u.login_id AS author, 
@@ -184,20 +198,23 @@ router.get("/", async (req, res, next) => {
       LEFT JOIN comments c ON c.post_id = p.id
       LEFT JOIN subcomments s ON s.comment_id = c.id
       GROUP BY p.id, u.login_id
-      ORDER BY p.id DESC
-      LIMIT $1 OFFSET $2;`,
+      ORDER BY ${orderByClause}
+      LIMIT $1 OFFSET $2;
+      `,
       [limit, offset]
     );
 
-    const items = rows.map(p => ({
+    const items = rows.map((p) => ({
       id: p.id,
       title: p.title,
       user: p.author ?? null,
-      date: p.created_at ? new Date(p.created_at).toISOString().slice(0, 10) : null,
+      date: p.created_at
+        ? new Date(p.created_at).toISOString().slice(0, 10)
+        : null,
       tags: p.tags ?? [],
       body: p.body,
-      comment_count : p.comment_count,
-      like_count : p.like_count,
+      comment_count: Number(p.comment_count) || 0,
+      like_count: Number(p.like_count) || 0,
     }));
 
     res.json({
@@ -215,6 +232,7 @@ router.get("/", async (req, res, next) => {
     next(err);
   }
 });
+
 
 /* ===============================
    GET /posts/:id

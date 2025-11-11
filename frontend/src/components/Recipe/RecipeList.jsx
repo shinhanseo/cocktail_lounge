@@ -2,39 +2,54 @@
 // -------------------------------------------------------------
 // 🧊 RecipeList 컴포넌트
 // - 서버에서 칵테일 레시피 목록을 불러와 그리드 형태로 표시
-// - 로딩, 에러, 빈 데이터 상태를 각각 처리
-// - 각 레시피 클릭 시 상세 페이지로 이동 (React Router NavLink 사용)
+// - 로딩, 에러, 빈 데이터 상태 처리
+// - 정렬(sort): 최신순 / 좋아요순 / 도수순
+// - 상세 페이지 진입 후 목록으로 돌아올 때 정렬 유지
 // -------------------------------------------------------------
 
-import { NavLink } from "react-router-dom";
+import { NavLink, useSearchParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function RecipeList() {
+  // --- 쿼리스트링(sort) 관리 ---
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sort = searchParams.get("sort") ?? "latest"; // 기본값: 최신순
+  const location = useLocation(); // 현재 경로 + 쿼리(/recipe?sort=likes 등)
+
   // --- 상태 관리 ---
-  const [cocktails, setCocktails] = useState([]); // 칵테일 목록 데이터
-  const [loading, setLoading] = useState(true); // 로딩 상태
-  const [error, setError] = useState(""); // 에러 메시지
+  const [cocktails, setCocktails] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // --- 정렬 변경 함수 ---
+  const changeSort = (nextSort) => {
+    setSearchParams({ sort: nextSort }); // /recipe?sort=xxx
+  };
+
   // --- 데이터 불러오기 ---
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
-
         setError("");
-        // 서버에서 칵테일 데이터 요청
-        const res = await axios.get("http://localhost:4000/api/cocktails");
+
+        // 서버에서 칵테일 데이터 요청 (정렬 기준 전달)
+        const res = await axios.get("http://localhost:4000/api/cocktails", {
+          params: { sort }, // latest / likes / abv
+        });
+
         setCocktails(Array.isArray(res.data?.items) ? res.data.items : []);
       } catch (err) {
-        // 취소 오류 외의 에러 처리
         if (err.name !== "CanceledError") {
           setError("칵테일을 불러오는 중 오류가 발생했습니다.");
+          console.error(err);
         }
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [sort]);
 
   // --- 상태별 화면 표시 ---
   if (loading)
@@ -51,22 +66,66 @@ export default function RecipeList() {
   // --- 렌더링 영역 ---
   return (
     <div className="mt-8">
-      {/* 섹션 제목 */}
-      <h2 className="text-center text-white text-xl md:text-2xl font-bold mb-6">
-        다양한 칵테일 레시피를 만나보세요 🍸
-      </h2>
+      {/* 제목 + 정렬 버튼 */}
+      <div className="relative mb-6">
+        {/* 제목은 가운데 */}
+        <h2 className="text-center text-white text-xl md:text-2xl font-bold">
+          다양한 칵테일 레시피를 만나보세요 🍸
+        </h2>
 
-      {/* 레시피 카드 그리드 */}
+        {/* 정렬 버튼은 오른쪽 */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 flex gap-2">
+          {/* 최신순 */}
+          <button
+            onClick={() => changeSort("latest")}
+            className={`px-3 py-1 text-xs rounded-full border ${
+              sort === "latest"
+                ? "bg-white text-black border-white"
+                : "border-white/30 text-white/70 hover:bg-white/10 hover:cursor-pointer"
+            }`}
+          >
+            최신순
+          </button>
+
+          {/* 좋아요순 */}
+          <button
+            onClick={() => changeSort("likes")}
+            className={`px-3 py-1 text-xs rounded-full border ${
+              sort === "likes"
+                ? "bg-white text-black border-white"
+                : "border-white/30 text-white/70 hover:bg-white/10 hover:cursor-pointer"
+            }`}
+          >
+            좋아요순
+          </button>
+
+          {/* 도수순 */}
+          <button
+            onClick={() => changeSort("abv")}
+            className={`px-3 py-1 text-xs rounded-full border ${
+              sort === "abv"
+                ? "bg-white text-black border-white"
+                : "border-white/30 text-white/70 hover:bg-white/10 hover:cursor-pointer"
+            }`}
+          >
+            도수순
+          </button>
+        </div>
+      </div>
+
+      {/* 카드 그리드 */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 max-w-5xl mx-auto px-4">
         {cocktails.map((c) => (
           <NavLink
             key={c.id}
-            to={`/cocktails/${c.id}`} // 상세 페이지 이동
+            to={`/cocktails/${c.id}`}
+            // 🔥 상세에서 "목록으로" 눌렀을 때 돌아갈 경로를 state로 같이 넘김
+            state={{ from: location.pathname + location.search }}
             className="group rounded-2xl border border-white/10 bg-white/5 overflow-hidden
                        shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all duration-300
                        hover:scale-[1.03] hover:shadow-[0_8px_20px_rgba(0,0,0,0.4)]"
           >
-            {/* --- 이미지 영역 --- */}
+            {/* 이미지 */}
             <div className="relative w-full h-40 sm:h-44 md:h-48 overflow-hidden">
               <img
                 src={c.image}
@@ -75,7 +134,6 @@ export default function RecipeList() {
                 loading="lazy"
               />
 
-              {/* hover 시 어두운 오버레이 및 "더보기" 표시 */}
               <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-100
                            bg-black/40 flex items-center justify-center transition-opacity duration-300"
@@ -86,14 +144,13 @@ export default function RecipeList() {
               </div>
             </div>
 
-            {/* --- 하단 텍스트 영역 (칵테일 이름) --- */}
+            {/* 텍스트 영역 */}
             <div className="py-3 text-center border-t border-white/10 bg-white/5">
               <p className="text-white text-sm md:text-base font-semibold tracking-wide truncate">
                 {c.name}
               </p>
-              {/* 칵테일 좋아요 개수 표시 */}
-              <p className="text-xs text-white/60 mt-1 text-center">
-                ❤️ {c.like_count ?? 0}
+              <p className="text-xs text-white/60 mt-1">
+                ❤️ {c.like_count ?? 0} | 🍶 {c.abv ?? 0}%
               </p>
             </div>
           </NavLink>

@@ -4,8 +4,10 @@
 // - URL 파라미터(id)로 특정 게시글 상세를 조회/표시
 // - 로딩/에러/없음 상태 처리
 // - 상단 메타(작성자/날짜) + 태그 + 본문 렌더링 + 좋아요 버튼
+// - 목록으로 돌아갈 때, 이전 리스트의 page/limit/sort 상태 유지
 // -------------------------------------------------------------
-import { useParams, NavLink, useNavigate } from "react-router-dom";
+
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -18,12 +20,12 @@ export default function CommunityDetail() {
   const { id } = useParams();
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
+  const location = useLocation(); // 리스트에서 넘어온 from을 받기 위함
 
   // --- 상태 ---
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [likes, setLikes] = useState(0);
 
   // --- 수정/삭제 ---
   const handleEdit = () => {
@@ -36,11 +38,22 @@ export default function CommunityDetail() {
     try {
       await axios.delete(`http://localhost:4000/api/posts/${id}`);
       alert("게시글이 삭제되었습니다.");
-      navigate("/community");
+
+      // 삭제 후에도 가능하면 이전 리스트 상태로
+      const fallback = "/community";
+      const from = location.state?.from || fallback;
+      navigate(from);
     } catch (err) {
       console.log(err);
       alert("삭제 도중 오류가 발생했습니다.");
     }
+  };
+
+  // --- 목록으로 돌아가기 (page/limit/sort 유지) ---
+  const handleBack = () => {
+    const fallback = "/community";
+    const from = location.state?.from || fallback;
+    navigate(from);
   };
 
   // --- 데이터 불러오기 ---
@@ -94,15 +107,16 @@ export default function CommunityDetail() {
             </button>
           </div>
         ) : (
-          <div></div>
+          <div />
         )}
 
-        <NavLink
-          to="/community"
+        {/* 목록으로: 리스트에서 넘어온 from이 있으면 그리로, 없으면 /community */}
+        <button
+          onClick={handleBack}
           className="text-sm text-white/70 hover:font-bold"
         >
           ← 목록으로
-        </NavLink>
+        </button>
       </div>
 
       {/* 게시글 본문 박스 */}

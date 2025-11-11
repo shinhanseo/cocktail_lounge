@@ -1,45 +1,58 @@
-// RecipeDetail.jsx
+// frontend/src/components/Recipe/RecipeDetail.jsx (또는 pages 경로)
 // -------------------------------------------------------------
 // 🍸 RecipeDetail 컴포넌트
-// - URL의 slug 파라미터를 기반으로 특정 칵테일 상세 정보를 불러옴
+// - URL의 id 파라미터를 기반으로 특정 칵테일 상세 정보를 불러옴
 // - 로딩 / 에러 / 데이터 표시 3가지 상태를 처리
 // - 좌측에는 레시피 설명, 우측에는 이미지 및 코멘트를 표시
+// - 목록으로 돌아갈 때, 이전에 보고 있던 정렬/쿼리 상태 유지
 // -------------------------------------------------------------
 
-import { useParams, NavLink } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import CocktailLikeButton from "@/components/Like/CocktailLikeButton";
-import { useNavigate } from "react-router-dom";
 
 export default function RecipeDetail() {
   // --- URL 파라미터(id) 추출 ---
   const { id } = useParams();
 
-  // --- 상태 관리 ---
-  const [cocktail, setCocktail] = useState(null); // 현재 칵테일 데이터
-  const [loading, setLoading] = useState(true); // 로딩 상태
-  const [error, setError] = useState(""); // 에러 메시지
-
+  // --- 네비게이션/위치 ---
   const navigate = useNavigate();
+  const location = useLocation(); // RecipeList에서 넘긴 state 접근용
+
+  // --- 상태 관리 ---
+  const [cocktail, setCocktail] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   // --- 데이터 불러오기 ---
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
         setError("");
-        // id를 이용해 특정 칵테일 데이터 요청
+
         const res = await axios.get(
           `http://localhost:4000/api/cocktails/${id}`
         );
         setCocktail(res.data || null);
       } catch (err) {
+        console.error(err);
         setError("칵테일 레시피를 불러오는 도중 오류가 발생했습니다.");
       } finally {
         setLoading(false);
       }
     })();
   }, [id]);
+
+  // --- 목록으로 돌아가기 (정렬 상태 유지) ---
+  const handleBack = () => {
+    // RecipeList에서 NavLink state로 넘긴 from 값 우선 사용
+    // 없으면 기본 목록 경로(/recipe)로
+    const fallback = "/recipe";
+    const from = location.state?.from || fallback;
+    navigate(from);
+  };
 
   // --- 상태별 렌더링 처리 ---
   if (loading) {
@@ -64,16 +77,21 @@ export default function RecipeDetail() {
     >
       {/* ---------------- 좌측 정보 영역 ---------------- */}
       <div className="flex-1 mr-0 md:mr-8">
-        {/* 목록으로 돌아가기 링크 */}
-        <NavLink to="/recipe" className="text-sm text-white/70 hover:font-bold">
+        {/* 목록으로 돌아가기 버튼 (정렬 상태 유지) */}
+        <button
+          onClick={handleBack}
+          className="text-sm text-white/70 hover:font-bold hover:cursor-pointer"
+        >
           ← 목록으로
-        </NavLink>
+        </button>
 
         {/* 칵테일 제목 및 도수 */}
         <h1 className="text-3xl font-extrabold mt-3 mb-2 tracking-tight">
           {cocktail.name}
         </h1>
-        <p className="text-white/70 mb-6">도수: ~{cocktail.abv}%</p>
+        <p className="text-white/70 mb-6">
+          도수: ~{cocktail.abv ?? cocktail.alcohol ?? 0}%
+        </p>
 
         {/* --- 태그 섹션 --- */}
         {Array.isArray(cocktail.tags) && cocktail.tags.length > 0 && (

@@ -2,22 +2,25 @@
 // -------------------------------------------------------------
 // 💬 CommunityList
 // - 커뮤니티 게시글 목록 페이지
-// - URL 쿼리(page, limit) 기반 서버 페이징
+// - URL 쿼리(page, limit, sort) 기반 서버 페이징 & 정렬
 // - 로딩/에러/빈 목록 상태 처리 + 페이지네이션
 // -------------------------------------------------------------
 
 import { useEffect, useState } from "react";
-import { NavLink, useSearchParams } from "react-router-dom";
+import { NavLink, useSearchParams, useLocation } from "react-router-dom";
 import axios from "axios";
 
 // 리스트 헤더(번호/제목/작성자/날짜)
 import CommunityHeader from "@/components/community/CommunityHeader";
 
 export default function CommunityList() {
-  // --- 쿼리스트링(page, limit) 파싱 ---
+  // --- 쿼리스트링(page, limit, sort) 파싱 ---
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Number(searchParams.get("page") ?? 1);
   const limit = Number(searchParams.get("limit") ?? 10);
+  const sort = searchParams.get("sort") ?? "latest"; // 기본값: 최신순
+
+  const location = useLocation(); // 🔥 현재 경로 + 쿼리 (/community?page=1&sort=likes)
 
   // --- 목록/메타/상태 ---
   const [items, setItems] = useState([]);
@@ -32,7 +35,7 @@ export default function CommunityList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // --- 데이터 불러오기 (page/limit 변화 시 재요청) ---
+  // --- 데이터 불러오기 (page/limit/sort 변화 시 재요청) ---
   useEffect(() => {
     let ignore = false; // 언마운트 이후 setState 방지
 
@@ -41,8 +44,10 @@ export default function CommunityList() {
         setLoading(true);
         setError("");
 
-        // 서버 페이징 요청
-        const res = await axios.get("/api/posts", { params: { page, limit } });
+        // 서버 페이징 + 정렬 요청
+        const res = await axios.get("/api/posts", {
+          params: { page, limit, sort },
+        });
         if (ignore) return;
 
         // 목록/메타 갱신 (방어 코드 포함)
@@ -67,11 +72,23 @@ export default function CommunityList() {
     return () => {
       ignore = true;
     };
-  }, [page, limit]);
+  }, [page, limit, sort]); // sort 바뀌어도 재요청
 
   // --- 페이지 이동 ---
   const goPage = (p) =>
-    setSearchParams({ page: String(p), limit: String(limit) });
+    setSearchParams({
+      page: String(p),
+      limit: String(limit),
+      sort, // 현재 정렬 유지
+    });
+
+  // --- 정렬 변경 (최신순 / 좋아요순) ---
+  const changeSort = (nextSort) =>
+    setSearchParams({
+      page: "1", // 정렬 바뀌면 1페이지부터
+      limit: String(limit),
+      sort: nextSort,
+    });
 
   // --- 상태별 UI ---
   if (loading) {
@@ -81,6 +98,7 @@ export default function CommunityList() {
       </section>
     );
   }
+
   if (error) return <div className="text-red-400 p-6">{error}</div>;
 
   if (!items.length) {
@@ -90,9 +108,37 @@ export default function CommunityList() {
                    rounded-2xl shadow-[0_6px_20px_rgba(0,0,0,.35)] hover:shadow-[0_12px_28px_rgba(0,0,0,.45)]
                    transition-shadow duration-300"
       >
+        {/* 상단 타이틀 + 정렬 버튼 + 총 개수 */}
         <div className="flex items-center justify-between px-6 py-4">
           <h2 className="text-xl font-bold">💬 커뮤니티 게시글 목록</h2>
-          <span className="text-sm text-white/70">총 0개 게시글</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => changeSort("latest")}
+              className={`px-3 py-1 text-xs rounded-full border ${
+                sort === "latest"
+                  ? "bg-white text-black border-white"
+                  : "border-white/30 text-white/70 hover:bg-white/10"
+              }`}
+            >
+              최신순
+            </button>
+            <button
+              onClick={() => changeSort("likes")}
+              className={`px-3 py-1 text-xs rounded-full border ${
+                sort === "likes"
+                  ? "bg-white text-black border-white"
+                  : "border-white/30 text-white/70 hover:bg-white/10"
+              }`}
+            >
+              좋아요순
+            </button>
+
+            <span className="text-sm text-white/70 ml-3">총 0개 게시글</span>
+          </div>
+        </div>
+
+        <div className="px-6 pb-6 text-sm text-white/60">
+          아직 작성된 게시글이 없습니다. 첫 번째 글의 주인공이 되어보세요!
         </div>
       </section>
     );
@@ -105,10 +151,38 @@ export default function CommunityList() {
                  rounded-2xl shadow-[0_6px_20px_rgba(0,0,0,.35)] hover:shadow-[0_12px_28px_rgba(0,0,0,.45)]
                  transition-shadow duration-300"
     >
-      {/* 상단 타이틀/총 개수 */}
+      {/* 상단 타이틀/정렬/총 개수 */}
       <div className="flex items-center justify-between px-6 py-4">
         <h2 className="text-xl font-bold">💬 커뮤니티 게시글 목록</h2>
-        <span className="text-sm text-white/70">총 {meta.total}개 게시글</span>
+
+        <div className="flex items-center gap-2">
+          {/* 정렬 버튼들 */}
+          <button
+            onClick={() => changeSort("latest")}
+            className={`px-3 py-1 text-xs rounded-full border ${
+              sort === "latest"
+                ? "bg-white text-black border-white"
+                : "border-white/30 text-white/70 hover:bg-white/10 hover:cursor-pointer"
+            }`}
+          >
+            최신순
+          </button>
+          <button
+            onClick={() => changeSort("likes")}
+            className={`px-3 py-1 text-xs rounded-full border ${
+              sort === "likes"
+                ? "bg-white text-black border-white"
+                : "border-white/30 text-white/70 hover:bg-white/10 hover:cursor-pointer"
+            }`}
+          >
+            좋아요순
+          </button>
+
+          {/* 총 개수 */}
+          <span className="text-sm text-white/70 ml-3">
+            총 {meta.total}개 게시글
+          </span>
+        </div>
       </div>
 
       {/* 리스트: 첫 행에 헤더 렌더 */}
@@ -129,7 +203,10 @@ export default function CommunityList() {
             {/* 제목 */}
             <NavLink
               to={`/posts/${p.id}`}
-              state={{ posts: p }}
+              state={{
+                posts: p, // 기존에 쓰던 거 유지
+                from: location.pathname + location.search, // 리스트 상태 보존용
+              }}
               className="truncate hover:font-semibold hover:text-white cursor-pointer"
               title={p.title}
             >
@@ -142,6 +219,8 @@ export default function CommunityList() {
             {/* 작성자 / 작성일 */}
             <div className="text-center text-white/70 text-sm">{p.user}</div>
             <div className="text-center text-white/50 text-sm">{p.date}</div>
+
+            {/* 좋아요 수 */}
             <div className="text-center text-white/50 text-sm">
               <span className="mr-2">❤️</span>
               {p.like_count ?? 0}

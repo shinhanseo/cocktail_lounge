@@ -1,6 +1,5 @@
 import { Router } from "express";
 import db from "../db/client.js";
-import jwt from "jsonwebtoken";
 import { authRequired } from "../middlewares/jwtauth.js";
 import { optionalAuth } from "../middlewares/jwtauth.js";
 
@@ -9,24 +8,42 @@ const router = Router();
 // 전체 칵테일 목록
 router.get("/", async (req, res, next) => {
   try {
-    const items = await db.query(
-      `SELECT
-         id,
-         name,
-         abv,
-         tags,
-         ingredients,
-         steps,
-         image,
-         comment,
-         like_count
-       FROM cocktails
-       ORDER BY id DESC`
+    // 정렬 기준 쿼리: latest / likes / abv
+    const sort = req.query.sort || "latest";
+
+    let orderBy = "id DESC"; // 기본: 최신순 (id 역순)
+
+    if (sort === "likes") {
+      // 좋아요 많은 순 → 동점이면 id 역순
+      orderBy = "like_count DESC NULLS LAST, id DESC";
+    } else if (sort === "abv") {
+      // 도수 높은 순 → 동점이면 id 역순
+      orderBy = "abv DESC NULLS LAST, id DESC";
+    }
+
+    const rows = await db.query(
+      `
+      SELECT
+        id,
+        name,
+        image,
+        abv,
+        comment,
+        like_count
+      FROM cocktails
+      ORDER BY ${orderBy}
+      `
     );
 
-    res.json({ items, meta: { total: items.length } });
+    res.json({
+      items: rows,
+      meta: {
+        total: rows.length,
+        sort,
+      },
+    });
   } catch (err) {
-    console.error("[/api/cocktails] ERROR", err);
+    console.error("[GET /api/cocktails] ERROR", err);
     next(err);
   }
 });
