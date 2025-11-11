@@ -15,12 +15,12 @@ export default function RecipeList() {
   const [cocktails, setCocktails] = useState([]); // 칵테일 목록 데이터
   const [loading, setLoading] = useState(true); // 로딩 상태
   const [error, setError] = useState(""); // 에러 메시지
-
   // --- 데이터 불러오기 ---
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
+
         setError("");
         // 서버에서 칵테일 데이터 요청
         const res = await axios.get("http://localhost:4000/api/cocktails");

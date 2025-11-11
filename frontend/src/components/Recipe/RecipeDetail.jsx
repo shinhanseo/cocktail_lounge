@@ -10,6 +10,7 @@ import { useParams, NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import CocktailLikeButton from "@/components/Like/CocktailLikeButton";
+import { useNavigate } from "react-router-dom";
 
 export default function RecipeDetail() {
   // --- URL 파라미터(id) 추출 ---
@@ -20,6 +21,7 @@ export default function RecipeDetail() {
   const [loading, setLoading] = useState(true); // 로딩 상태
   const [error, setError] = useState(""); // 에러 메시지
 
+  const navigate = useNavigate();
   // --- 데이터 불러오기 ---
   useEffect(() => {
     (async () => {
@@ -83,7 +85,8 @@ export default function RecipeDetail() {
                   key={tag}
                   className="px-2 py-1 rounded-full text-sm bg-white/10 text-white/90
                              border border-white/10 hover:bg-white/15 hover:scale-105
-                             transition-transform"
+                             transition-transform hover:cursor-pointer"
+                  onClick={() => navigate(`/search?keyword=${tag}`)}
                 >
                   #{tag}
                 </li>

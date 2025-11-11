@@ -59,4 +59,35 @@ router.get("/posts", async(req, res, next) => {
   }
 });
 
+router.get("/cocktails", async (req, res, next) => {
+  try{
+    const keyword = (req.query.keyword || "").toString().trim()
+    const rows = await db.query(
+      `SELECT id, name, image, like_count
+       FROM cocktails
+       WHERE 
+        name ILIKE '%' || $1 || '%' 
+        OR ingredients ->> 'name' ILIKE '%' || $1 || '%'  
+        OR $1 = ANY(tags)
+        OR comment ILIKE '%' || $1 || '%'
+       ORDER BY id DESC`,
+      [keyword]
+    );
+
+    const items = rows.map(c => ({
+      id: c.id,
+      name : c.name,
+      image : c.image,
+      like_count : c.like_count
+    }));
+
+    res.json({
+      items
+    })
+  }catch(err){
+    next(err);
+  }
+});
+
+
 export default router;

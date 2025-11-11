@@ -15,10 +15,9 @@ export default function SearchResult() {
     <div className="px-6 py-10 text-white min-h-screen w-[800px]">
       {/* 상단 제목 */}
       <h2 className="text-2xl font-bold mb-2">🔍 “{keyword}” 검색 결과</h2>
-      <p className="text-sm text-gray-400 mb-6">검색 범위: 게시글 / 칵테일</p>
 
       {/* 탭 영역 */}
-      <div className="flex gap-6 mb-6 border-b border-white/20">
+      <div className="flex gap-6 mb-6 border-b border-white/20 mt-4z`">
         <button
           type="button"
           onClick={() => setTab("posts")}
