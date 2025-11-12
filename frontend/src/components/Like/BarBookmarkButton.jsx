@@ -92,9 +92,9 @@ export default function BarBookmarkButton({ id, onDelta }) {
       title={bookmarked ? "북마크됨" : "북마크"}
     >
       {bookmarked ? (
-        <BookmarkCheck className="w-5 h-5 text-yellow-400" />
+        <BookmarkCheck className="w-5 h-5 text-yellow-400 hover:cursor-pointer" />
       ) : (
-        <Bookmark className="w-5 h-5 text-white/80" />
+        <Bookmark className="w-5 h-5 text-white/80 hover:cursor-pointer" />
       )}
       <span className="text-sm text-white/90">{count}</span>
     </button>
