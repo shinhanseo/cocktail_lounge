@@ -11,10 +11,16 @@ router.get('/hot', async (req, res, next) => {
     const limit = Number(req.query.limit ?? 4);
 
     const rows = await db.query(
-      `SELECT b.id, b.name, b.comment AS desc, c.name AS city
-       FROM bars b
-       LEFT JOIN cities c ON c.id = b.city_id
-       ORDER BY b.id DESC
+      `SELECT 
+        b.name, 
+        c.name AS city, 
+        b.comment, 
+        COUNT(m.bar_id) AS total_bookmark
+      FROM bar_bookmarks m
+      JOIN bars b ON b.id = m.bar_id
+      JOIN cities c ON c.id = b.city_id
+      GROUP BY b.name, c.name, b.comment
+      ORDER BY total_bookmark DESC
        LIMIT $1`,
       [limit]
     );
@@ -22,7 +28,7 @@ router.get('/hot', async (req, res, next) => {
     const items = rows.map(b => ({
       id: b.id,
       name: b.name,
-      desc: b.desc ?? null,
+      desc: b.comment ?? null,
       city: b.city ?? null,
     }));
 

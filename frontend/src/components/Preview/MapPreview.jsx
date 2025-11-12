@@ -32,7 +32,7 @@ export default function MapPreView() {
       {/* --- 본문 영역: 인기 바 미리보기 --- */}
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-gray-300 mb-2">
-          🔥 오늘의 추천 바
+          🔥 사람들이 찾은 그곳
         </h3>
         {/* RamdomBarList: 랜덤 혹은 인기 바 카드 목록 컴포넌트 */}
         <RamdomBarList />
