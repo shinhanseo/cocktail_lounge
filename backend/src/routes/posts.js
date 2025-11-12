@@ -174,7 +174,7 @@ router.get("/", async (req, res, next) => {
     );
     const pageCount = Math.max(Math.ceil(count / limit), 1);
 
-    // 🔥 ORDER BY 절 결정 (SQL 인젝션 방지: 미리 정해둔 문자열만 사용)
+    // ORDER BY 절 결정 (SQL 인젝션 방지: 미리 정해둔 문자열만 사용)
     let orderByClause = "p.id DESC"; // 기본: 최신순
     if (sort === "likes") {
       // 좋아요 많은 순 + id 역순(동점일 때 안정적인 순서)

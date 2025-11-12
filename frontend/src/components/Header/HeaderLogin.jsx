@@ -18,7 +18,7 @@ axios.defaults.withCredentials = true;
 export default function HeaderLogin() {
   // --- Zustand 전역 상태 ---
   const { user, logout } = useAuthStore();
-  console.log(user);
+
   // --- 로컬 상태 ---
   const [open, setOpen] = useState(false); // 드롭다운 열림 여부
   const boxRef = useRef(null); // 메뉴 박스 참조 (바깥 클릭 감지용)

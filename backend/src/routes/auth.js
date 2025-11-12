@@ -84,19 +84,52 @@ router.get("/me", authRequired, async (req, res) => {
 //내 정보 수정정
 router.put("/me", authRequired, async (req, res) => {
   const { name, nickname } = req.body;
+
   try {
     const [user] = await db.query(
-      `UPDATE users 
+      `UPDATE users
        SET name = $1, nickname = $2
        WHERE id = $3
-       RETURNING id, login_id, name, nickname`,
+       RETURNING id, login_id, name, nickname, email`,
       [name, nickname, req.user.id]
     );
 
-    res.json({ user });
+    if (!user) {
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+    }
+
+    // 새로운 payload로 토큰 재발급
+    const payload = {
+      id: user.id,
+      login_id: user.login_id,
+      name: user.name,
+      nickname: user.nickname,
+    };
+
+    const newAccess = jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
+    const newRefresh = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+
+    // 쿠키 갱신
+    res.cookie("auth", newAccess, {
+      httpOnly: true,
+      sameSite: IS_PROD ? "none" : "lax",
+      secure: IS_PROD,
+      maxAge: 15 * 60 * 1000,
+      path: "/",
+    });
+
+    res.cookie("refresh", newRefresh, {
+      httpOnly: true,
+      sameSite: IS_PROD ? "none" : "lax",
+      secure: IS_PROD,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+
+    return res.json({ user });
   } catch (err) {
-    console.error("PUT /users/me error:", err);
-    res.status(500).json({ message: "정보 수정 실패" });
+    console.error("[PUT /api/users/me] error:", err);
+    return res.status(500).json({ message: "정보 수정 중 오류" });
   }
 });
 
