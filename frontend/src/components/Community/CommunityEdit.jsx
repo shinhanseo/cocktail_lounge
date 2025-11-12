@@ -43,7 +43,7 @@ export default function CommunityEdit() {
         const p = res.data;
 
         // 작성자만 수정 가능
-        if (user && p.user && user.login_id !== p.user) {
+        if (user && p.user && user.nickname !== p.user) {
           alert("본인 게시글만 수정할 수 있습니다.");
           navigate(`/posts/${id}`);
           return;
