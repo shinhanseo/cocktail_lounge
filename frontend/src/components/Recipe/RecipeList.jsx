@@ -119,7 +119,7 @@ export default function RecipeList() {
           <NavLink
             key={c.id}
             to={`/cocktails/${c.id}`}
-            // 🔥 상세에서 "목록으로" 눌렀을 때 돌아갈 경로를 state로 같이 넘김
+            // 상세에서 "목록으로" 눌렀을 때 돌아갈 경로를 state로 같이 넘김
             state={{ from: location.pathname + location.search }}
             className="group rounded-2xl border border-white/10 bg-white/5 overflow-hidden
                        shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all duration-300

@@ -81,6 +81,25 @@ router.get("/me", authRequired, async (req, res) => {
   return res.json({ user: req.user }); 
 });
 
+//내 정보 수정정
+router.put("/me", authRequired, async (req, res) => {
+  const { name, nickname } = req.body;
+  try {
+    const [user] = await db.query(
+      `UPDATE users 
+       SET name = $1, nickname = $2
+       WHERE id = $3
+       RETURNING id, login_id, name, nickname`,
+      [name, nickname, req.user.id]
+    );
+
+    res.json({ user });
+  } catch (err) {
+    console.error("PUT /users/me error:", err);
+    res.status(500).json({ message: "정보 수정 실패" });
+  }
+});
+
 //access token 재생성
 router.post("/refresh", async (req, res) => {
   const refresh = req.cookies?.refresh;
