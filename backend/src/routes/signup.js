@@ -61,11 +61,11 @@ router.post("/", async (req, res) => {
     // 3) INSERT
     const rows = await db.query(
       `
-      INSERT INTO users (login_id, password_hash, name, birthday, phone, email)
-      VALUES ($1, $2, $3, to_date($4, 'YYYYMMDD'), $5, $6)
+      INSERT INTO users (login_id, password_hash, name, birthday, phone, email, nickname)
+      VALUES ($1, $2, $3, to_date($4, 'YYYYMMDD'), $5, $6, $7)
       RETURNING id, login_id, name, to_char(birthday, 'YYYY-MM-DD') AS birthday, phone, email, created_at
       `,
-      [login_id, password_hash, name, birthday, phone, normEmail]
+      [login_id, password_hash, name, birthday, phone, normEmail, login_id]
     );
 
     return res.status(201).json({ user: rows[0] });

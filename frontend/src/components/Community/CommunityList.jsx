@@ -20,7 +20,7 @@ export default function CommunityList() {
   const limit = Number(searchParams.get("limit") ?? 10);
   const sort = searchParams.get("sort") ?? "latest"; // 기본값: 최신순
 
-  const location = useLocation(); // 🔥 현재 경로 + 쿼리 (/community?page=1&sort=likes)
+  const location = useLocation(); // 현재 경로 + 쿼리 (/community?page=1&sort=likes)
 
   // --- 목록/메타/상태 ---
   const [items, setItems] = useState([]);
