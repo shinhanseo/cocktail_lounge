@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { BookmarkCheck } from "lucide-react";
 axios.defaults.withCredentials = true;
 
 export default function MyBars() {
@@ -58,7 +58,10 @@ export default function MyBars() {
     <div className="w-full flex justify-center">
       <div className="text-white bg-white/5 border border-white/10 rounded-2xl p-8 shadow-lg w-[760px]">
         <h2 className="text-xl font-semibold mb-6 border-b border-white/20 pb-3">
-          🔖 북마크한 Bar 목록
+          <span className="flex">
+            북마크한 Bar 목록
+            <BookmarkCheck className="h-8 text-yellow-400 ml-6" />
+          </span>
         </h2>
 
         {items.length === 0 ? (
@@ -97,11 +100,6 @@ export default function MyBars() {
                           {bar.desc}
                         </p>
                       )}
-                    </div>
-
-                    {/* 우측: 북마크 날짜 */}
-                    <div className="text-right shrink-0">
-                      <p className="text-xs text-white/50">{date}</p>
                     </div>
                   </li>
                 );
