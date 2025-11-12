@@ -187,7 +187,7 @@ router.get("/", async (req, res, next) => {
       SELECT 
         p.id, 
         p.title, 
-        u.login_id AS author, 
+        u.nickname AS author, 
         p.created_at, 
         p.tags, 
         p.body, 
@@ -197,7 +197,7 @@ router.get("/", async (req, res, next) => {
       LEFT JOIN users u ON u.id = p.user_id
       LEFT JOIN comments c ON c.post_id = p.id
       LEFT JOIN subcomments s ON s.comment_id = c.id
-      GROUP BY p.id, u.login_id
+      GROUP BY p.id, u.nickname
       ORDER BY ${orderByClause}
       LIMIT $1 OFFSET $2;
       `,
@@ -245,7 +245,7 @@ router.get("/:id", async (req, res, next) => {
     const rows = await db.query(
       `SELECT p.id,
               p.title,
-              u.login_id AS author,
+              u.nickname AS author,
               p.created_at,
               p.tags,
               p.body,
