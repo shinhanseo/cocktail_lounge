@@ -114,7 +114,7 @@ export default function CommunityList() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => changeSort("latest")}
-              className={`px-3 py-1 text-xs rounded-full border ${
+              className={`px-3 py-1 text-xs rounded-full border hover:cursor-pointer${
                 sort === "latest"
                   ? "bg-white text-black border-white"
                   : "border-white/30 text-white/70 hover:bg-white/10"
@@ -124,13 +124,23 @@ export default function CommunityList() {
             </button>
             <button
               onClick={() => changeSort("likes")}
-              className={`px-3 py-1 text-xs rounded-full border ${
+              className={`px-3 py-1 text-xs rounded-full border hover:cursor-pointer ${
                 sort === "likes"
                   ? "bg-white text-black border-white"
                   : "border-white/30 text-white/70 hover:bg-white/10"
               }`}
             >
               좋아요순
+            </button>
+            <button
+              onClick={() => changeSort("comments")}
+              className={`px-3 py-1 text-xs rounded-full border hover:cursor-pointer ${
+                sort === "comments"
+                  ? "bg-white text-black border-white"
+                  : "border-white/30 text-white/70 hover:bg-white/10"
+              }`}
+            >
+              댓글순
             </button>
 
             <span className="text-sm text-white/70 ml-3">총 0개 게시글</span>
@@ -177,7 +187,16 @@ export default function CommunityList() {
           >
             좋아요순
           </button>
-
+          <button
+            onClick={() => changeSort("comments")}
+            className={`px-3 py-1 text-xs rounded-full border ${
+              sort === "comments"
+                ? "bg-white text-black border-white"
+                : "border-white/30 text-white/70 hover:bg-white/10 hover:cursor-pointer"
+            }`}
+          >
+            댓글순
+          </button>
           {/* 총 개수 */}
           <span className="text-sm text-white/70 ml-3">
             총 {meta.total}개 게시글

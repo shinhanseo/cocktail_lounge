@@ -165,8 +165,8 @@ router.get("/", async (req, res, next) => {
     const limit = Math.max(parseInt(req.query.limit ?? "10", 10), 1);
     const offset = (page - 1) * limit;
 
-    // 🔥 정렬 기준(sort) 파라미터: latest / likes
-    const sort = req.query.sort === "likes" ? "likes" : "latest";
+    // 정렬 기준(sort) 파라미터: latest / likes / comments
+    const sort = req.query.sort ?? "latest";
 
     // 전체 개수
     const [{ count }] = await db.query(
@@ -179,6 +179,9 @@ router.get("/", async (req, res, next) => {
     if (sort === "likes") {
       // 좋아요 많은 순 + id 역순(동점일 때 안정적인 순서)
       orderByClause = "p.like_count DESC NULLS LAST, p.id DESC";
+    }
+    if (sort === "comments") {
+      orderByClause = "comment_count DESC NULLS LAST, p.id DESC"
     }
 
     // 게시글 조회
