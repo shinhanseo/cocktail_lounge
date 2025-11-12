@@ -22,7 +22,7 @@ router.post("/login", async (req, res) => {
 
     // 1) 유저 조회
     const rows = await db.query(
-      `SELECT id, login_id, name, password_hash
+      `SELECT id, login_id, name, password_hash, nickname
        FROM users
        WHERE login_id = $1
        LIMIT 1`,
@@ -42,7 +42,7 @@ router.post("/login", async (req, res) => {
     }
 
     // 3) Access + Refresh Token 발급
-    const payload = { id: user.id, login_id: user.login_id, name: user.name };
+    const payload = { id: user.id, login_id: user.login_id, name: user.name, nickname : user.nickname};
     const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" }); // 15분
     const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" }); // 7일
 
@@ -69,7 +69,7 @@ router.post("/login", async (req, res) => {
     });
 
     //프런트에 응답
-    return res.json({ user: { id: user.id, login_id: user.login_id, name: user.name } });
+    return res.json({ user: { id: user.id, login_id: user.login_id, name: user.name, nickname : user.nickname } });
   } catch (err) {
     console.error("[POST /api/login] error:", err);
     return res.status(500).json({ message: "서버 오류가 발생했습니다." });
@@ -89,7 +89,9 @@ router.post("/refresh", async (req, res) => {
   try {
     const payload = jwt.verify(refresh, JWT_SECRET);
     const rows = await db.query(
-      `SELECT id, login_id, name, refresh_token FROM users WHERE id = $1`,
+      `SELECT id, login_id, name, nickname, refresh_token
+       FROM users
+       WHERE id = $1`,
       [payload.id]
     );
 
@@ -100,7 +102,7 @@ router.post("/refresh", async (req, res) => {
 
     // 새 Access Token 발급
     const newAccess = jwt.sign(
-      { id: user.id, login_id: user.login_id, name: user.name },
+      { id: user.id, login_id: user.login_id, name: user.name, nickname: user.nickname },
       JWT_SECRET,
       { expiresIn: "15m" }
     );

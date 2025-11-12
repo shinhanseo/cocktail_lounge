@@ -87,7 +87,7 @@ router.get("/callback", async (req, res) => {
         );
 
         const u = await query(  // JWT 토큰 생성용 쿼리
-          `SELECT id, login_id, name FROM users WHERE id=$1`,
+          `SELECT id, login_id, name, nickname FROM users WHERE id=$1`,
           [userId]
         );
         userRow = u[0];
@@ -98,7 +98,7 @@ router.get("/callback", async (req, res) => {
       let existing = null;
       if (email) {
         const found = await query(
-          `SELECT id, login_id, name, email FROM users WHERE email = $1 LIMIT 1`,
+          `SELECT id, login_id, name, email, nickname FROM users WHERE email = $1 LIMIT 1`,
           [email]
         );
         existing = found[0] || null;
@@ -109,13 +109,14 @@ router.get("/callback", async (req, res) => {
         let name = nickname;
       
         const inserted = await query(
-          `INSERT INTO users (login_id, name, email)
-           VALUES ($1, $2, $3)
-           RETURNING id, login_id, name, email`,
+          `INSERT INTO users (login_id, name, email, nickname)
+           VALUES ($1, $2, $3, $4)
+           RETURNING id, login_id, name, email, nickname`,
           [
             email,
             name,
-            email
+            email,
+            email,
           ]
         );
         existing = inserted[0];
@@ -138,7 +139,7 @@ router.get("/callback", async (req, res) => {
     });
 
     // 앱 JWT 발급 + 쿠키
-    const payload = { id: userRow.id, login_id: userRow.login_id, name: userRow.name };
+    const payload = { id: userRow.id, login_id: userRow.login_id, name: userRow.name, nickname : userRow.nickname };
     const appToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 
     res.cookie("auth", appToken, {
