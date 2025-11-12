@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { BookmarkCheck } from "lucide-react";
-axios.defaults.withCredentials = true;
 
 export default function MyBars() {
   const navigate = useNavigate();

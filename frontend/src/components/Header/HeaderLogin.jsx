@@ -13,8 +13,6 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import axios from "axios";
 
-axios.defaults.withCredentials = true;
-
 export default function HeaderLogin() {
   // --- Zustand 전역 상태 ---
   const { user, logout } = useAuthStore();

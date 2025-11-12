@@ -1,7 +1,7 @@
 // src/routes/bars.js
 import { Router } from 'express';
 import db from '../db/client.js';
-import { authRequired } from '../middlewares/jwtauth.js';
+import { authRequired, optionalAuth } from '../middlewares/jwtauth.js';
 
 const router = Router();
 
@@ -128,56 +128,38 @@ router.delete("/:id/bookmark", authRequired, async (req, res, next) => {
 });
 
 // 북마크 확인
-router.get("/:id/bookmark", authRequired, async (req, res, next) => {
+router.get("/:id/bookmark", optionalAuth, async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id ?? null;
     const barId = Number(req.params.id);
     if (!barId) return res.status(400).json({ message: "Invalid bar id" });
 
-    const rows = await db.query(
-      `SELECT 1 FROM bar_bookmarks WHERE user_id = $1 AND bar_id = $2`,
-      [userId, barId]
+    // 전체 북마크 개수 조회
+    const [{ count: totalBookmark }] = await db.query(
+      `SELECT COUNT(*)::int AS count FROM bar_bookmarks WHERE bar_id = $1`,
+      [barId]
     );
-    
-    let exists = false;
-    if (rows.length > 0){
-      exists = true;
-    } 
-    res.json({ bar_id: barId, bookmarked: Boolean(exists) });
+
+    // 로그인된 유저의 북마크 여부 확인
+    let bookmarked = false;
+    if (userId) {
+      const rows = await db.query(
+        `SELECT 1 FROM bar_bookmarks WHERE user_id = $1 AND bar_id = $2 LIMIT 1`,
+        [userId, barId]
+      );
+      bookmarked = rows.length > 0;
+    }
+
+    // 응답
+    res.json({
+      total_bookmark: totalBookmark ?? 0,
+      bookmarked,
+    });
   } catch (err) {
     next(err);
   }
 });
 
-// GET /bars
-router.get('/', async (req, res, next) => {
-  try {
-    const rows = await db.query(
-      `SELECT b.*, c.name AS city_name
-       FROM bars b
-       LEFT JOIN cities c ON c.id = b.city_id
-       ORDER BY b.id ASC`
-    );
-
-    res.json({
-      items: rows.map(b => ({
-        id: b.id,
-        name: b.name,
-        lat: b.lat,
-        lng: b.lng,
-        city: b.city_name ?? null,
-        address: b.address,
-        phone: b.phone,
-        website: b.website,
-        desc: b.comment ?? null,   
-        image: null,              
-      })),
-      meta: { total: rows.length },
-    });
-  } catch (e) {
-    next(e);
-  }
-});
 
 // GET /bars/:city  (예: /bars/서울)
 router.get('/:city', async (req, res, next) => {
@@ -192,10 +174,16 @@ router.get('/:city', async (req, res, next) => {
     if (!city) return res.status(404).json({ message: '도시를 찾을 수 없습니다.' });
 
     const bars = await db.query(
-      `SELECT id, name, lat, lng, address, phone, website, comment
-       FROM bars
-       WHERE city_id = $1
-       ORDER BY id ASC`,
+      `
+      SELECT 
+        b.id, b.name, b.lat, b.lng, b.address, b.phone, b.website, b.comment,
+        COUNT(m.bar_id)::int AS total_bookmark
+      FROM bars b
+      LEFT JOIN bar_bookmarks m ON m.bar_id = b.id
+      WHERE b.city_id = $1
+      GROUP BY b.id, b.name, b.lat, b.lng, b.address, b.phone, b.website, b.comment
+      ORDER BY b.id ASC;
+      `,
       [city.id]
     );
 
@@ -212,7 +200,8 @@ router.get('/:city', async (req, res, next) => {
         address: b.address,
         phone: b.phone,
         website: b.website,
-        desc: b.comment ?? null, // ← comment → desc
+        desc: b.comment ?? null,
+        total_bookmark : b.total_bookmark,
       })),
       meta: { total: bars.length },
     });
@@ -220,6 +209,5 @@ router.get('/:city', async (req, res, next) => {
     next(e);
   }
 });
-
 
 export default router;

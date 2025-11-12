@@ -34,7 +34,7 @@ export default function BarDetail() {
       try {
         setLoading(true);
         setError("");
-        const res = await axios.get(`http://localhost:4000/api/bars`);
+        const res = await axios.get(`http://localhost:4000/api/bars/${city}`);
         setBars(Array.isArray(res.data?.items) ? res.data.items : []);
       } catch (err) {
         if (!(err?.name === "CanceledError" || err?.code === "ERR_CANCELED")) {
@@ -49,13 +49,11 @@ export default function BarDetail() {
 
   const handleBarSelect = (bar) => setSelectedBar(bar);
 
-  const filteredBars = city ? bars.filter((b) => b.city === city) : [];
-
   // --- 상태별 UI ---
   if (loading) return <div className="text-white">불러오는 중...</div>;
   if (error) return <div className="text-red-400">{error}</div>;
 
-  if (!bars || bars.length === 0 || filteredBars.length === 0) {
+  if (!bars || bars.length === 0) {
     return (
       <div className="w-full mt-12 text-white">
         <div className="w-full text-center mb-6">
@@ -96,20 +94,20 @@ export default function BarDetail() {
             width="100%"
             selectedBar={selectedBar}
             centerKey={city}
-            bars={filteredBars}
+            bars={bars}
           />
         </div>
 
         {/* --- 오른쪽: 바 리스트 --- */}
         <aside className="w-[600px] shrink-0 text-white">
           <ul className="mr-12 h-[500px] overflow-y-auto overflow-x-hidden space-y-3 pr-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {filteredBars.map((b) => {
+            {bars.map((b) => {
               const isActive = selectedBar && selectedBar.id === b.id;
               return (
                 <li
                   key={b.id}
                   className={`
-                    flex items-center justify-between gap-4 rounded-2xl px-4 py-3
+                    grid grid-cols-[200px_minmax(0,1fr)_120px] items-center gap-4 rounded-2xl px-4 py-3
                     bg-white/5 border border-white/10 shadow-sm
                     hover:bg-white/10 hover:border-pink-400/60 hover:shadow-pink-400/20
                     transition-all duration-300 ease-out
@@ -121,8 +119,8 @@ export default function BarDetail() {
                   `}
                   title={b.name}
                 >
-                  {/* 좌: 이름 클릭 시 선택 */}
-                  <div className="flex flex-col text-left w-[200px]">
+                  {/* 이름 */}
+                  <div>
                     <span
                       onClick={() => handleBarSelect(b)}
                       className="font-semibold text-lg hover:cursor-pointer"
@@ -130,17 +128,21 @@ export default function BarDetail() {
                       {b.name}
                     </span>
                     {isActive && (
-                      <span className="text-pink-400 text-sm">📍 선택됨</span>
+                      <span className="block text-pink-400 text-sm">
+                        📍 선택됨
+                      </span>
                     )}
                   </div>
 
-                  {/* 우: 주소 */}
-                  <div className="text-sm text-gray-300 text-right max-w-[260px] truncate">
-                    {b.address}
+                  {/* 주소 */}
+                  <div className="min-w-0 text-sm text-gray-300 text-right">
+                    <span className="block truncate">{b.address}</span>
                   </div>
 
-                  {/* 우측 끝: 북마크 */}
-                  <BarBookmarkButton id={b.id} />
+                  {/* 액션 */}
+                  <div className="flex items-center justify-end gap-2">
+                    <BarBookmarkButton id={b.id} onClick={() => fetchBar()} />
+                  </div>
                 </li>
               );
             })}

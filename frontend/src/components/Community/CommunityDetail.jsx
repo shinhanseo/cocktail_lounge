@@ -91,7 +91,7 @@ export default function CommunityDetail() {
     <section className="w-full max-w-[960px] mx-auto mt-12 text-white">
       {/* 상단 컨트롤 영역 */}
       <div className="flex justify-between items-center mb-3">
-        {user?.login_id === post.user ? (
+        {user?.nickname === post.user ? (
           <div>
             <button
               className="bg-button hover:bg-button-hover px-3 py-1 rounded-lg text-white hover:scale-105 hover:cursor-pointer"
