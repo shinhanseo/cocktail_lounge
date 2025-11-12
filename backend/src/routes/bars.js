@@ -32,6 +32,67 @@ router.get('/hot', async (req, res, next) => {
   }
 });
 
+// src/routes/bars.js
+router.get("/mybars", authRequired, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    // 쿼리스트링에서 page, limit 추출 (기본값 설정)
+    const page = Math.max(parseInt(req.query.page ?? "1", 10), 1);
+    const limit = Math.max(parseInt(req.query.limit ?? "6", 10), 1);
+    const offset = (page - 1) * limit;
+
+    // 전체 개수 조회
+    const [{ count }] = await db.query(
+      `SELECT COUNT(*)::int AS count FROM bar_bookmarks WHERE user_id = $1`,
+      [userId]
+    );
+
+    // 실제 데이터 조회 (6개씩)
+    const rows = await db.query(
+      `
+      SELECT
+        m.id            AS bookmark_id,
+        m.created_at    AS bookmarked_at,
+        b.id            AS bar_id,
+        b.name          AS bar_name,
+        b.comment       AS bar_comment,
+        c.name          AS city
+      FROM bar_bookmarks m
+      JOIN bars   b ON b.id = m.bar_id
+      JOIN cities c ON c.id = b.city_id
+      WHERE m.user_id = $1
+      ORDER BY b.name ASC NULLS LAST, m.created_at DESC
+      LIMIT $2 OFFSET $3
+      `,
+      [userId, limit, offset]
+    );
+
+    // 응답
+    res.json({
+      items: rows.map(r => ({
+        bookmark_id: r.bookmark_id,
+        bookmarked_at: r.bookmarked_at,
+        bar: {
+          id: r.bar_id,
+          name: r.bar_name,
+          desc: r.bar_comment ?? null,
+          city: r.city,
+        },
+      })),
+      meta: {
+        total: count, // 전체 북마크 개수
+        page,
+        limit,
+        pageCount: Math.max(Math.ceil(count / limit), 1),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
 //북마크
 router.post("/:id/bookmark", authRequired, async (req, res, next) => {
   try {
@@ -153,5 +214,6 @@ router.get('/:city', async (req, res, next) => {
     next(e);
   }
 });
+
 
 export default router;

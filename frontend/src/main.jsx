@@ -23,6 +23,7 @@ import MyComments from "@/components/MyPage/MyComments";
 import PostLike from "@/components/MyPage/PostLike";
 import CocktailLike from "@/components/MyPage/CocktailLike";
 import SearchResult from "@/pages/SearchResult";
+import MyBars from "@/components/MyPage/MyBars";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -52,6 +53,7 @@ createRoot(document.getElementById("root")).render(
               <Route path="comments" element={<MyComments />} />
               <Route path="postlike" element={<PostLike />} />
               <Route path="cocktaillike" element={<CocktailLike />} />
+              <Route path="mybars" element={<MyBars />} />
             </Route>
           </Route>
         </Route>
