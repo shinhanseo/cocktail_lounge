@@ -23,7 +23,7 @@ router.get("/posts", async(req, res, next) => {
 
     // 실제 게시글 가져오기
     const rows = await db.query(
-      `SELECT p.id, u.login_id, p.title, p.body, p.created_at, p.tags
+      `SELECT p.id, u.nickname, p.title, p.body, p.created_at, p.tags, p.like_count
        FROM posts p
        LEFT JOIN users u ON u.id = p.user_id
        WHERE title ILIKE '%' || $1 || '%'     
@@ -36,7 +36,7 @@ router.get("/posts", async(req, res, next) => {
 
     const items = rows.map(p => ({
       id: p.id,
-      login_id : p.login_id,
+      nickname : p.nickname,
       title: p.title,
       body : p.body,
       tags: p.tags ?? [],
@@ -70,7 +70,7 @@ router.get("/cocktails", async (req, res, next) => {
         OR ingredients ->> 'name' ILIKE '%' || $1 || '%'  
         OR $1 = ANY(tags)
         OR comment ILIKE '%' || $1 || '%'
-       ORDER BY id DESC`,
+       ORDER BY like_count DESC`,
       [keyword]
     );
 

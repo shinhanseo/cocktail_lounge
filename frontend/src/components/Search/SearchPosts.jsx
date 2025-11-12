@@ -90,7 +90,7 @@ export default function SearchPosts({ keyword }) {
                   <p className="text-sm text-gray-300">{preview}</p>
 
                   <div className="mt-2 text-xs text-gray-400 flex justify-between">
-                    <span>작성자: {p.login_id}</span>
+                    <span>작성자: {p.nickname}</span>
                     <span>{p.date}</span>
                   </div>
 
