@@ -1,6 +1,7 @@
 // src/routes/bars.js
 import { Router } from 'express';
 import db from '../db/client.js';
+import { authRequired } from '../middlewares/jwtauth.js';
 
 const router = Router();
 
@@ -28,6 +29,56 @@ router.get('/hot', async (req, res, next) => {
     res.json({ items, meta: { total: items.length } });
   } catch (e) {
     next(e);
+  }
+});
+
+//북마크
+router.post("/:id/bookmark", authRequired, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const barId = Number(req.params.id);
+    await db.query(
+      `INSERT INTO bar_bookmarks (user_id, bar_id)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id, bar_id) DO NOTHING`,
+      [userId, barId]
+    );
+    res.status(201).json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// 북마크 제거
+router.delete("/:id/bookmark", authRequired, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const barId = Number(req.params.id);
+    await db.query(
+      `DELETE FROM bar_bookmarks WHERE user_id = $1 AND bar_id = $2`,
+      [userId, barId]
+    );
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// 북마크 확인
+router.get("/:id/bookmark", authRequired, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const barId = Number(req.params.id);
+    if (!barId) return res.status(400).json({ message: "Invalid bar id" });
+
+    const rows = await db.query(
+      `SELECT 1 FROM bar_bookmarks WHERE user_id = $1 AND bar_id = $2`,
+      [userId, barId]
+    );
+    
+    let exists = false;
+    if (rows.length > 0){
+      exists = true;
+    } 
+    res.json({ bar_id: barId, bookmarked: Boolean(exists) });
+  } catch (err) {
+    next(err);
   }
 });
 

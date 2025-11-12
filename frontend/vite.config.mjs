@@ -12,7 +12,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    tailwindcss() // ✅ 여기까지만 (typography 제거)
+    tailwindcss()
   ],
   resolve: {
     alias: {

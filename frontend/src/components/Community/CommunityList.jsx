@@ -82,7 +82,7 @@ export default function CommunityList() {
       sort, // 현재 정렬 유지
     });
 
-  // --- 정렬 변경 (최신순 / 좋아요순) ---
+  // --- 정렬 변경 (최신순 / 좋아요순 / 댓글순순) ---
   const changeSort = (nextSort) =>
     setSearchParams({
       page: "1", // 정렬 바뀌면 1페이지부터
