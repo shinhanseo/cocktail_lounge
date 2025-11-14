@@ -6,6 +6,7 @@ import { optionalAuth } from "../middlewares/jwtauth.js";
 const router = Router();
 
 // 전체 칵테일 목록
+// 전체 칵테일 목록
 router.get("/", async (req, res, next) => {
   try {
     // 정렬 기준 쿼리: latest / likes / abv
@@ -21,6 +22,41 @@ router.get("/", async (req, res, next) => {
       orderBy = "abv DESC NULLS LAST, id DESC";
     }
 
+    // 🔹 쿼리스트링에서 base/taste 필터 받기
+    // 예: /api/cocktails?bases=진,럼&tastes=달콤한,상큼한
+    const bases = (req.query.bases || "")
+      .split(",")
+      .map((v) => v.trim())
+      .filter((v) => v.length > 0); // ["진", "럼"]
+
+    const tastes = (req.query.tastes || "")
+      .split(",")
+      .map((v) => v.trim())
+      .filter((v) => v.length > 0); // ["달콤한", "상큼한"]
+
+    // 🔹 WHERE 절 동적으로 만들기
+    const where = [];
+    const params = [];
+    let idx = 1;
+
+    // tags 컬럼이 VARCHAR[] 라고 가정
+    if (bases.length > 0) {
+      // tags 배열과 bases 배열이 "하나라도 겹치면" true
+      // ex) tags = ['진','상큼한'] / bases = ['진','럼'] → true
+      where.push(`tags && $${idx}::varchar[]`);
+      params.push(bases);
+      idx++;
+    }
+
+    if (tastes.length > 0) {
+      // 마찬가지로 맛 태그도 하나 이상 겹치는지 검사
+      where.push(`tags && $${idx}::varchar[]`);
+      params.push(tastes);
+      idx++;
+    }
+
+    const whereClause = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
+
     const rows = await db.query(
       `
       SELECT
@@ -29,10 +65,13 @@ router.get("/", async (req, res, next) => {
         image,
         abv,
         comment,
-        like_count
+        like_count,
+        tags
       FROM cocktails
+      ${whereClause}
       ORDER BY ${orderBy}
-      `
+      `,
+      params
     );
 
     res.json({
@@ -40,6 +79,8 @@ router.get("/", async (req, res, next) => {
       meta: {
         total: rows.length,
         sort,
+        bases,
+        tastes,
       },
     });
   } catch (err) {
@@ -47,6 +88,7 @@ router.get("/", async (req, res, next) => {
     next(err);
   }
 });
+
 
 router.get("/mylike", authRequired, async (req, res, next) => {
   try {
