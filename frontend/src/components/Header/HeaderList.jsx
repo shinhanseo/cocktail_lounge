@@ -28,7 +28,7 @@ export default function HeaderList() {
         {/* 오늘의 취향 (추천/테스트 페이지) */}
         <li>
           <NavLink to="/today" className={navClass}>
-            취향 찾기
+            AI 바텐더
           </NavLink>
         </li>
 

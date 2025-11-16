@@ -64,7 +64,7 @@ export default function JemeniRecommend() {
           🍸 Gemini AI 칵테일 바텐더
         </span>
         <h2 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight text-white">
-          나만의 <span className="text-button">AI 칵테일 레시피</span> 생성기
+          나만의 <span className="text-button"> 칵테일 레시피</span> 생성기
         </h2>
         <p className="mt-3 text-sm md:text-base text-gray-300">
           기주, 맛, 키워드를 입력하면 Gemini가 바텐더처럼 레시피를 만들어줍니다.
