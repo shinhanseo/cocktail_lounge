@@ -22,8 +22,7 @@ router.get("/", async (req, res, next) => {
       orderBy = "abv DESC NULLS LAST, id DESC";
     }
 
-    // 🔹 쿼리스트링에서 base/taste 필터 받기
-    // 예: /api/cocktails?bases=진,럼&tastes=달콤한,상큼한
+    // 쿼리스트링에서 base/taste 필터 받기
     const bases = (req.query.bases || "")
       .split(",")
       .map((v) => v.trim())
@@ -34,7 +33,7 @@ router.get("/", async (req, res, next) => {
       .map((v) => v.trim())
       .filter((v) => v.length > 0); // ["달콤한", "상큼한"]
 
-    // 🔹 WHERE 절 동적으로 만들기
+    // WHERE 절 동적으로 만들기
     const where = [];
     const params = [];
     let idx = 1;

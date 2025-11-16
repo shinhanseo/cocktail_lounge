@@ -9,7 +9,7 @@ const BASE_OPTIONS = [
   "데킬라",
   "리큐어",
   "와인",
-  "논알콜",
+  "무알콜",
 ];
 const TASTE_OPTIONS = [
   "달콤",
