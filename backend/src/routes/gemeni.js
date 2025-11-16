@@ -32,9 +32,31 @@ async function generateCocktailRecommendation(requirements) {
     prompt += `- **포함되어야 할 특징/재료:** ${keywords.join(", ")} 등의 요소를 포함해야 함.\n`;
   }
 
-  prompt +=
-    "\n응답은 칵테일 이름, 재료 목록(용량 필수), 상세한 제조 과정을 담은 **JSON 형식**으로 응답해야 하며, 각각 key 값을 name, ingredient, step으로 지정해야한다. 또한  ingredient에 재료는 item 용량은 volume 으로 표기한다. 다른 설명이나 텍스트는 일절 포함하지 마세요.";
+  prompt += `--- 출력 형식 ---
+    아래 JSON 스키마를 **정확히** 지키세요.
+    JSON 외의 설명 문장, 마크다운, 코드블록, 주석 등은 일절 포함하지 마세요.
 
+    {
+      "name": "칵테일 이름 (string)",
+      "ingredient": [
+        {
+          "item": "재료 이름 (string)",
+          "volume": "용량 (string, 예: 45ml)"
+        }
+      ],
+      "step": "칵테일 제조 과정을 여러 문장으로 자세히 설명한 문자열",
+      "comment": "맛을 한줄로 표현한 짧은 코멘트"
+    }
+
+    --- 추가 조건 ---
+    - 반드시 JSON만 출력하세요. JSON 외 텍스트는 금지합니다.
+    - 모든 텍스트는 한국어로 작성하세요.
+    - ingredient 배열에는 최소 3개 이상의 재료를 포함하세요.
+    - step은 2~6단계 정도로 자연스러운 문장으로 작성하세요.
+    - comment는 20자 이하로 간결하게 작성하세요.
+    - 만약 대표적인 칵테일이 있다면 그 칵테일의 레시피를 소개하세요.
+    - baseSpirit, taste, keywords 조건을 반드시 반영하세요.
+    `;
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
@@ -44,6 +66,7 @@ async function generateCocktailRecommendation(requirements) {
         temperature: 0.9,
       },
     });
+    console.log(response.text);
     return response.text;
   } catch (error) {
     console.error("Gemini API 호출 중 오류 발생:", error);

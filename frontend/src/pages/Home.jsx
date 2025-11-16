@@ -1,14 +1,14 @@
 import CommunityPreview from "@/components/Preview/CommunityPreview";
 import RecipePreview from "@/components/Preview/RecipePreview";
 import MapPreview from "@/components/Preview/MapPreview";
-import TodayPreview from "@/components/Preview/TodayPreview";
+import AIBartenderPreview from "@/components/Preview/AIBartenderPreview";
 // 첫 홈 화면
 export default function Home() {
   return (
     <main className="px-auto mt-12 text-white max-w-6xl mx-auto w-[900px]">
       <div className="grid md:grid-rows-2 md:grid-cols-2 gap-6">
         {/* 2사분면: 컨텐츠 예정 */}
-        <TodayPreview />
+        <AIBartenderPreview />
 
         {/* 1사분면: 오늘의 한잔 추천 */}
         <RecipePreview />

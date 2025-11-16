@@ -1,7 +1,13 @@
 import { useState } from "react";
 import axios from "axios";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useNavigate } from "react-router-dom";
 
 export default function JemeniRecommend() {
+  const user = useAuthStore((s) => s.user);
+  const isLoggedIn = !!user;
+  const navigate = useNavigate();
+
   const [requirements, setRequirements] = useState({
     baseSpirit: "",
     rawTaste: "",
@@ -23,6 +29,11 @@ export default function JemeniRecommend() {
     setLoading(true);
     setError(null);
     setRecipe(null);
+
+    if (!isLoggedIn) {
+      alert("로그인을 하셔야 해당 기능이 이용가능합니다.");
+      navigate("/login");
+    }
 
     if (!requirements.baseSpirit && !requirements.rawTaste) {
       setError("맛 또는 기주 중 하나는 입력해야 합니다.");
@@ -132,7 +143,7 @@ export default function JemeniRecommend() {
             disabled={loading}
             className="w-full mt-2 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-lg bg-button hover:bg-button-hover hover:cursor-pointer"
           >
-            {loading ? "🍹 레시피 생성 중..." : "✨ 칵테일 추천받기"}
+            {loading ? "🍹 레시피 생성 중..." : "칵테일 추천받기"}
           </button>
 
           <p className="mt-1 text-[11px] text-gray-400">
@@ -206,6 +217,14 @@ export default function JemeniRecommend() {
                 </p>
               </div>
 
+              {/* 한줄 코멘트 */}
+              <div>
+                <p className="font-semibold mb-1 text-gray-200">한줄 맛 표현</p>
+                <p className="whitespace-pre-wrap text-[13px] text-gray-100 leading-relaxed">
+                  {recipe.comment}
+                </p>
+              </div>
+
               {/* 맛/키워드 태그 */}
               {(requirements.rawTaste || requirements.rawKeywords) && (
                 <div className="pt-1 border-t border-white/10 mt-2">
@@ -219,7 +238,7 @@ export default function JemeniRecommend() {
                         .map((t, idx) => (
                           <span
                             key={`taste-${idx}`}
-                            className="px-2 py-0.5 rounded-full bg-cyan-400/10 border border-cyan-400/40 text-[11px] text-cyan-200n"
+                            className="px-2 py-0.5 rounded-full bg-cyan-400/10 border border-cyan-400/40 text-[11px] text-cyan-200"
                           >
                             #{t}
                           </span>
