@@ -261,4 +261,29 @@ router.get("/save", authRequired, async (req, res, next) => {
     next(err);
   }
 });
+
+router.get("/save/:id", authRequired, async (req, res, next) => {
+  const userId = req.user.id;
+  const { id } = req.params;
+
+  try {
+    const [row] = await db.query(
+      `
+      SELECT id, name, base, taste, keywords, ingredient, step, comment, created_at
+      FROM ai_cocktails
+      WHERE id = $1 AND user_id = $2
+      `,
+      [id, userId]
+    );
+
+    if (!row) {
+      return res.status(404).json({ error: "레시피를 찾을 수 없습니다." });
+    }
+
+    res.json(row);
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

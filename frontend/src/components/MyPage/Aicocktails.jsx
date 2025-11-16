@@ -87,7 +87,7 @@ export default function AiCocktails() {
           {items.map((c) => (
             <li
               key={c.id}
-              onClick={() => navigate(`/ai-cocktails/${c.id}`)} // 라우트는 프로젝트에 맞게 수정
+              onClick={() => navigate(`/aicocktails/${c.id}`)} // 라우트는 프로젝트에 맞게 수정
               className="border-b border-white/10 hover:bg-white/5 hover:cursor-pointer rounded-lg px-4 py-3 transition"
               style={{
                 width: "700px",

@@ -25,6 +25,7 @@ import CocktailLike from "@/components/MyPage/CocktailLike";
 import SearchResult from "@/pages/SearchResult";
 import MyBars from "@/components/MyPage/MyBars";
 import MyAiCocktails from "@/components/MyPage/AiCocktails";
+import AiCocktailsRecipe from "@/components/Recipe/AiCocktailsRecipe";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -46,6 +47,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="communitywriting" element={<CommunityWriting />} />
             <Route path="communityedit/:id" element={<CommunityEdit />} />
             <Route path="search" element={<SearchResult />} />
+            <Route path="aicocktails/:id" element={<AiCocktailsRecipe />} />
 
             {/* 마이페이지 (중첩 라우팅) */}
             <Route path="mypage" element={<MyPage />}>
