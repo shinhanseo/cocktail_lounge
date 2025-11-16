@@ -150,8 +150,7 @@ export default function CommunityDetail() {
                 {post.tags.map((tag) => (
                   <li
                     key={tag}
-                    className="px-2 py-1 bg-white/10 border border-white/10 rounded-full text-sm
-                         hover:bg-white/15 hover:scale-105 transition-transform hover:cursor-pointer"
+                    className="px-2 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/40 text-xs text-cyan-200 hover:scale-105 transition-transform hover:cursor-pointer"
                     onClick={() => navigate(`/search?keyword=${tag}`)}
                   >
                     #{tag}

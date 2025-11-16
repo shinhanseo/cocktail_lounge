@@ -101,8 +101,7 @@ export default function RecipeDetail() {
               {cocktail.tags.map((tag) => (
                 <li
                   key={tag}
-                  className="px-2 py-1 rounded-full text-sm bg-white/10 text-white/90
-                             border border-white/10 hover:bg-white/15 hover:scale-105
+                  className="px-2 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/40 text-xs text-cyan-200 hover:scale-105
                              transition-transform hover:cursor-pointer"
                   onClick={() => navigate(`/search?keyword=${tag}`)}
                 >

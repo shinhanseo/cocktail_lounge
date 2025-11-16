@@ -99,7 +99,7 @@ export default function SearchPosts({ keyword }) {
                       {p.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="bg-button text-white text-xs px-2 py-1 rounded-full"
+                          className="px-2 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/40 text-xs text-cyan-200"
                         >
                           #{tag}
                         </span>
