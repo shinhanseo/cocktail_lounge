@@ -17,22 +17,29 @@ export default function JemeniRecommend() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // 저장 관련 상태
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+
   // 입력값 변경
   const handleChange = (e) => {
     const { name, value } = e.target;
     setRequirements((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 폼 제출
+  // 폼 제출 (레시피 생성)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setRecipe(null);
+    setSaveMessage("");
 
     if (!isLoggedIn) {
       alert("로그인을 하셔야 해당 기능이 이용가능합니다.");
       navigate("/login");
+      setLoading(false);
+      return;
     }
 
     if (!requirements.baseSpirit && !requirements.rawTaste) {
@@ -42,7 +49,6 @@ export default function JemeniRecommend() {
     }
 
     try {
-      // 👇 requirements를 한 번 감싸지 말고, 평평하게 보냄
       const payload = {
         baseSpirit: requirements.baseSpirit,
         rawTaste: requirements.rawTaste,
@@ -50,7 +56,7 @@ export default function JemeniRecommend() {
       };
 
       const res = await axios.post(
-        "http://localhost:4000/api/gemeni",
+        "http://localhost:4000/api/gemeni", // ← 레시피 생성 라우터
         payload,
         { withCredentials: true }
       );
@@ -64,6 +70,52 @@ export default function JemeniRecommend() {
       setError(msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 레시피 저장
+  const handleSave = async () => {
+    if (!isLoggedIn) {
+      alert("로그인을 하셔야 레시피를 저장할 수 있습니다.");
+      navigate("/login");
+      return;
+    }
+
+    if (!recipe) {
+      alert("저장할 레시피가 없습니다.");
+      return;
+    }
+
+    try {
+      setSaveLoading(true);
+      setSaveMessage("");
+
+      const payload = {
+        name: recipe.name,
+        ingredient: recipe.ingredient, // [{ item, volume }, ...]
+        step: recipe.step, // string 또는 string[]
+        comment: recipe.comment,
+        base: recipe.ingredient?.[0]?.item,
+        rawTaste: requirements.rawTaste,
+        rawKeywords: requirements.rawKeywords,
+      };
+
+      const res = await axios.post(
+        "http://localhost:4000/api/gemeni/save", // ← 백엔드 /save 라우터 주소 (필요하면 수정)
+        payload,
+        { withCredentials: true }
+      );
+
+      setSaveMessage(
+        res.data?.message || "마이페이지에 레시피가 저장되었습니다."
+      );
+    } catch (err) {
+      console.error("레시피 저장 오류:", err);
+      const msg =
+        err.response?.data?.error || "레시피 저장 중 오류가 발생했습니다.";
+      setSaveMessage(msg);
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -141,7 +193,7 @@ export default function JemeniRecommend() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-lg bg-button hover:bg-button-hover hover:cursor-pointer"
+            className="w-full mt-2 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-lg bg-button hover:bg-button-hover hover:cursor-pointer disabled:opacity-60"
           >
             {loading ? "🍹 레시피 생성 중..." : "칵테일 추천받기"}
           </button>
@@ -163,6 +215,18 @@ export default function JemeniRecommend() {
                 </span>
               )}
             </h3>
+
+            {/* 레시피 저장 버튼 (레시피 있을 때만) */}
+            {recipe && (
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saveLoading}
+                className="text-[11px] px-3 py-1 rounded-full border border-button text-white bg-button hover:bg-button-hover hover:cursor-pointer transition disabled:opacity-60"
+              >
+                {saveLoading ? "저장 중..." : "마이페이지에 저장"}
+              </button>
+            )}
           </div>
 
           {/* 상태별 렌더링 */}
@@ -189,7 +253,7 @@ export default function JemeniRecommend() {
                 <p className="text-xs text-gray-300">
                   기주:{" "}
                   <span className="text-button font-semibold">
-                    {requirements.baseSpirit || "AI가 자동 선택"}
+                    {recipe.ingredient?.[0]?.item || "AI가 자동 선택"}
                   </span>
                 </p>
               </div>
@@ -258,6 +322,11 @@ export default function JemeniRecommend() {
                         ))}
                   </div>
                 </div>
+              )}
+
+              {/* 저장 결과 메시지 */}
+              {saveMessage && (
+                <p className="text-[11px] text-gray-300 mt-1">{saveMessage}</p>
               )}
             </div>
           )}

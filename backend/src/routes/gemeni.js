@@ -1,5 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { Router } from "express";
+import { authRequired } from "../middlewares/jwtauth.js";
+import db from "../db/client.js";
 
 const router = Router();
 const GOOGLE_GEMENI_ID = process.env.GOOGLE_GEMENI_ID;
@@ -111,6 +113,86 @@ router.post("/", async (req, res) => {
   } catch (error) {
     console.error("추천 생성 에러:", error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/save", authRequired, async (req, res, next) => {
+  const userId = req.user.id;
+
+  try {
+    const {
+      name,          // AI가 만든 칵테일 이름
+      ingredient,    // [{ item, volume }, ...]
+      step,          // string or string[]
+      comment,       // 한줄 코멘트
+      base,    // 사용자가 입력한 기주 (optional)
+      rawTaste,      // "상큼,달콤" 이런 문자열 (optional)
+      rawKeywords,   // "레몬,민트" 이런 문자열 (optional)
+    } = req.body || {};
+
+    if (!name || !ingredient || !step) {
+      return res
+        .status(400)
+        .json({ error: "name, ingredient, step 은 필수입니다." });
+    }
+
+    // taste/keywords 문자열을 배열로 변환
+    const taste =
+      rawTaste &&
+      rawTaste
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+    const keywords =
+      rawKeywords &&
+      rawKeywords
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean);
+
+    // step이 문자열이면 줄바꿈 기준으로 배열로 변환
+    const stepArray = Array.isArray(step)
+      ? step
+      : String(step)
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+    const row = await db.query(
+      `
+      INSERT INTO ai_cocktails (
+        user_id,
+        name,
+        base,
+        taste,
+        keywords,
+        ingredient,
+        step,
+        comment
+      )
+      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8)
+      RETURNING id, created_at
+      `,
+      [
+        userId,
+        name,
+        base || null,
+        taste || null,
+        keywords || null,
+        JSON.stringify(ingredient),
+        stepArray,
+        comment || null,
+      ]
+    );
+
+    res.status(201).json({
+      id: row.id,
+      created_at: row.created_at,
+      message: "AI 레시피가 저장되었습니다.",
+    });
+  } catch (err) {
+    next(err);
   }
 });
 
