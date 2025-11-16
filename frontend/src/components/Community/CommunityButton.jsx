@@ -1,5 +1,5 @@
 // 커뮤니티 게시판 상단 글쓰기 버튼튼
-import postButton from "../../assets/post.jpg";
+import { Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -22,9 +22,22 @@ export default function CommunityButton() {
     <div className="text-right mr-8">
       <button
         onClick={onClick}
-        className="text-white ml-5 p-2 bg-white/95 rounded-full hover:scale-110 hover:cursor-pointer"
+        className="
+          ml-5 p-3 
+          bg-white/10 
+          border border-white/20 
+          backdrop-blur-sm
+          rounded-full 
+          shadow-md 
+          transition-all 
+          hover:cursor-pointer
+          hover:bg-white/20 
+          hover:scale-110 
+          hover:shadow-white/40 
+          active:scale-95
+          "
       >
-        <img src={postButton} alt="글쓰기 버튼" className="w-6 h-6" />
+        <Pencil className="w-5 h-5 text-white" strokeWidth={2} />
       </button>
     </div>
   );
