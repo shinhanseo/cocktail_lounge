@@ -265,13 +265,13 @@ export default function Comment({ postId }) {
                   />
                   <div className="flex justify-end gap-2 mt-2">
                     <button
-                      className="bg-button hover:bg-button-hover px-2 py-1 rounded-lg text-white text-sm"
+                      className="bg-button hover:bg-button-hover px-2 py-1 rounded-lg text-white text-sm hover:cursor-pointer"
                       onClick={() => handleSave(comment.id)}
                     >
                       저장
                     </button>
                     <button
-                      className="bg-white/50 hover:bg-white/30 px-2 py-1 rounded-lg text-white text-sm"
+                      className="bg-white/50 hover:bg-white/30 px-2 py-1 rounded-lg text-white text-sm hover:cursor-pointer"
                       onClick={() => setEditCommentId(null)}
                     >
                       취소
@@ -293,13 +293,13 @@ export default function Comment({ postId }) {
                     {user?.login_id === comment.author && (
                       <div className="flex gap-2">
                         <button
-                          className="bg-button hover:bg-button-hover px-2 py-1 rounded-lg text-white text-sm"
+                          className="bg-button hover:bg-button-hover px-2 py-1 rounded-lg text-white text-sm hover:cursor-pointer"
                           onClick={() => handleEdit(comment)}
                         >
                           <Pencil size={16} />
                         </button>
                         <button
-                          className="bg-white/50 hover:bg-white/30 px-2 py-1 rounded-lg text-white text-sm"
+                          className="bg-white/50 hover:bg-white/30 px-2 py-1 rounded-lg text-white text-sm hover:cursor-pointer"
                           onClick={() => handleDelete(comment.id)}
                         >
                           <Trash size={16} />
@@ -323,13 +323,13 @@ export default function Comment({ postId }) {
                       />
                       <div className="flex justify-end gap-2 mt-1">
                         <button
-                          className="bg-button hover:bg-button-hover px-2 py-1 rounded-lg text-white text-sm"
+                          className="bg-button hover:bg-button-hover px-2 py-1 rounded-lg text-white text-sm hover:cursor-pointer"
                           onClick={() => handleSaveSub(sub.id, comment.id)}
                         >
                           저장
                         </button>
                         <button
-                          className="bg-white/50 hover:bg-white/30 px-2 py-1 rounded-lg text-white text-sm"
+                          className="bg-white/50 hover:bg-white/30 px-2 py-1 rounded-lg text-white text-sm hover:cursor-pointer"
                           onClick={() => setEditSubId(null)}
                         >
                           취소
@@ -345,13 +345,13 @@ export default function Comment({ postId }) {
                         {user?.login_id === sub.author && (
                           <>
                             <button
-                              className="bg-button hover:bg-button-hover px-2 py-1 rounded-lg text-white text-sm"
+                              className="bg-button hover:bg-button-hover px-2 py-1 rounded-lg text-white text-sm hover:cursor-pointer"
                               onClick={() => handleEditSub(sub)}
                             >
                               <Pencil size={16} />
                             </button>
                             <button
-                              className="bg-white/50 hover:bg-white/30 px-2 py-1 rounded-lg text-white text-sm"
+                              className="bg-white/50 hover:bg-white/30 px-2 py-1 rounded-lg text-white text-sm hover:cursor-pointer"
                               onClick={() =>
                                 handleDeleteSub(sub.id, comment.id)
                               }
