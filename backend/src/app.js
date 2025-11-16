@@ -10,6 +10,7 @@ import authRouter from "./routes/auth.js";
 import oauthRouter from "./routes/oauth/index.js";
 import CommentRouter from "./routes/comment.js";
 import SearchRouter from "./routes/search.js";
+import GemeniRouter from "./routes/gemeni.js";
 
 const app = express();
 app.use(express.json());
@@ -35,6 +36,7 @@ app.use("/api/auth", authRouter);          // 로그인
 app.use("/api/oauth", oauthRouter);        // naver, gogle, kakao Oauth2.0 관련
 app.use("/api/comment", CommentRouter);    // 댓글 관련
 app.use("/api/search", SearchRouter);      // 검색
+app.use("/api/gemeni", GemeniRouter);      // 제미나이
 
 app.use((req, res) => res.status(404).json({ message: "Not Found" }));
 app.use((err, req, res, next) => {
