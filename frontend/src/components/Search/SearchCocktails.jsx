@@ -3,6 +3,7 @@ import axios from "axios";
 import { NavLink } from "react-router-dom";
 
 export default function SearchCocktails({ keyword }) {
+  const [count, setCount] = useState(0);
   const [cocktails, setCocktails] = useState([]); // 칵테일 목록 데이터
   const [loading, setLoading] = useState(true); // 로딩 상태
   const [error, setError] = useState(""); // 에러 메시지
@@ -21,7 +22,7 @@ export default function SearchCocktails({ keyword }) {
             params: { keyword },
           }
         );
-
+        setCount(Number(res.data.count ?? 0));
         setCocktails(Array.isArray(res.data?.items) ? res.data.items : []);
       } catch (err) {
         setError("칵테일을 불러오는 중 오류가 발생했습니다.");
@@ -48,6 +49,9 @@ export default function SearchCocktails({ keyword }) {
 
   return (
     <div>
+      <p className="text-s font-semibold mb-4 ml-4 text-white">
+        🍸“{keyword}” 관련 칵테일 {count}건
+      </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 max-w-5xl mx-auto px-4">
         {cocktails.map((c) => (
           <NavLink

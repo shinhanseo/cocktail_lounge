@@ -62,6 +62,15 @@ router.get("/posts", async(req, res, next) => {
 router.get("/cocktails", async (req, res, next) => {
   try{
     const keyword = (req.query.keyword || "").toString().trim()
+    const [{ count }] = await db.query(`
+      SELECT COUNT(*)::int AS count 
+      FROM cocktails 
+      WHERE 
+        name ILIKE '%' || $1 || '%' 
+        OR ingredients ->> 'name' ILIKE '%' || $1 || '%'  
+        OR $1 = ANY(tags)
+        OR comment ILIKE '%' || $1 || '%'`,[keyword]);
+
     const rows = await db.query(
       `SELECT id, name, image, like_count
        FROM cocktails
@@ -82,7 +91,8 @@ router.get("/cocktails", async (req, res, next) => {
     }));
 
     res.json({
-      items
+      items,
+      count
     })
   }catch(err){
     next(err);

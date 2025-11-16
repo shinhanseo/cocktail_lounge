@@ -60,9 +60,9 @@ export default function SearchPosts({ keyword }) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold mb-2 text-white">
-        📄 “{keyword}” 관련 게시글
-      </h3>
+      <p className="text-s font-semibold mb-2 text-white">
+        📄 “{keyword}” 관련 게시글 {meta.total}건
+      </p>
 
       {posts.length === 0 ? (
         <p className="text-gray-400">검색 결과가 없습니다.</p>
