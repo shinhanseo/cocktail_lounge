@@ -196,4 +196,69 @@ router.post("/save", authRequired, async (req, res, next) => {
   }
 });
 
+router.get("/save", authRequired, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const page = Math.max(parseInt(req.query.page ?? "1", 10), 1);
+    const limit = Math.max(parseInt(req.query.limit ?? "6", 10), 1); // 기본 6
+    const offset = (page - 1) * limit;
+
+    // 총 개수
+    const [{ count }] = await db.query(
+      `
+      SELECT COUNT(*)::int AS count
+      FROM ai_cocktails
+      WHERE user_id = $1
+      `,
+      [userId]
+    );
+    const pageCount = Math.max(Math.ceil(count / limit), 1);
+
+    // 실제 목록 조회
+    const rows = await db.query(
+      `
+      SELECT
+        id,
+        name,
+        base,
+        taste,
+        keywords,
+        comment,
+        created_at
+      FROM ai_cocktails
+      WHERE user_id = $1
+      ORDER BY created_at DESC, id DESC
+      LIMIT $2 OFFSET $3
+      `,
+      [userId, limit, offset]
+    );
+
+    // 프론트에서 쓰기 편하게 가공
+    const items = rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      base: r.base_spirit,
+      taste: r.taste,          // VARCHAR[] → pg가 배열로 넘겨줌
+      keywords: r.keywords,    // VARCHAR[] → 배열
+      comment: r.comment,
+      created_at: r.created_at
+        ? r.created_at.toISOString().slice(0, 10)
+        : null,               // "YYYY-MM-DD" 형태
+    }));
+
+    res.json({
+      items,
+      meta: {
+        total: count,
+        page,
+        limit,
+        pageCount,
+        hasPrev: page > 1,
+        hasNext: page < pageCount,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 export default router;

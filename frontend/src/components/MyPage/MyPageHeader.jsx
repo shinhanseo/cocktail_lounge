@@ -13,6 +13,7 @@ export default function MyPageHeader() {
     { title: "좋아요 보낸 게시글", to: "/mypage/postlike" },
     { title: "좋아요 보낸 칵테일", to: "/mypage/cocktaillike" },
     { title: "바 북마크", to: "/mypage/mybars" },
+    { title: "AI 바텐더", to: "/mypage/myaicocktails" },
   ];
 
   return (
