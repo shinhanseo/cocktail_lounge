@@ -69,7 +69,6 @@ async function generateCocktailRecommendation(requirements) {
         temperature: 0.9,
       },
     });
-    console.log(response.text);
     return response.text;
   } catch (error) {
     console.error("Gemini API 호출 중 오류 발생:", error);
@@ -110,6 +109,9 @@ router.post("/", async (req, res) => {
 
     res.status(200).json({
       recipe: JSON.parse(jsonRecipeString),
+      taste,
+      keywords,
+
     });
   } catch (error) {
     console.error("추천 생성 에러:", error);

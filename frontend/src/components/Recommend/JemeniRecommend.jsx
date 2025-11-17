@@ -9,18 +9,29 @@ export default function JemeniRecommend() {
   const isLoggedIn = !!user;
   const navigate = useNavigate();
 
+  // 입력 폼 상태
   const [requirements, setRequirements] = useState({
     baseSpirit: "",
     rawTaste: "",
     rawKeywords: "",
   });
+
+  // 레시피 결과
   const [recipe, setRecipe] = useState(null);
+
+  // 로딩 / 에러
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // 저장 관련 상태
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+
+  // 레시피를 생성할 때 사용된 "요청 조건" 스냅샷
+  const [requestTags, setRequestTags] = useState({
+    taste: "",
+    keywords: "",
+  });
 
   // 입력값 변경
   const handleChange = (e) => {
@@ -61,6 +72,13 @@ export default function JemeniRecommend() {
         payload,
         { withCredentials: true }
       );
+
+      // 이 시점의 요청 조건을 스냅샷으로 고정
+      setRequestTags({
+        taste: requirements.rawTaste,
+        keywords: requirements.rawKeywords,
+      });
+
       setRecipe(res.data.recipe);
     } catch (err) {
       console.error("API 호출 오류:", err);
@@ -97,12 +115,13 @@ export default function JemeniRecommend() {
         step: recipe.step, // string 또는 string[]
         comment: recipe.comment,
         base: recipe.ingredient?.[0]?.item,
-        rawTaste: requirements.rawTaste,
-        rawKeywords: requirements.rawKeywords,
+        // 저장도 "그때의 요청 조건" 기준으로
+        rawTaste: requestTags.taste,
+        rawKeywords: requestTags.keywords,
       };
 
       const res = await axios.post(
-        "http://localhost:4000/api/gemeni/save", // ← 백엔드 /save 라우터 주소 (필요하면 수정)
+        "http://localhost:4000/api/gemeni/save",
         payload,
         { withCredentials: true }
       );
@@ -292,13 +311,13 @@ export default function JemeniRecommend() {
                 </p>
               </div>
 
-              {/* 맛/키워드 태그 */}
-              {(requirements.rawTaste || requirements.rawKeywords) && (
+              {/* 맛/키워드 태그: "요청 당시 스냅샷" 기준 */}
+              {(requestTags.taste || requestTags.keywords) && (
                 <div className="pt-1 border-t border-white/10 mt-2">
                   <p className="text-[11px] text-gray-400 mb-1">요청 조건</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {requirements.rawTaste &&
-                      requirements.rawTaste
+                    {requestTags.taste &&
+                      requestTags.taste
                         .split(",")
                         .map((t) => t.trim())
                         .filter(Boolean)
@@ -310,8 +329,9 @@ export default function JemeniRecommend() {
                             #{t}
                           </span>
                         ))}
-                    {requirements.rawKeywords &&
-                      requirements.rawKeywords
+
+                    {requestTags.keywords &&
+                      requestTags.keywords
                         .split(",")
                         .map((k) => k.trim())
                         .filter(Boolean)
