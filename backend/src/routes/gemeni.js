@@ -201,23 +201,62 @@ router.post("/save", authRequired, async (req, res, next) => {
 
 router.get("/save", authRequired, async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.id; // 인증에서 넣어주는 값이라고 가정
     const page = Math.max(parseInt(req.query.page ?? "1", 10), 1);
-    const limit = Math.max(parseInt(req.query.limit ?? "6", 10), 1); // 기본 6
+    const limit = Math.max(parseInt(req.query.limit ?? "5", 10), 1);
     const offset = (page - 1) * limit;
+    const keyword = (req.query.keyword ?? "").trim();
 
-    // 총 개수
-    const [{ count }] = await db.query(
+    // ------------------------------
+    // WHERE + params 구성
+    // ------------------------------
+    let whereClauses = ["user_id = $1"];
+    let params = [userId];
+
+    if (keyword) {
+      params.push(keyword);
+      const idx = params.length; // $2, $3 등
+
+      whereClauses.push(`
+        (
+          name ILIKE '%' || $${idx} || '%'
+          OR comment ILIKE '%' || $${idx} || '%'
+          OR EXISTS (
+            SELECT 1 FROM unnest(taste) AS t
+            WHERE t ILIKE '%' || $${idx} || '%'
+          )
+          OR EXISTS (
+            SELECT 1 FROM unnest(keywords) AS kw
+            WHERE kw ILIKE '%' || $${idx} || '%'
+          )
+        )
+      `);
+    }
+
+    const whereSql = "WHERE " + whereClauses.join(" AND ");
+
+    // ------------------------------
+    // 1) 전체 개수 (검색 반영)
+    // ------------------------------
+    const countRows = await db.query(
       `
       SELECT COUNT(*)::int AS count
       FROM ai_cocktails
-      WHERE user_id = $1
+      ${whereSql}
       `,
-      [userId]
+      params
     );
-    const pageCount = Math.max(Math.ceil(count / limit), 1);
 
-    // 실제 목록 조회
+    const total = countRows[0]?.count ?? 0;
+    const pageCount = Math.max(Math.ceil(total / limit), 1);
+    const hasPrev = page > 1;
+    const hasNext = page < pageCount;
+
+    // ------------------------------
+    // 2) 실제 목록 조회 (검색 + 페이징)
+    // ------------------------------
+    params.push(limit, offset); // limit, offset 추가
+
     const rows = await db.query(
       `
       SELECT
@@ -227,37 +266,28 @@ router.get("/save", authRequired, async (req, res, next) => {
         taste,
         keywords,
         comment,
-        created_at
+        to_char(created_at, 'YYYY-MM-DD') AS created_at
       FROM ai_cocktails
-      WHERE user_id = $1
+      ${whereSql}
       ORDER BY created_at DESC, id DESC
-      LIMIT $2 OFFSET $3
+      LIMIT $${params.length - 1}
+      OFFSET $${params.length}
       `,
-      [userId, limit, offset]
+      params
     );
 
-    // 프론트에서 쓰기 편하게 가공
-    const items = rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      base: r.base_spirit,
-      taste: r.taste,          // VARCHAR[] → pg가 배열로 넘겨줌
-      keywords: r.keywords,    // VARCHAR[] → 배열
-      comment: r.comment,
-      created_at: r.created_at
-        ? r.created_at.toISOString().slice(0, 10)
-        : null,               // "YYYY-MM-DD" 형태
-    }));
-
+    // ------------------------------
+    // 응답
+    // ------------------------------
     res.json({
-      items,
+      items: rows,
       meta: {
-        total: count,
+        total,
         page,
         limit,
         pageCount,
-        hasPrev: page > 1,
-        hasNext: page < pageCount,
+        hasPrev,
+        hasNext,
       },
     });
   } catch (err) {
