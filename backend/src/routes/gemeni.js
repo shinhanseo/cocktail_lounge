@@ -58,6 +58,7 @@ async function generateCocktailRecommendation(requirements) {
     - comment는 20자 이하로 간결하게 작성하세요.
     - 만약 대표적인 칵테일이 있다면 그 칵테일의 레시피를 소개하세요.
     - baseSpirit, taste, keywords 조건을 반드시 반영하세요.
+    - 가급적 인터넷에 존재하는 칵테일을 기준으로 레시피를 짜세요.
     `;
   try {
     const response = await ai.models.generateContent({

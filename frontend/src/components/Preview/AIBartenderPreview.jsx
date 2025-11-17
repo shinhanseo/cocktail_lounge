@@ -27,7 +27,7 @@ export default function AIBartenderPreview() {
         <p className="text-sm text-gray-300 leading-relaxed">
           기주, 원하는 맛, 키워드를 입력하면
           <br />
-          Gemini 기반 AI 바텐더가{" "}
+          AI 바텐더가{" "}
           <span className="text-button font-semibold">
             나만의 칵테일 레시피
           </span>

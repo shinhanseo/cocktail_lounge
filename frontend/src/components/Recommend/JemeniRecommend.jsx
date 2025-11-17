@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
+import { LoaderCircle } from "lucide-react";
 
 export default function JemeniRecommend() {
   const user = useAuthStore((s) => s.user);
@@ -106,6 +107,7 @@ export default function JemeniRecommend() {
         { withCredentials: true }
       );
 
+      alert("AI 레시피가 저장되었습니다.");
       setSaveMessage(
         res.data?.message || "마이페이지에 레시피가 저장되었습니다."
       );
@@ -124,13 +126,13 @@ export default function JemeniRecommend() {
       {/* 상단 타이틀 섹션 */}
       <div className="text-center mb-10">
         <span className="inline-flex items-center rounded-full border border-button bg-button px-3 py-1 text-xs font-medium text-white">
-          🍸 Gemini AI 칵테일 바텐더
+          🍸 AI 칵테일 바텐더
         </span>
         <h2 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight text-white">
           나만의 <span className="text-button"> 칵테일 레시피</span> 생성기
         </h2>
         <p className="mt-3 text-sm md:text-base text-gray-300">
-          기주, 맛, 키워드를 입력하면 Gemini가 바텐더처럼 레시피를 만들어줍니다.
+          기주, 맛, 키워드를 입력하면 Ai가 바텐더처럼 레시피를 만들어줍니다.
         </p>
       </div>
 
@@ -231,9 +233,10 @@ export default function JemeniRecommend() {
 
           {/* 상태별 렌더링 */}
           {loading && (
-            <p className="text-center py-10 text-gray-300 animate-pulse">
-              Gemini가 레시피를 만들고 있어요...
-            </p>
+            <div className="flex items-center justify-center py-10 text-gray-300 gap-2">
+              <LoaderCircle className="w-5 h-5 animate-spin animate-pulse" />
+              <span>Ai가 레시피를 만들고 있어요..</span>
+            </div>
           )}
 
           {!loading && !recipe && !error && (
