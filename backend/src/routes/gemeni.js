@@ -156,6 +156,16 @@ router.post("/save", authRequired, async (req, res, next) => {
       rawKeywords,   // "레몬,민트" 이런 문자열 (optional)
     } = req.body || {};
 
+    const check = await db.query(
+      `SELECT id FROM ai_cocktails WHERE name = $1 AND user_id = $2`,
+      [name, userId]
+    );
+
+    if (check.length > 0) {
+      return res
+        .status(400)
+        .json({ error: "동일한 칵테일을 이미 저장하셨습니다." });
+    }
     if (!name || !ingredient || !step) {
       return res
         .status(400)

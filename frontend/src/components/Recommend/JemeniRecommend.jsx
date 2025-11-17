@@ -135,6 +135,7 @@ export default function JemeniRecommend() {
       const msg =
         err.response?.data?.error || "레시피 저장 중 오류가 발생했습니다.";
       setSaveMessage(msg);
+      alert(msg);
     } finally {
       setSaveLoading(false);
     }
