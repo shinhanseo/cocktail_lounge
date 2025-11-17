@@ -87,13 +87,35 @@ export default function MapCard({
       // 마커 클릭 시 InfoWindow 오픈
       naver.maps.Event.addListener(marker, "click", () => {
         const content = `
-          <div class="p-3 min-w-[200px] text-white text-sm bg-[#111827] border border-white rounded-md">
-            <div class="font-bold text-base mb-1">${bar.name}</div>
-            <div class="mb-1">📍 ${bar.address ?? ""}</div>
-            <div class="mb-1">☎ ${bar.phone ? bar.phone : "전화번호 없음"}</div>
-            <div class="mb-2">${bar.desc ?? ""}</div>
-            <a href="${bar.website || "#"}" target="_blank" rel="noopener"
-               class="text-teal-400 hover:font-bold">네이버지도에서 보기</a>
+          <div 
+            class="
+              p-4 min-w-[220px] 
+              bg-white/10 
+              border border-pink-400/40 
+              rounded-xl 
+              text-white text-sm 
+              backdrop-blur-md
+
+              shadow-[0_0_15px_rgba(255,80,180,0.45)]
+            "
+          >
+            <div class="font-bold text-base text-pink-300 mb-1">
+              ${bar.name}
+            </div>
+
+            <div class="mb-1 text-white/80">📍 ${bar.address ?? ""}</div>
+            <div class="mb-2 text-white/80">☎ ${
+              bar.phone ? bar.phone : "전화번호 없음"
+            }</div>
+
+            <a 
+              href="${bar.website || "#"}" 
+              target="_blank" 
+              rel="noopener"
+              class="text-teal-300 hover:underline font-semibold"
+            >
+              네이버 지도에서 보기 →
+            </a>
           </div>
         `;
         infoWindowRef.current.setContent(content);
@@ -164,7 +186,18 @@ export default function MapCard({
           width: typeof width === "number" ? `${width}px` : width,
           height: typeof height === "number" ? `${height}px` : height,
         }}
-        className="rounded-2xl overflow-hidden mx-auto"
+        className="
+          rounded-3xl 
+          overflow-hidden 
+          mx-auto
+
+          shadow-[0_0_25px_rgba(23,190,187,0.35)]
+          border border-white/10 
+          bg-[#0B0F19]
+
+          transition-all duration-500 
+          hover:shadow-[0_0_40px_rgba(255,80,180,0.45)]
+        "
       />
     </div>
   );
