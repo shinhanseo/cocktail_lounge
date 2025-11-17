@@ -274,8 +274,12 @@ export default function JemeniRecommend() {
                 </h4>
                 <p className="text-xs text-gray-300">
                   기주:{" "}
-                  <span className="text-button font-semibold">
-                    {recipe.ingredient?.[0]?.item || "AI가 자동 선택"}
+                  <span className="text-white font-semibold">
+                    {recipe.ingredient?.[0]?.item
+                      ? requirements.baseSpirit
+                        ? recipe.ingredient[0].item
+                        : `${recipe.ingredient[0].item} (AI가 자동 선택)`
+                      : "AI가 자동 선택"}
                   </span>
                 </p>
               </div>
