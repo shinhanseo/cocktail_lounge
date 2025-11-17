@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <main className="px-auto mt-12 text-white max-w-6xl mx-auto w-[900px]">
       <div className="grid md:grid-rows-2 md:grid-cols-2 gap-6">
-        {/* 2사분면: 컨텐츠 예정 */}
+        {/* 2사분면: Ai 바텐더 */}
         <AIBartenderPreview />
 
         {/* 1사분면: 오늘의 한잔 추천 */}
