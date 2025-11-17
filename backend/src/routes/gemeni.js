@@ -7,6 +7,36 @@ const router = Router();
 const GOOGLE_GEMENI_ID = process.env.GOOGLE_GEMENI_ID;
 const ai = new GoogleGenAI({ apiKey: GOOGLE_GEMENI_ID });
 
+// Ai 모델 생성이 503 오버로드가 자주 발생해서 최대 3번까진 서버에서 자체적으로 돌리기기
+async function generateWithRetry(prompt) {
+  const MAX_RETRY = 3;
+
+  for (let i = 0; i < MAX_RETRY; i++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash", // 또는 "gemini-2.0-flash"
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.9,
+        },
+      });
+      return response;
+    } catch (err) {
+      console.error(`Gemini 호출 실패 (${i + 1}/${MAX_RETRY})`, err.status, err.message);
+
+      // 503일 때만 재시도
+      if (err.status === 503 && i < MAX_RETRY - 1) {
+        await new Promise((r) => setTimeout(r, 400)); // 살짝 대기 후 재시도
+        continue;
+      }
+
+      // 다른 에러는 그대로 던짐
+      throw err;
+    }
+  }
+}
+
 // AI 호출 함수
 async function generateCocktailRecommendation(requirements) {
   const { taste, baseSpirit, keywords } = requirements; 
@@ -61,14 +91,7 @@ async function generateCocktailRecommendation(requirements) {
     - 가급적 인터넷에 존재하는 칵테일을 기준으로 레시피를 짜세요.
     `;
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.9,
-      },
-    });
+    const response = await generateWithRetry(prompt);
     return response.text;
   } catch (error) {
     console.error("Gemini API 호출 중 오류 발생:", error);
