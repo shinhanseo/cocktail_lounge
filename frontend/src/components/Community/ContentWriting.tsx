@@ -225,7 +225,7 @@ export default function ContentWriting({
       {editor && <MenuBar editor={editor as Editor} />}
       <EditorContent
         editor={editor}
-        className="tiptap w-full p-4 rounded-xl bg-white/90 text-gray-900 focus:bg-white focus:outline-none transition-all"
+        className="tiptap w-full h-[350px] p-4 rounded-xl bg-white/90 text-gray-900 focus:bg-white focus:outline-none transition-all"
       />
     </div>
   );
