@@ -6,6 +6,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { Trash } from "lucide-react";
 
 export default function AiCocktailsRecipe() {
   const { id } = useParams();
@@ -35,8 +36,23 @@ export default function AiCocktailsRecipe() {
     })();
   }, [id]);
 
+  const handleDelete = async () => {
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+
+    try {
+      await axios.delete(`http://localhost:4000/api/gemeni/save/${id}`, {
+        withCredentials: true,
+      });
+      alert("게시글이 삭제되었습니다.");
+      navigate("/mypage/myaicocktails");
+    } catch (err) {
+      console.log(err);
+      alert("삭제 도중 오류가 발생했습니다.");
+    }
+  };
+
   const handleBack = () => {
-    navigate("/mypage");
+    navigate("/mypage/myaicocktails");
   };
 
   if (loading) {
@@ -70,10 +86,19 @@ export default function AiCocktailsRecipe() {
         ← 마이페이지로
       </button>
 
-      {/* ---------------- 제목 ---------------- */}
-      <h1 className="text-3xl font-extrabold mt-3 tracking-tight">
-        {recipe.name}
-      </h1>
+      {/* ---------------- 제목 및 삭제 버튼---------------- */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-extrabold mt-3 tracking-tight">
+          {recipe.name}
+        </h1>
+
+        <button
+          className="bg-white/50 hover:bg-white/30 px-3 py-1 rounded-lg text-white hover:scale-105 hover:cursor-pointer mt-2"
+          onClick={handleDelete}
+        >
+          <Trash size={20} />
+        </button>
+      </div>
 
       {/* 기주 + 저장일 */}
       <div className="flex flex-wrap gap-3 mt-2 text-sm text-white/70">

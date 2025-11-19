@@ -14,7 +14,7 @@ async function generateWithRetry(prompt) {
   for (let i = 0; i < MAX_RETRY; i++) {
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash", // 또는 "gemini-2.0-flash"
+        model: "gemini-2.5-flash",
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -352,4 +352,30 @@ router.get("/save/:id", authRequired, async (req, res, next) => {
   }
 });
 
+router.delete("/save/:id", authRequired, async (req, res, next) => {
+  const userId = req.user.id;
+  const { id } = req.params;
+
+  try{
+    const rows = await db.query(
+      `
+      SELECT user_id FROM ai_cocktails 
+      WHERE id = $1 AND user_id = $2
+      `, [id, userId]
+    );
+
+    if (!rows.length) return res.status(404).json({ message: "레시피피 없음" });
+    if (rows[0].user_id !== req.user.id) return res.status(403).json({ message: "권한 없음" });
+
+    await db.query(
+      `
+      DELETE FROM ai_cocktails 
+      WHERE id = $1 AND user_id = $2
+      `, [id, userId]
+    );
+    res.json({ message: "삭제 완료" });
+  }catch(err){
+    next(err);
+  }
+})
 export default router;

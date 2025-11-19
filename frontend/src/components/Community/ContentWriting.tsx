@@ -196,7 +196,7 @@ function MenuBar({ editor }: { editor: Editor }) {
 
         <Sep />
 
-        {/* 🖼 이미지(URL) 추가 버튼 */}
+        {/* 이미지(URL) 추가 버튼 */}
         <button
           type="button"
           onClick={handleAddImageByUrl}
