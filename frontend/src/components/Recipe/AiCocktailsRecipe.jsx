@@ -122,6 +122,12 @@ export default function AiCocktailsRecipe() {
         </p>
       )}
 
+      {recipe.abv && (
+        <p className="text-white text-lg font-semibold mb-8">
+          도수 : {recipe.abv}%
+        </p>
+      )}
+
       {/* ---------------- 요청 조건 ---------------- */}
       {(recipe.taste?.length > 0 || recipe.keywords?.length > 0) && (
         <section className="mb-8">

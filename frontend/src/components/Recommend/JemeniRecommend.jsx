@@ -3,6 +3,7 @@ import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { LoaderCircle } from "lucide-react";
+import GuideModal from "@/components/Recommend/GuideModal";
 
 export default function JemeniRecommend() {
   const user = useAuthStore((s) => s.user);
@@ -14,7 +15,11 @@ export default function JemeniRecommend() {
     baseSpirit: "",
     rawTaste: "",
     rawKeywords: "",
+    abv: "",
   });
+
+  // 가이드 상태 관리
+  const [openGuide, setOpenGuide] = useState(false);
 
   // 레시피 결과
   const [recipe, setRecipe] = useState(null);
@@ -31,6 +36,7 @@ export default function JemeniRecommend() {
   const [requestTags, setRequestTags] = useState({
     taste: "",
     keywords: "",
+    abv: "",
   });
 
   // 입력값 변경
@@ -65,6 +71,7 @@ export default function JemeniRecommend() {
         baseSpirit: requirements.baseSpirit,
         rawTaste: requirements.rawTaste,
         rawKeywords: requirements.rawKeywords,
+        abv: requirements.abv,
       };
 
       const res = await axios.post(
@@ -77,6 +84,7 @@ export default function JemeniRecommend() {
       setRequestTags({
         taste: requirements.rawTaste,
         keywords: requirements.rawKeywords,
+        abv: requirements.abv,
       });
 
       setRecipe(res.data.recipe);
@@ -115,9 +123,9 @@ export default function JemeniRecommend() {
         step: recipe.step, // string 또는 string[]
         comment: recipe.comment,
         base: recipe.ingredient?.[0]?.item,
-        // 저장도 "그때의 요청 조건" 기준으로
         rawTaste: requestTags.taste,
         rawKeywords: requestTags.keywords,
+        abv: requestTags.abv,
       };
 
       const res = await axios.post(
@@ -154,6 +162,13 @@ export default function JemeniRecommend() {
         <p className="mt-3 text-sm md:text-base text-gray-300">
           기주, 맛, 키워드를 입력하면 Ai가 바텐더처럼 레시피를 만들어줍니다.
         </p>
+        <button
+          type="button"
+          onClick={() => setOpenGuide(true)}
+          className="mt-3 inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-3 py-1 text-[11px] text-gray-200 hover:bg-white/10 hover:border-button hover:text-white transition"
+        >
+          📖 맞춤 칵테일 가이드 보기
+        </button>
       </div>
 
       {/* 메인 2열 레이아웃 */}
@@ -205,6 +220,20 @@ export default function JemeniRecommend() {
             />
           </div>
 
+          <div>
+            <label className="block text-xs font-semibold text-gray-300 mb-1">
+              도수 (alcohol by volume, ABV)
+            </label>
+            <input
+              type="text"
+              name="abv"
+              value={requirements.abv}
+              onChange={handleChange}
+              placeholder="도수 입력(숫자만 입력해주세요)"
+              className="w-full p-3 rounded-lg bg-black/40 border border-white/10 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-button focus:border-transparent"
+            />
+          </div>
+
           {/* 에러 메시지 (폼 안쪽) */}
           {error && (
             <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/40 rounded-lg px-3 py-2">
@@ -222,7 +251,11 @@ export default function JemeniRecommend() {
 
           <p className="mt-1 text-[11px] text-gray-400">
             * 기주 또는 맛 중 하나만 적어도 괜찮아요. 둘 다 적으면 더
-            정교해집니다.
+            정교해집니다.{" "}
+            <p className="mt-1 text-[11px] text-gray-400">
+              * 요청하신 기주와 풍미 조건을 충족하기 위해 도수(ABV)는 일부
+              달라질 수 있습니다.
+            </p>
           </p>
         </form>
 
@@ -274,7 +307,7 @@ export default function JemeniRecommend() {
                   {recipe.name}
                 </h4>
                 <p className="text-xs text-gray-300">
-                  기주:{" "}
+                  기주 :{" "}
                   <span className="text-white font-semibold">
                     {recipe.ingredient?.[0]?.item
                       ? requirements.baseSpirit
@@ -282,6 +315,9 @@ export default function JemeniRecommend() {
                         : `${recipe.ingredient[0].item} (AI가 자동 선택)`
                       : "AI가 자동 선택"}
                   </span>
+                </p>
+                <p className="text-xs text-gray-300 mt-4">
+                  도수 : {recipe.abv}%
                 </p>
               </div>
 
@@ -360,6 +396,7 @@ export default function JemeniRecommend() {
           )}
         </div>
       </div>
+      <GuideModal open={openGuide} onClose={() => setOpenGuide(false)} />
     </div>
   );
 }

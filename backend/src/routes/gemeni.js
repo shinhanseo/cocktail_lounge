@@ -9,7 +9,7 @@ const ai = new GoogleGenAI({ apiKey: GOOGLE_GEMENI_ID });
 
 // Ai 모델 생성이 503 오버로드가 자주 발생해서 최대 3번까진 서버에서 자체적으로 돌리기기
 async function generateWithRetry(prompt) {
-  const MAX_RETRY = 3;
+  const MAX_RETRY = 5;
 
   for (let i = 0; i < MAX_RETRY; i++) {
     try {
@@ -18,7 +18,7 @@ async function generateWithRetry(prompt) {
         contents: prompt,
         config: {
           responseMimeType: "application/json",
-          temperature: 0.9,
+          temperature: 0.6,
         },
       });
       return response;
@@ -39,7 +39,7 @@ async function generateWithRetry(prompt) {
 
 // AI 호출 함수
 async function generateCocktailRecommendation(requirements) {
-  const { taste, baseSpirit, keywords } = requirements; 
+  const { taste, baseSpirit, keywords, abv } = requirements; 
   
   let tasteString = null;
   if (Array.isArray(taste) && taste.length > 0) {
@@ -64,12 +64,30 @@ async function generateCocktailRecommendation(requirements) {
     prompt += `- **포함되어야 할 특징/재료:** ${keywords.join(", ")} 등의 요소를 포함해야 함.\n`;
   }
 
+  let abvText = "";
+  if (abv) {
+    const n = Number(abv);
+    if (!Number.isNaN(n)) {
+      if (n <= 10) {
+        abvText = "도수가 낮은 (약 5~10% 수준, 맥주나 약한 하이볼 느낌)";
+      } else if (n <= 20) {
+        abvText = "중간 정도 도수 (약 10~20% 수준, 일반적인 칵테일 느낌)";
+      } else {
+        abvText = "도수가 높은 (20% 이상, 스트롱 칵테일 느낌)";
+      }
+    }
+  }
+  if (abvText) {
+    prompt += `- **도수(ABV) 조건:** ${abvText} 이어야 합니다.\n`;
+  }
+
   prompt += `--- 출력 형식 ---
     아래 JSON 스키마를 **정확히** 지키세요.
     JSON 외의 설명 문장, 마크다운, 코드블록, 주석 등은 일절 포함하지 마세요.
 
     {
       "name": "칵테일 이름 (string)",
+      "abv" : 도수
       "ingredient": [
         {
           "item": "재료 이름 (string)",
@@ -87,7 +105,11 @@ async function generateCocktailRecommendation(requirements) {
     - step은 2~6단계 정도로 자연스러운 문장으로 작성하세요.
     - comment는 20자 이하로 간결하게 작성하세요.
     - 만약 대표적인 칵테일이 있다면 그 칵테일의 레시피를 소개하세요.
-    - baseSpirit, taste, keywords 조건을 반드시 반영하세요.
+    - baseSpirit, taste, keywords, abv 조건을 반드시 반영하세요.
+    - 사용자가 입력한 abv 값이 있다면, abv 필드에는 그 값과 최대한 가까운 정수를 적으세요.
+    - 도수가 낮은 칵테일(약 5~10%)일수록 베이스 술의 양을 줄이고, 논알코올 재료의 비중을 높이세요.
+    - 도수가 높은 칵테일(약 20% 이상)일수록 베이스 술이나 리큐르의 비율을 늘리세요.
+    - 재료 비율과 abv 설명이 서로 모순되지 않도록 노력하세요.
     - 가급적 인터넷에 존재하는 칵테일을 기준으로 레시피를 짜세요.
     `;
   try {
@@ -154,6 +176,7 @@ router.post("/save", authRequired, async (req, res, next) => {
       base,    // 사용자가 입력한 기주 (optional)
       rawTaste,      // "상큼,달콤" 이런 문자열 (optional)
       rawKeywords,   // "레몬,민트" 이런 문자열 (optional)
+      abv, // 도수
     } = req.body || {};
 
     const check = await db.query(
@@ -205,9 +228,10 @@ router.post("/save", authRequired, async (req, res, next) => {
         keywords,
         ingredient,
         step,
-        comment
+        comment,
+        abv
       )
-      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9)
       RETURNING id, created_at
       `,
       [
@@ -219,6 +243,7 @@ router.post("/save", authRequired, async (req, res, next) => {
         JSON.stringify(ingredient),
         stepArray,
         comment || null,
+        abv || null,
       ]
     );
 
@@ -335,7 +360,7 @@ router.get("/save/:id", authRequired, async (req, res, next) => {
   try {
     const [row] = await db.query(
       `
-      SELECT id, name, base, taste, keywords, ingredient, step, comment, created_at
+      SELECT id, name, base, taste, keywords, ingredient, step, comment, created_at, abv
       FROM ai_cocktails
       WHERE id = $1 AND user_id = $2
       `,
