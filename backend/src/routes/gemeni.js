@@ -94,7 +94,7 @@ async function generateCocktailRecommendation(requirements) {
           "volume": "용량 (string, 예: 45ml)"
         }
       ],
-      "step": "칵테일 제조 과정을 여러 문장으로 자세히 설명한 문자열",
+      "step": ["1단계", "2단계", "3단계"]"칵테일 제조 과정을 여러 문장으로 자세히 설명했지만, 그걸 단계별로 나눠 배열로 각각 저장",
       "comment": "맛을 한줄로 표현한 짧은 코멘트"
     }
 
@@ -103,6 +103,7 @@ async function generateCocktailRecommendation(requirements) {
     - 모든 텍스트는 한국어로 작성하세요.
     - ingredient 배열에는 최소 3개 이상의 재료를 포함하세요.
     - step은 2~6단계 정도로 자연스러운 문장으로 작성하세요.
+    - step의 경우 단계별로 배열로 저장해서 반환하세요.
     - comment는 20자 이하로 간결하게 작성하세요.
     - 만약 대표적인 칵테일이 있다면 그 칵테일의 레시피를 소개하세요.
     - baseSpirit, taste, keywords, abv 조건을 반드시 반영하세요.
@@ -114,6 +115,7 @@ async function generateCocktailRecommendation(requirements) {
     `;
   try {
     const response = await generateWithRetry(prompt);
+    console.log(response.text);
     return response.text;
   } catch (error) {
     console.error("Gemini API 호출 중 오류 발생:", error);
@@ -171,7 +173,7 @@ router.post("/save", authRequired, async (req, res, next) => {
     const {
       name,          // AI가 만든 칵테일 이름
       ingredient,    // [{ item, volume }, ...]
-      step,          // string or string[]
+      step,          // string[]
       comment,       // 한줄 코멘트
       base,    // 사용자가 입력한 기주 (optional)
       rawTaste,      // "상큼,달콤" 이런 문자열 (optional)

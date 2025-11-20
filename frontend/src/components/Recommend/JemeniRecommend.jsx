@@ -339,9 +339,15 @@ export default function JemeniRecommend() {
               {/* 제조 과정 */}
               <div>
                 <p className="font-semibold mb-1 text-gray-200">제조 방법</p>
-                <p className="whitespace-pre-wrap text-[13px] text-gray-100 leading-relaxed">
-                  {recipe.step}
-                </p>
+                <ul className="list-disc list-inside ml-3 space-y-0.5 text-[13px]">
+                  {recipe.step?.map((s, index) => (
+                    <li key={index}>
+                      <span className="whitespace-pre-wrap text-[13px] text-gray-100 leading-relaxed">
+                        {s}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               {/* 한줄 코멘트 */}
