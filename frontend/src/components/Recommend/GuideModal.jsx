@@ -16,7 +16,7 @@ export default function GuideModal({ open, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="text-xs text-gray-400 hover:text-white"
+            className="text-xs text-gray-400 hover:text-white hover:cursor-pointer"
           >
             ✕
           </button>

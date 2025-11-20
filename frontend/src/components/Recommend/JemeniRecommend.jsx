@@ -165,7 +165,7 @@ export default function JemeniRecommend() {
         <button
           type="button"
           onClick={() => setOpenGuide(true)}
-          className="mt-3 inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-3 py-1 text-[11px] text-gray-200 hover:bg-white/10 hover:border-button hover:text-white transition"
+          className="mt-3 inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 px-3 py-1 text-[11px] text-gray-200 hover:bg-white/10 hover:border-button hover:text-white transition hover:cursor-pointer"
         >
           📖 맞춤 칵테일 가이드 보기
         </button>
