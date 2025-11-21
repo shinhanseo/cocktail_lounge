@@ -7,9 +7,48 @@ const router = Router();
 const GOOGLE_GEMENI_ID = process.env.GOOGLE_GEMENI_ID;
 const ai = new GoogleGenAI({ apiKey: GOOGLE_GEMENI_ID });
 
+function isCocktailRelated(text = "") {
+  const lower = text.toLowerCase();
+  const keywords = [
+    "칵테일",
+    "cocktail",
+    "술",
+    "주류",
+    "위스키",
+    "whisky",
+    "진",
+    "gin",
+    "보드카",
+    "vodka",
+    "럼",
+    "rum",
+    "테킬라",
+    "tequila",
+    "와인",
+    "wine",
+    "하이볼",
+    "highball",
+    "샷",
+    "shot",
+    "기주",
+    "베이스",
+    "base",
+    "abv",
+    "도수",
+    "온더락",
+    "락",
+    "라임",
+    "레몬",
+    "시럽",
+    "liqueur",
+  ];
+
+  return keywords.some((k) => lower.includes(k) || text.includes(k));
+}
+
 // Ai 모델 생성이 503 오버로드가 자주 발생해서 최대 3번까진 서버에서 자체적으로 돌리기기
 async function generateWithRetry(prompt) {
-  const MAX_RETRY = 5;
+  const MAX_RETRY = 7;
 
   for (let i = 0; i < MAX_RETRY; i++) {
     try {
@@ -405,4 +444,95 @@ router.delete("/save/:id", authRequired, async (req, res, next) => {
     next(err);
   }
 })
+
+router.post("/bartender-chat", authRequired, async (req, res, next) => {
+  try {
+    const { messages } = req.body || {};
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: "messages 배열이 필요합니다." });
+    }
+
+    // 마지막 유저 메시지 기준으로 칵테일 관련 여부 검사
+    const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
+    const lastContent = lastUserMessage?.content?.trim() ?? "";
+
+    if (!lastContent) {
+      return res.status(400).json({ error: "사용자 메시지가 비어 있습니다." });
+    }
+
+    // 시스템 프롬프트
+    const systemPrompt = `
+    당신은 한국어를 사용하는 "AI 칵테일 바텐더"입니다.
+
+    [대화 규칙]
+    - 반드시 칵테일, 술, 재료, 맛, 도수, 분위기, 제조 방법과 관련된 이야기만 합니다.
+    - 다른 주제(연애, 주식, 코딩, 게임 등)가 나오면
+      "저는 칵테일 전용 바텐더라서, 술/칵테일 관련 이야기만 도와드릴 수 있어요." 라고 말한 뒤
+      사용자의 취향(기주, 맛, 도수, 분위기 등)을 자연스럽게 다시 질문합니다.
+    - 레시피가 아닌 일반 대화는 3문장 이하로 짧고 친절하게 대답합니다.
+    - 모든 답변은 한국어로 합니다.
+
+    [레시피 출력 규칙]
+    - 사용자가 레시피, 제조 방법, 만들기 등을 요청하면 반드시 아래 형식으로 "텍스트만" 출력합니다.
+    - 마크다운, 코드블록, JSON, 따옴표, 설명 문장, 부가 텍스트는 절대 포함하지 않습니다.
+    - 보기 좋은 순서와 줄바꿈을 유지해야 합니다.
+
+    --- 레시피 출력 형식 ---
+    칵테일 이름: (칵테일 이름)
+    도수: (정수)% 
+
+    [재료]
+    - 재료1 이름 용량
+    - 재료2 이름 용량
+    - 재료3 이름 용량
+    (최소 3개 이상)
+
+    [제조 과정]
+    1. 첫 번째 단계
+    2. 두 번째 단계
+    3. 세 번째 단계
+    (2~6단계)
+
+    [코멘트]
+    20자 이하 짧은 맛 표현
+    ------------------------
+
+    [레시피 구성 조건]
+    - 사용자의 조건(baseSpirit, taste, keywords, abv 등)을 최대한 반영합니다.
+    - 사용자가 도수(abv)를 요구하면 도수는 그 값과 가장 가까운 정수로 작성합니다.
+    - 낮은 도수(5~10%)는 베이스 술 비중을 줄이고 논알코올 비중을 높입니다.
+    - 높은 도수(20% 이상)는 베이스 술 또는 리큐르 양을 늘립니다.
+    - 재료 구성과 도수가 모순되지 않도록 합니다.
+    - 가능한 경우 실존하는 칵테일을 기반으로 레시피를 구성합니다.
+    `;
+
+    const conversationText = messages
+      .map((m) => {
+        const prefix = m.role === "user" ? "사용자" : "바텐더";
+        return `${prefix}: ${m.content}`;
+      })
+      .join("\n");
+
+    const prompt = `
+                    ${systemPrompt}
+
+                    --- 지금까지의 대화 ---
+                    ${conversationText}
+
+                    위 대화를 이어서, "바텐더" 역할로 자연스럽게 한 번만 답변하세요.
+                    `;
+
+    const response = await generateWithRetry(prompt);
+
+    const replyText = response.text;
+
+    const trimmed = replyText.trim() || "지금은 잠시 레시피를 만들기 어렵습니다. 조금 뒤에 다시 시도해 주세요.";
+
+    return res.json({ reply: trimmed });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

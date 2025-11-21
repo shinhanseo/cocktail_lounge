@@ -150,7 +150,7 @@ export default function JemeniRecommend() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
+    <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 mt-6">
       {/* 상단 타이틀 섹션 */}
       <div className="text-center mb-10">
         <span className="inline-flex items-center rounded-full border border-button bg-button px-3 py-1 text-xs font-medium text-white">

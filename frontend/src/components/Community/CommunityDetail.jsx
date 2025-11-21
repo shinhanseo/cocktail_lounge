@@ -113,7 +113,7 @@ export default function CommunityDetail() {
         {/* 목록으로: 리스트에서 넘어온 from이 있으면 그리로, 없으면 /community */}
         <button
           onClick={handleBack}
-          className="text-sm text-white/70 hover:font-bold"
+          className="text-sm text-white/70 hover:font-bold hover:cursor-pointer"
         >
           ← 목록으로
         </button>

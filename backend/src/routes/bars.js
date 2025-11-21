@@ -5,7 +5,7 @@ import { authRequired, optionalAuth } from '../middlewares/jwtauth.js';
 
 const router = Router();
 
-// GET /bars/hot?limit=4
+// 북마크 개수 기반 4개 추출
 router.get('/hot', async (req, res, next) => {
   try {
     const limit = Number(req.query.limit ?? 4);
