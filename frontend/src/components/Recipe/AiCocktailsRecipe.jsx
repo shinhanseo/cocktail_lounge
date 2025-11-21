@@ -171,12 +171,13 @@ export default function AiCocktailsRecipe() {
       {recipe.step && (
         <section>
           <h2 className="text-lg font-semibold mb-2">만드는 법</h2>
-          <p
-            className="whitespace-pre-wrap leading-relaxed text-white/90 text-sm 
-                        bg-black/20 border border-white/10 p-4 rounded-xl shadow"
-          >
-            {recipe.step}
-          </p>
+          <ul className="pl-5 space-y-2 list-disc marker:text-white/60">
+            {recipe.step.map((s, i) => (
+              <li key={i} className="text-sm text-white/90">
+                {s}
+              </li>
+            ))}
+          </ul>
         </section>
       )}
     </article>

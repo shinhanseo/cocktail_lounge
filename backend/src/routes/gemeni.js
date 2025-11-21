@@ -47,7 +47,7 @@ function isCocktailRelated(text = "") {
 }
 
 // Ai 모델 생성이 503 오버로드가 자주 발생해서 최대 3번까진 서버에서 자체적으로 돌리기기
-async function generateWithRetry(prompt) {
+async function generateWithRetry(prompt, configOverride = {}) {
   const MAX_RETRY = 7;
 
   for (let i = 0; i < MAX_RETRY; i++) {
@@ -56,21 +56,22 @@ async function generateWithRetry(prompt) {
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
-          responseMimeType: "application/json",
           temperature: 0.6,
+          ...configOverride,
         },
       });
       return response;
     } catch (err) {
-      console.error(`Gemini 호출 실패 (${i + 1}/${MAX_RETRY})`, err.status, err.message);
+      console.error(
+        `Gemini 호출 실패 (${i + 1}/${MAX_RETRY})`,
+        err.status,
+        err.message
+      );
 
-      // 503일 때만 재시도
       if (err.status === 503 && i < MAX_RETRY - 1) {
-        await new Promise((r) => setTimeout(r, 400)); // 살짝 대기 후 재시도
+        await new Promise((r) => setTimeout(r, 400));
         continue;
       }
-
-      // 다른 에러는 그대로 던짐
       throw err;
     }
   }
@@ -153,8 +154,9 @@ async function generateCocktailRecommendation(requirements) {
     - 가급적 인터넷에 존재하는 칵테일을 기준으로 레시피를 짜세요.
     `;
   try {
-    const response = await generateWithRetry(prompt);
-    console.log(response.text);
+    const response = await generateWithRetry(prompt, {
+      responseMimeType: "application/json",
+    });
     return response.text;
   } catch (error) {
     console.error("Gemini API 호출 중 오류 발생:", error);
@@ -449,11 +451,6 @@ router.post("/bartender-chat", authRequired, async (req, res, next) => {
   try {
     const { messages } = req.body || {};
 
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ error: "messages 배열이 필요합니다." });
-    }
-
-    // 마지막 유저 메시지 기준으로 칵테일 관련 여부 검사
     const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
     const lastContent = lastUserMessage?.content?.trim() ?? "";
 

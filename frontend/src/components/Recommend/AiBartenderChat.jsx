@@ -35,7 +35,7 @@ export default function AiBartenderChat() {
 
     try {
       const res = await axios.post(
-        "/api/gemeni/bartender-chat", // TODO: 백엔드에서 이 엔드포인트를 맞춰줘
+        "/api/gemeni/bartender-chat",
         {
           messages: nextMessages.map((m) => ({
             role: m.role,
