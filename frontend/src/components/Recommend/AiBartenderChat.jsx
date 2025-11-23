@@ -3,8 +3,16 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { LoaderCircle, Send, Bot, User } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useNavigate } from "react-router-dom";
 
 export default function AiBartenderChat() {
+  const user = useAuthStore((s) => s.user);
+  const isLoggedIn = !!user;
+  const navigate = useNavigate();
+
+  const [showLoginModal, setShowLoginModal] = useState(false); // 비 로그인시 모달 상태 관리
+
   const [messages, setMessages] = useState([
     {
       id: "welcome",
@@ -22,6 +30,10 @@ export default function AiBartenderChat() {
   }, [messages, loading]);
 
   const handleSend = async () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
     const text = input.trim();
     if (!text || loading) return;
 
@@ -146,7 +158,48 @@ export default function AiBartenderChat() {
         * 칵테일/술 관련 대화만 가능합니다. AI가 생성한 레시피는 실제 도수와
         다를 수 있으니 참고용으로 사용해 주세요.
       </p>
+
+      {showLoginModal && (
+        <LoginRequiredModal
+          onClose={() => setShowLoginModal(false)}
+          onGoLogin={() => navigate("/login")}
+        />
+      )}
     </section>
+  );
+}
+
+function LoginRequiredModal({ onClose, onGoLogin }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* dim */}
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+
+      {/* modal */}
+      <div className="relative w-[320px] rounded-2xl bg-slate-900 border border-white/10 p-5 shadow-2xl">
+        <h3 className="text-white font-semibold text-base">로그인 필요</h3>
+        <p className="text-sm text-slate-300 mt-2 leading-relaxed">
+          AI 바텐더는 로그인한 사용자만 이용할 수 있어요.
+          <br />
+          로그인하고 레시피를 만들어볼까요?
+        </p>
+
+        <div className="mt-4 flex gap-2 justify-end">
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-xl text-sm bg-white/5 text-slate-200 hover:bg-white/10 transition"
+          >
+            닫기
+          </button>
+          <button
+            onClick={onGoLogin}
+            className="px-3 py-1.5 rounded-xl text-sm font-semibold bg-button text-slate-950 hover:bg-button-hover transition hover:cursor-pointer"
+          >
+            로그인하기 →
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
