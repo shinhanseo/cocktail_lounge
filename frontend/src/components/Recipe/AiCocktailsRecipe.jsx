@@ -1,6 +1,6 @@
 // frontend/src/components/Recipe/AiCocktailsRecipe.jsx
 // -------------------------------------------------------------
-// 🤖 AI 칵테일 상세보기 (이미지 없이 재배치 버전)
+// AI 칵테일 상세보기
 // -------------------------------------------------------------
 
 import { useParams, useNavigate } from "react-router-dom";
@@ -43,7 +43,7 @@ export default function AiCocktailsRecipe() {
       await axios.delete(`http://localhost:4000/api/gemeni/save/${id}`, {
         withCredentials: true,
       });
-      alert("게시글이 삭제되었습니다.");
+      alert("레시피가 삭제되었습니다.");
       navigate("/mypage/myaicocktails");
     } catch (err) {
       console.log(err);
@@ -73,7 +73,7 @@ export default function AiCocktailsRecipe() {
 
   return (
     <article
-      className="text-white max-w-3xl mx-auto
+      className="text-white w-[800px] mx-auto
                  border border-white/10 bg-white/5 rounded-2xl p-10 mt-12
                  shadow-[0_6px_20px_rgba(0,0,0,.35)] hover:shadow-[0_12px_28px_rgba(0,0,0,.45)]
                  transition-all duration-300 backdrop-blur"
