@@ -112,7 +112,7 @@ export default function AiCocktails() {
   return (
     <div className="text-white bg-white/5 border border-white/10 rounded-2xl p-8 shadow-lg">
       {/* 제목 + 검색바 */}
-      <div className="w-full mb-8 flex items-center justify-between">
+      <div className="w-full mb-8 flex items-center justify-between gap-12">
         <h2 className="text-xl font-semibold text-white">
           🍸 내가 저장한 AI 레시피
         </h2>
@@ -120,8 +120,8 @@ export default function AiCocktails() {
         {/* 검색창 */}
         <form
           onSubmit={(e) => {
-            e.preventDefault(); // 새로고침 방지
-            handleSearch(); // 엔터 → 검색 실행
+            e.preventDefault();
+            handleSearch();
           }}
           className="relative w-64"
         >
@@ -131,9 +131,9 @@ export default function AiCocktails() {
             onChange={(e) => setKeywordInput(e.target.value)}
             placeholder="키워드 검색"
             className="
-        w-full h-10 bg-white rounded-full border border-black/30
-        px-4 pr-10 text-gray-900 placeholder-gray-500
-      "
+              w-full h-10 bg-white rounded-full border border-black/30
+              px-4 pr-10 text-gray-900 placeholder-gray-500
+            "
           />
 
           <button

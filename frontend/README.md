@@ -29,10 +29,10 @@
 
 ```bash
 # 1. Clone Repository
-git clone https://github.com/yourname/React_ProJect_CockTail_Rounge.git
+git clone https://github.com/yourname/React_ProJect_CockTail_Lounge.git
 
 # 2. Move into project folder
-cd React_ProJect_CockTail_Rounge
+cd React_ProJect_CockTail_Lounge
 
 # 3. Install dependencies
 npm install
