@@ -87,7 +87,7 @@ export default function AIBartenderPreview() {
             to="/today?mode=chat"
             className="
               mt-3 block w-full text-center text-[12px] font-semibold
-              bg-white/10 hover:bg-white/20 py-1.5 rounded-lg
+              bg-amber-400/90 hover:bg-amber-500/90 py-1.5 rounded-lg
               border border-white/10
               transition shadow-md hover:shadow-lg
             "
