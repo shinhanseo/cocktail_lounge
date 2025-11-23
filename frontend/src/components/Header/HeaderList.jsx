@@ -1,53 +1,52 @@
 // src/components/Layout/HeaderList.jsx
-// -------------------------------------------------------------
-// 🧭 HeaderList
-// - 헤더 내 내비게이션 메뉴 목록 컴포넌트
-// - 각 메뉴는 NavLink를 사용해 라우터 페이지로 이동
-// - 활성화된 페이지는 underline 스타일로 표시
-// -------------------------------------------------------------
 
 import { NavLink } from "react-router-dom";
 
 export default function HeaderList() {
-  // --- NavLink의 활성 상태에 따라 스타일 지정 ---
   const navClass = ({ isActive }) =>
-    "hover:font-bold hover:cursor-pointer underline-offset-8 decoration-2 " +
-    (isActive ? "text-title" : "text-white");
+    `
+      relative transition 
+      px-1 py-0.5 
+      text-sm tracking-wide
+
+      ${isActive ? "text-amber-300 font-semibold" : "text-white/80"}
+      hover:text-white
+    `;
 
   return (
-    <>
-      {/* --- 내비게이션 메뉴 항목 리스트 --- */}
-      <ul className="flex gap-6 list-none text-white">
-        {/* 커뮤니티 메뉴 */}
-        <li>
-          <NavLink to="/community" className={navClass}>
-            커뮤니티
+    <ul className="flex gap-6 list-none">
+      {[
+        { to: "/community", label: "커뮤니티" },
+        { to: "/today", label: "AI 바텐더" },
+        { to: "/recipe", label: "칵테일 도감" },
+        { to: "/map", label: "칵테일여지도" },
+      ].map((item) => (
+        <li key={item.to} className="relative group">
+          <NavLink to={item.to} className={navClass}>
+            {item.label}
           </NavLink>
-        </li>
 
-        {/* 오늘의 취향 (추천/테스트 페이지) */}
-        <li>
-          <NavLink to="/today" className={navClass}>
-            AI 바텐더
-          </NavLink>
-        </li>
+          {/* --- 밑줄 효과 --- */}
+          <span
+            className="
+              absolute left-0 -bottom-0.5 w-0 h-[2px] 
+              bg-amber-400 rounded-full
+              transition-all duration-300
+              group-hover:w-full
+            "
+          />
 
-        {/* 칵테일 레시피 목록 페이지 */}
-        <li>
-          <NavLink to="/recipe" className={navClass}>
-            칵테일 도감
-          </NavLink>
+          {/* --- active 시 하이라이트 라인 --- */}
+          <NavLink
+            to={item.to}
+            className={({ isActive }) =>
+              isActive
+                ? "absolute left-0 -bottom-0.5 w-full h-[2px] bg-amber-400 rounded-full"
+                : "hidden"
+            }
+          />
         </li>
-
-        {/* 지역별 바 지도 페이지 */}
-        <li>
-          <NavLink to="/map" className={navClass}>
-            칵테일여지도
-          </NavLink>
-        </li>
-
-        {/* 추후 추가 예정 메뉴 (예: 이벤트, 리뷰 등) */}
-      </ul>
-    </>
+      ))}
+    </ul>
   );
 }

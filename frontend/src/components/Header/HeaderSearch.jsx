@@ -8,33 +8,46 @@ export default function HeaderSearch() {
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
-    e.preventDefault(); // 기본 form 제출 막기
-
+    e.preventDefault();
     const trimmed = keyword.trim();
-    if (!trimmed) return; // 빈값이면 리턴
-
-    // 검색 페이지로 이동 (쿼리스트링에 keyword 전달)
+    if (!trimmed) return;
     navigate(`/search?keyword=${encodeURIComponent(trimmed)}`);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex justify-center relative">
+    <form onSubmit={handleSubmit} className="relative flex items-center">
       <input
         type="search"
         value={keyword}
         onChange={(e) => setKeyword(e.target.value)}
         placeholder="오늘의 한잔을 찾아보세요."
-        className="w-130 h-10 bg-white rounded-4xl border-2 
-                   border-black/50 px-4 pr-10
-                   text-gray-900 placeholder-gray-500"
+        className="
+          w-96 h-11                            
+          bg-white/90 text-slate-900          
+          border border-white/40
+          rounded-3xl
+          px-4 pr-11
+          placeholder:text-slate-500
+          shadow-sm
+
+          focus:outline-none
+          focus:ring-2 focus:ring-amber-300/70
+          focus:border-transparent
+          transition
+        "
       />
 
       <button
         type="submit"
-        className="absolute right-3 top-1/2 -translate-y-1/2 hover:cursor-pointer"
+        className="
+          absolute right-4 top-1/2 -translate-y-1/2
+          p-1 rounded-full
+          hover:bg-black/10
+          transition
+        "
         aria-label="검색"
       >
-        <img src={search} alt="검색" className="w-5 h-5 text-gray-500" />
+        <img src={search} alt="검색" className="w-5 h-5 opacity-70" />
       </button>
     </form>
   );
