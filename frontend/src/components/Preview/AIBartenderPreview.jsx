@@ -2,8 +2,8 @@
 // -------------------------------------------------------------
 // ⚡ AIBartenderPreview 컴포넌트 (홈화면용)
 // - “AI 바텐더” 기능 미리보기 카드
-// - 기주/맛/키워드 기반 맞춤 칵테일 레시피 생성 소개
-// - "AI 레시피 만들기" 클릭 시 JemeniRecommend 페이지로 이동
+// - 기주/맛/키워드 기반 "빠른 레시피 생성" + "대화형 추천" 소개
+// - 버튼 클릭 시 JemeniRecommend(또는 /today)로 이동
 // -------------------------------------------------------------
 
 import { NavLink } from "react-router-dom";
@@ -11,56 +11,88 @@ import { NavLink } from "react-router-dom";
 export default function AIBartenderPreview() {
   return (
     <section
-      className="rounded-2xl border border-white/10 p-5 text-white bg-white/5 
-                 shadow-[0_4px_10px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.4)] 
-                 transition-shadow duration-300"
+      className="
+        rounded-2xl border border-white/10 p-5 text-white bg-white/5
+        shadow-[0_4px_14px_rgba(0,0,0,0.35)]
+        hover:shadow-[0_8px_20px_rgba(0,0,0,0.45)]
+        transition-all duration-300
+      "
     >
-      {/* --- 섹션 헤더 --- */}
+      {/* 헤더 */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xl font-bold">🤖 AI 바텐더</h2>
-        </div>
+        <h2 className="text-xl font-bold">🤖 AI 바텐더</h2>
       </div>
 
-      {/* --- 본문 영역: 기능 설명 + 미니 프롬프트 박스 --- */}
-      <div className="flex flex-col gap-4 mt-2">
-        <p className="text-sm text-gray-300 leading-relaxed">
-          기주, 원하는 맛, 키워드를 입력하면
-          <br />
-          AI 바텐더가{" "}
-          <span className="text-button font-semibold">
-            나만의 칵테일 레시피
-          </span>
-          를 만들어 줍니다.
-        </p>
+      {/* 설명 */}
+      <p className="text-sm text-gray-300 leading-relaxed mb-3">
+        기주/맛 입력하거나, 대화로 취향을 찾아
+        <span className="text-button font-semibold"> 나만의 레시피</span>를
+        만들어요.
+      </p>
 
-        {/* 미니 프롬프트 카드 */}
-        <div className="flex items-center gap-4 bg-black/30 border border-white/10 rounded-2xl px-4 py-10">
-          <div className="flex-1 space-y-2 text-xs text-gray-200">
-            <div className="flex flex-wrap gap-1.5">
-              <span className="px-2 py-1 rounded-full bg-white/10">
-                Gin · Rum
-              </span>
-              <span className="px-2 py-1 rounded-full bg-white/10">
-                상큼 · 달콤
-              </span>
-              <span className="px-2 py-1 rounded-full bg-white/10">
-                레몬 · 민트
-              </span>
-            </div>
-            <p className="text-[11px] text-gray-400">
-              이런 식으로 취향을 입력하면, 실시간으로 레시피를 생성해드려요.
-            </p>
+      {/* 두 모드 요약 */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* 빠른 생성 */}
+        <div className="rounded-xl bg-black/20 border border-white/10 px-3 py-3">
+          <span className="text-[11px] font-semibold bg-white/10 px-2 py-0.5 rounded-lg">
+            ⚡ 빠른 생성
+          </span>
+
+          <div className="flex flex-wrap gap-1.5 mt-2 text-[10px] text-gray-200">
+            <span className="px-2 py-1 rounded-full bg-white/10">
+              Gin · Rum
+            </span>
+            <span className="px-2 py-1 rounded-full bg-white/10">
+              상큼 · 달콤
+            </span>
+            <span className="px-2 py-1 rounded-full bg-white/10">
+              레몬, 토닉워터
+            </span>
+            <span className="px-2 py-1 rounded-full bg-white/10">15도수</span>
           </div>
 
           <NavLink
-            to="/today"
-            className="shrink-0 inline-flex items-center justify-center px-3 py-2 rounded-xl 
-                       bg-button hover:bg-button-hover text-[13px] font-semibold
-                       shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition"
+            to="/today?mode=form"
+            className="
+              mt-3 block w-full text-center text-[12px] font-semibold
+              bg-button hover:bg-button-hover py-1.5 rounded-lg
+              transition shadow-md hover:shadow-lg
+            "
           >
-            AI 레시피
-            <span className="ml-1">→</span>
+            레시피 →
+          </NavLink>
+        </div>
+
+        {/* 대화형 추천 */}
+        <div className="rounded-xl bg-black/20 border border-white/10 px-3 py-3">
+          <span className="text-[11px] font-semibold bg-white/10 px-2 py-0.5 rounded-lg">
+            💬 대화형
+          </span>
+
+          {/* 매우 짧은 채팅 프리뷰 */}
+          <div className="mt-2 space-y-1.5">
+            <div className="flex gap-1">
+              <div className="text-[9px] px-2 py-1 rounded-lg bg-white/10">
+                어떤 느낌 원해?
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <div className="text-[9px] px-2 py-1 rounded-lg bg-button/20">
+                상큼하게!
+              </div>
+            </div>
+          </div>
+
+          <NavLink
+            to="/today?mode=chat"
+            className="
+              mt-3 block w-full text-center text-[12px] font-semibold
+              bg-white/10 hover:bg-white/20 py-1.5 rounded-lg
+              border border-white/10
+              transition shadow-md hover:shadow-lg
+            "
+          >
+            시작하기 →
           </NavLink>
         </div>
       </div>
