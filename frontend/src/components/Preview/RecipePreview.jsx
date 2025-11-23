@@ -108,7 +108,7 @@ export default function RecipePreView() {
 
           {/* 칵테일 이름 및 코멘트 */}
           <h3 className="text-m font-semibold mt-2">{name}</h3>
-          {comment && <p className="text-sm text-white/70">{comment}</p>}
+          {comment && <p className="text-xs text-white/70 mt-1">{comment}</p>}
         </div>
       </div>
     </section>
