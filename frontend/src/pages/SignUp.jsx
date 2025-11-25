@@ -9,6 +9,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import CommonModal from "@/components/CommonModal";
 
 // 간단한 정규식들
 const ID_RE = /^[a-zA-Z0-9_]{4,20}$/; // 영문/숫자/밑줄 4~20자
@@ -41,6 +42,12 @@ export default function SignUp() {
     birthday: "",
     phone: "",
   });
+
+  const [openInfoModal, setOpenInfoModal] = useState(false);
+  const [infoMsg, setInfoMsg] = useState("");
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [openFailModal, setOpenFailModal] = useState(false);
+  const [failMsg, setFailMsg] = useState("");
 
   // --- 단일 필드 유효성 검사 & 에러메시지 세팅 ---
   const validateField = (name, value) => {
@@ -118,7 +125,8 @@ export default function SignUp() {
     e.preventDefault();
 
     if (!validateAll()) {
-      alert("입력값을 확인해 주세요.");
+      setInfoMsg("입력값을 확인해 주세요.");
+      setOpenInfoModal(true);
       return;
     }
 
@@ -134,11 +142,11 @@ export default function SignUp() {
         phone: form.phone,
       });
 
-      alert("회원가입 완료!");
-      navigate("/login");
+      setOpenSuccessModal(true);
     } catch (error) {
       const msg = error.response?.data?.message || "회원가입에 실패했습니다.";
-      alert(msg);
+      setFailMsg(msg);
+      setOpenFailModal(true);
     } finally {
       setLoading(false);
     }
@@ -283,6 +291,35 @@ export default function SignUp() {
           </div>
         </form>
       </div>
+
+      <CommonModal
+        open={openInfoModal}
+        onClose={() => setOpenInfoModal(false)}
+        title="알림"
+        message={infoMsg}
+        cancelText="확인"
+      />
+
+      <CommonModal
+        open={openSuccessModal}
+        onClose={() => setOpenSuccessModal(false)}
+        title="회원가입 완료!"
+        message="로그인 페이지로 이동할까요?"
+        cancelText="닫기"
+        confirmText="로그인 하러가기"
+        onConfirm={() => {
+          setOpenSuccessModal(false);
+          navigate("/login");
+        }}
+      />
+
+      <CommonModal
+        open={openFailModal}
+        onClose={() => setOpenFailModal(false)}
+        title="회원가입 실패"
+        message={failMsg}
+        cancelText="닫기"
+      />
     </main>
   );
 }

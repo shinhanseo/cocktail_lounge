@@ -1,28 +1,27 @@
-// src/pages/CommunityEdit.jsx
-// -------------------------------------------------------------
-// ✏️ CommunityEdit (TipTap 버전)
-// - 기존 글 불러오기 → TipTap로 수정 → PUT /api/posts/:id
-// -------------------------------------------------------------
-
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate, useParams, NavLink } from "react-router-dom";
-import ContentWriting from "./ContentWriting"; // TipTap 컴포넌트
+import ContentWriting from "./ContentWriting";
+import CommonModal from "@/components/CommonModal";
 
 export default function CommunityEdit() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { id } = useParams();
 
-  // --- 폼 상태 (title/tags는 문자열, 본문은 별도의 HTML 상태) ---
-  const [form, setForm] = useState({ title: "", tags: "" }); // body 제거
-  const [bodyHTML, setBodyHTML] = useState(""); // TipTap HTML
+  const [form, setForm] = useState({ title: "", tags: "" });
+  const [bodyHTML, setBodyHTML] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingInit, setLoadingInit] = useState(true);
 
-  // --- 태그 파서 ---
+  // 모달 상태들
+  const [openForbiddenModal, setOpenForbiddenModal] = useState(false);
+  const [openLoadFailModal, setOpenLoadFailModal] = useState(false);
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [openFailModal, setOpenFailModal] = useState(false);
+
   const parseTags = (text) =>
     text
       .split(/[,#\s]+/)
@@ -32,7 +31,6 @@ export default function CommunityEdit() {
 
   const previewTags = useMemo(() => parseTags(form.tags), [form.tags]);
 
-  // --- 기존 데이터 불러오기 ---
   useEffect(() => {
     let alive = true;
 
@@ -42,10 +40,8 @@ export default function CommunityEdit() {
         const res = await axios.get(`http://localhost:4000/api/posts/${id}`);
         const p = res.data;
 
-        // 작성자만 수정 가능
         if (user && p.user && user.nickname !== p.user) {
-          alert("본인 게시글만 수정할 수 있습니다.");
-          navigate(`/posts/${id}`);
+          setOpenForbiddenModal(true);
           return;
         }
 
@@ -58,8 +54,7 @@ export default function CommunityEdit() {
         }
       } catch (e) {
         console.error(e);
-        alert("게시글을 불러오는 중 오류가 발생했습니다.");
-        navigate("/community");
+        setOpenLoadFailModal(true);
       } finally {
         if (alive) setLoadingInit(false);
       }
@@ -70,7 +65,6 @@ export default function CommunityEdit() {
     };
   }, [id, navigate, user]);
 
-  // --- 입력 핸들러 ---
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -83,7 +77,6 @@ export default function CommunityEdit() {
       .replace(/\s+/g, " ")
       .trim();
 
-  // --- 제출 ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMsg("");
@@ -98,7 +91,6 @@ export default function CommunityEdit() {
     try {
       setLoading(true);
 
-      // 서버가 body_html을 받는 경우 👇(권장)
       const payload = {
         title: title.trim(),
         body: bodyHTML,
@@ -111,18 +103,16 @@ export default function CommunityEdit() {
       );
 
       if (res.status === 200) {
-        alert("게시글이 수정되었습니다!");
-        navigate(`/posts/${id}`); // 상세로 복귀
+        setOpenSuccessModal(true);
       }
     } catch (err) {
       console.error(err.response?.data || err);
-      alert("게시글 수정 중 오류가 발생했습니다.");
+      setOpenFailModal(true);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- 로딩 상태 ---
   if (loadingInit) {
     return (
       <main className="flex justify-center items-center min-h-screen text-white">
@@ -134,7 +124,6 @@ export default function CommunityEdit() {
   return (
     <main className="flex justify-center min-h-screen text-white">
       <section className="w-[800px] max-w-[90%] border border-white/10 bg-white/5 rounded-3xl p-10 mt-10">
-        {/* 상단 컨트롤 */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl md:text-3xl font-bold">✏️ 게시글 수정</h1>
           <NavLink
@@ -145,17 +134,14 @@ export default function CommunityEdit() {
           </NavLink>
         </div>
 
-        {/* 안내/에러 메시지 */}
         {msg && (
           <div className="text-center text-sm text-red-400 mb-3">{msg}</div>
         )}
 
-        {/* 폼 */}
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-6 text-gray-900"
         >
-          {/* 제목 */}
           <div>
             <label className="block text-white text-sm font-semibold mb-2 text-left">
               제목
@@ -170,19 +156,17 @@ export default function CommunityEdit() {
             />
           </div>
 
-          {/* 본문 (TipTap) */}
           <div>
             <label className="block text-white text-sm font-semibold mb-2 text-left">
               본문
             </label>
             <ContentWriting
-              initialHTML={bodyHTML} // ← 초기값 주입
-              onChangeHTML={setBodyHTML} // ← 변경 시 HTML 반영
+              initialHTML={bodyHTML}
+              onChangeHTML={setBodyHTML}
               className="rounded-xl bg-white/90 p-2 text-gray-900 focus-within:ring-2 focus-within:ring-pink-400 text-gray-900"
             />
           </div>
 
-          {/* 태그 */}
           <div>
             <label className="block text-white text-sm font-semibold mb-2 text-left">
               태그
@@ -209,12 +193,11 @@ export default function CommunityEdit() {
             )}
           </div>
 
-          {/* 제출 */}
           <div className="flex justify-center mt-4">
             <button
               type="submit"
               disabled={loading}
-              className={`w-[200px] h-[50px] rounded-xl text-white font-semibold text-lg shadow-lg transition-transform ${
+              className={`w-[200px] h-[50px] rounded-xl text-white font-semibold text-lg shadow-lg transition-transform hover:cursor-pointer ${
                 loading
                   ? "bg-gray-500 cursor-not-allowed"
                   : "bg-button hover:scale-105 hover:bg-button-hover"
@@ -225,6 +208,51 @@ export default function CommunityEdit() {
           </div>
         </form>
       </section>
+
+      {/* 1) 본인글 아니면 수정 불가 모달 */}
+      <CommonModal
+        open={openForbiddenModal}
+        onClose={() => {
+          setOpenForbiddenModal(false);
+          navigate(`/posts/${id}`);
+        }}
+        title="수정할 수 없습니다"
+        message="본인 게시글만 수정할 수 있어요."
+        cancelText="확인"
+      />
+
+      {/* 2) 게시글 로딩 실패 모달 */}
+      <CommonModal
+        open={openLoadFailModal}
+        onClose={() => {
+          setOpenLoadFailModal(false);
+          navigate("/community");
+        }}
+        title="불러오기 실패"
+        message="게시글을 불러오는 중 오류가 발생했습니다."
+        cancelText="목록으로"
+      />
+
+      {/* 3) 수정 성공 모달 */}
+      <CommonModal
+        open={openSuccessModal}
+        onClose={() => {
+          setOpenSuccessModal(false);
+          navigate(`/posts/${id}`);
+        }}
+        title="수정 완료!"
+        message="게시글이 수정되었습니다."
+        cancelText="확인"
+      />
+
+      {/* 4) 수정 실패 모달 */}
+      <CommonModal
+        open={openFailModal}
+        onClose={() => setOpenFailModal(false)}
+        title="수정 실패"
+        message="게시글 수정 중 오류가 발생했습니다."
+        cancelText="닫기"
+      />
     </main>
   );
 }

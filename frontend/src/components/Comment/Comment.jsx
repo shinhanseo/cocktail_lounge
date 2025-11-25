@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Pencil, Trash } from "lucide-react";
 import axios from "axios";
+import CommonModal from "@/components/CommonModal";
 
 export default function Comment({ postId }) {
   const user = useAuthStore((s) => s.user);
@@ -27,17 +28,21 @@ export default function Comment({ postId }) {
   const [error, setError] = useState("");
   const [postComment, setPostComment] = useState("");
 
-  // --- 댓글 수정 ---
   const [editCommentId, setEditCommentId] = useState(null);
   const [editText, setEditText] = useState("");
 
-  // --- 대댓글 수정 ---
   const [editSubId, setEditSubId] = useState(null);
   const [editSubText, setEditSubText] = useState("");
 
-  // --- 답글 관련 ---
   const [replyCommentId, setReplyCommentId] = useState(null);
   const [replyText, setReplyText] = useState("");
+
+  const [openLoginModal, setOpenLoginModal] = useState(false);
+  const [openInfoModal, setOpenInfoModal] = useState(false);
+  const [infoMsg, setInfoMsg] = useState("");
+
+  const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const fetchComments = async () => {
     try {
@@ -55,7 +60,6 @@ export default function Comment({ postId }) {
       setComments(commentsData);
       setMeta(res.data?.meta ?? meta);
 
-      // 대댓글 조회
       const subMap = {};
       await Promise.all(
         commentsData.map(async (comment) => {
@@ -83,10 +87,16 @@ export default function Comment({ postId }) {
   const goPage = (p) =>
     setSearchParams({ page: String(p), limit: String(limit) });
 
-  // --- 댓글 작성 ---
   const handleComment = async () => {
-    if (!isLoggedIn) return navigate("/login");
-    if (!postComment.trim()) return alert("댓글을 입력하세요!");
+    if (!isLoggedIn) {
+      setOpenLoginModal(true);
+      return;
+    }
+    if (!postComment.trim()) {
+      setInfoMsg("댓글을 입력하세요!");
+      setOpenInfoModal(true);
+      return;
+    }
     try {
       const res = await axios.post(
         "http://localhost:4000/api/comment",
@@ -100,17 +110,22 @@ export default function Comment({ postId }) {
       }
     } catch (err) {
       console.error(err);
-      alert("댓글 등록 중 오류");
+      setInfoMsg("댓글 등록 중 오류가 발생했습니다.");
+      setOpenInfoModal(true);
     }
   };
 
-  // --- 댓글 수정 ---
   const handleEdit = (comment) => {
     setEditCommentId(comment.id);
     setEditText(comment.body);
   };
+
   const handleSave = async (commentId) => {
-    if (!editText.trim()) return alert("내용 입력");
+    if (!editText.trim()) {
+      setInfoMsg("내용을 입력해주세요.");
+      setOpenInfoModal(true);
+      return;
+    }
     try {
       await axios.put(
         `http://localhost:4000/api/comment/${commentId}`,
@@ -123,23 +138,16 @@ export default function Comment({ postId }) {
       setEditCommentId(null);
     } catch (err) {
       console.error(err);
-      alert("댓글 수정 오류");
+      setInfoMsg("댓글 수정 중 오류가 발생했습니다.");
+      setOpenInfoModal(true);
     }
   };
 
-  // --- 댓글 삭제 ---
   const handleDelete = async (commentId) => {
-    if (!window.confirm("삭제하시겠습니까?")) return;
-    try {
-      await axios.delete(`http://localhost:4000/api/comment/${commentId}`);
-      setComments((prev) => prev.filter((c) => c.id !== commentId));
-    } catch (err) {
-      console.error(err);
-      alert("삭제 오류");
-    }
+    setDeleteTarget({ type: "comment", commentId });
+    setOpenDeleteConfirm(true);
   };
 
-  // --- 답글 열기/닫기 ---
   const handleReply = (commentId) => {
     if (replyCommentId === commentId) {
       setReplyCommentId(null);
@@ -150,9 +158,16 @@ export default function Comment({ postId }) {
     }
   };
 
-  // --- 답글 작성 ---
   const handlePostReply = async (commentId) => {
-    if (!replyText.trim()) return alert("답글 입력");
+    if (!isLoggedIn) {
+      setOpenLoginModal(true);
+      return;
+    }
+    if (!replyText.trim()) {
+      setInfoMsg("답글을 입력해주세요.");
+      setOpenInfoModal(true);
+      return;
+    }
     try {
       await axios.post(
         "http://localhost:4000/api/comment/subcomment",
@@ -164,17 +179,22 @@ export default function Comment({ postId }) {
       await fetchComments();
     } catch (err) {
       console.error(err);
-      alert("답글 등록 오류");
+      setInfoMsg("답글 등록 중 오류가 발생했습니다.");
+      setOpenInfoModal(true);
     }
   };
 
-  // --- 대댓글 수정 ---
   const handleEditSub = (sub) => {
     setEditSubId(sub.id);
     setEditSubText(sub.body);
   };
+
   const handleSaveSub = async (subId, parentId) => {
-    if (!editSubText.trim()) return alert("내용 입력");
+    if (!editSubText.trim()) {
+      setInfoMsg("내용을 입력해주세요.");
+      setOpenInfoModal(true);
+      return;
+    }
     try {
       await axios.put(
         `http://localhost:4000/api/comment/subcomment/${subId}`,
@@ -190,24 +210,41 @@ export default function Comment({ postId }) {
       setEditSubId(null);
     } catch (err) {
       console.error(err);
-      alert("대댓글 수정 오류");
+      setInfoMsg("대댓글 수정 중 오류가 발생했습니다.");
+      setOpenInfoModal(true);
     }
   };
 
-  // --- 대댓글 삭제 ---
   const handleDeleteSub = async (subId, parentId) => {
-    if (!window.confirm("삭제하시겠습니까?")) return;
+    setDeleteTarget({ type: "sub", subId, parentId });
+    setOpenDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
     try {
-      await axios.delete(
-        `http://localhost:4000/api/comment/subcomment/${subId}`
-      );
-      setSubcommentsMap((prev) => ({
-        ...prev,
-        [parentId]: prev[parentId].filter((s) => s.id !== subId),
-      }));
+      if (deleteTarget.type === "comment") {
+        const commentId = deleteTarget.commentId;
+        await axios.delete(`http://localhost:4000/api/comment/${commentId}`);
+        setComments((prev) => prev.filter((c) => c.id !== commentId));
+      } else {
+        const { subId, parentId } = deleteTarget;
+        await axios.delete(
+          `http://localhost:4000/api/comment/subcomment/${subId}`
+        );
+        setSubcommentsMap((prev) => ({
+          ...prev,
+          [parentId]: prev[parentId].filter((s) => s.id !== subId),
+        }));
+      }
     } catch (err) {
       console.error(err);
-      alert("삭제 오류");
+      setInfoMsg("삭제 도중 오류가 발생했습니다.");
+      setOpenInfoModal(true);
+    } finally {
+      setOpenDeleteConfirm(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -217,7 +254,6 @@ export default function Comment({ postId }) {
         댓글
       </h3>
 
-      {/* 댓글 입력 */}
       <div className="mb-6">
         <textarea
           placeholder="댓글을 입력하세요..."
@@ -254,7 +290,6 @@ export default function Comment({ postId }) {
                 <span className="text-sm text-gray-400">{comment.date}</span>
               </div>
 
-              {/* 댓글 수정 */}
               {editCommentId === comment.id ? (
                 <div>
                   <textarea
@@ -310,7 +345,6 @@ export default function Comment({ postId }) {
                 </>
               )}
 
-              {/* 대댓글 */}
               {subcommentsMap[comment.id]?.map((sub) => (
                 <div key={sub.id} className="ml-6 mt-2">
                   {editSubId === sub.id ? (
@@ -369,7 +403,6 @@ export default function Comment({ postId }) {
                 </div>
               ))}
 
-              {/* 답글 textarea */}
               {replyCommentId === comment.id && (
                 <div className="mt-2">
                   <textarea
@@ -398,7 +431,6 @@ export default function Comment({ postId }) {
             </li>
           ))}
 
-          {/* 페이지네이션 */}
           <div className="flex items-center justify-center gap-3 mt-8">
             <button
               onClick={() => goPage(meta.page - 1)}
@@ -428,6 +460,41 @@ export default function Comment({ postId }) {
           </div>
         </ul>
       )}
+
+      <CommonModal
+        open={openLoginModal}
+        onClose={() => setOpenLoginModal(false)}
+        title="로그인이 필요합니다"
+        message="댓글/답글 작성은 로그인한 사용자만 이용할 수 있어요."
+        cancelText="닫기"
+        confirmText="로그인 하러가기"
+        onConfirm={() => {
+          setOpenLoginModal(false);
+          navigate("/login");
+        }}
+      />
+
+      <CommonModal
+        open={openInfoModal}
+        onClose={() => setOpenInfoModal(false)}
+        title="알림"
+        message={infoMsg}
+        cancelText="확인"
+      />
+
+      <CommonModal
+        open={openDeleteConfirm}
+        onClose={() => {
+          setOpenDeleteConfirm(false);
+          setDeleteTarget(null);
+        }}
+        title="삭제하시겠습니까?"
+        message="삭제하면 되돌릴 수 없습니다."
+        cancelText="취소"
+        confirmText="삭제"
+        confirmVariant="danger"
+        onConfirm={confirmDelete}
+      />
     </section>
   );
 }
