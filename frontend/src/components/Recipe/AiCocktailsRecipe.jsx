@@ -1,7 +1,7 @@
 // frontend/src/components/Recipe/AiCocktailsRecipe.jsx
-// -------------------------------------------------------------
-// AI 칵테일 상세보기
-// -------------------------------------------------------------
+//-------------------------------------------------------------
+// AI 칵테일 상세보기 (일반 레시피 상세페이지 구조와 동일하게 재배치)
+//-------------------------------------------------------------
 
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -26,12 +26,9 @@ export default function AiCocktailsRecipe() {
     (async () => {
       try {
         setLoading(true);
-        setError("");
-
         const res = await axios.get(`/api/gemeni/save/${id}`, {
           withCredentials: true,
         });
-
         setRecipe(res.data || null);
       } catch (err) {
         console.error(err);
@@ -44,14 +41,13 @@ export default function AiCocktailsRecipe() {
 
   const doDelete = async () => {
     try {
-      await axios.delete(`http://localhost:4000/api/gemeni/save/${id}`, {
+      await axios.delete(`/api/gemeni/save/${id}`, {
         withCredentials: true,
       });
       setOpenDeleteConfirm(false);
       setOpenDeleteDone(true);
     } catch (err) {
       console.log(err);
-      setOpenDeleteConfirm(false);
       setDeleteFailMsg(
         err?.response?.data?.error || "삭제 도중 오류가 발생했습니다."
       );
@@ -59,140 +55,151 @@ export default function AiCocktailsRecipe() {
     }
   };
 
-  const handleDelete = () => {
-    setOpenDeleteConfirm(true);
-  };
+  const handleBack = () => navigate("/mypage/myaicocktails");
 
-  const handleBack = () => {
-    navigate("/mypage/myaicocktails");
-  };
-
-  if (loading) {
+  if (loading)
     return (
-      <article className="max-w-3xl mx-auto mt-12 rounded-2xl p-12 bg-white/5 border border-white/10 text-white shadow animate-pulse">
+      <article className="max-w-4xl mx-auto mt-12 p-12 text-white bg-white/5 border border-white/10 rounded-2xl animate-pulse">
         불러오는 중...
       </article>
     );
-  }
 
   if (error)
-    return <div className="text-red-400 mt-12 text-center">{error}</div>;
+    return <div className="text-red-400 text-center mt-10">{error}</div>;
 
   if (!recipe)
     return (
-      <div className="text-white mt-12 text-center">레시피가 없습니다.</div>
+      <div className="text-white text-center mt-10">레시피가 없습니다.</div>
     );
 
   return (
     <article
-      className="text-white w-[800px] mx-auto
-                 border border-white/10 bg-white/5 rounded-2xl p-10 mt-12
-                 shadow-[0_6px_20px_rgba(0,0,0,.35)] hover:shadow-[0_12px_28px_rgba(0,0,0,.45)]
-                 transition-all duration-300 backdrop-blur"
+      className="
+        text-white max-w-4xl mx-auto flex flex-col md:flex-row gap-8
+        border border-white/10 bg-white/5 rounded-2xl p-8 md:p-12 mt-12
+        shadow-[0_6px_20px_rgba(0,0,0,.35)] hover:shadow-[0_12px_28px_rgba(0,0,0,.45)]
+        transition duration-300 backdrop-blur
+      "
     >
-      {/* ---------------- 뒤로가기 ---------------- */}
-      <button
-        onClick={handleBack}
-        className="text-sm text-white/70 hover:text-white hover:cursor-pointer"
-      >
-        ← 마이페이지로
-      </button>
-
-      {/* ---------------- 제목 및 삭제 버튼---------------- */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-extrabold mt-3 tracking-tight">
-          {recipe.name}
-        </h1>
-
+      {/* ---------------- 좌측 정보 영역 ---------------- */}
+      <div className="flex-1 mr-0 md:mr-8">
         <button
-          className="bg-white/50 hover:bg-white/30 px-3 py-1 rounded-lg text-white hover:scale-105 hover:cursor-pointer mt-2"
-          onClick={handleDelete}
+          onClick={handleBack}
+          className="text-sm text-white/70 hover:text-white hover:font-bold hover:cursor-pointer"
         >
-          <Trash size={20} />
+          ← 마이페이지로
         </button>
+
+        {/* 제목 + 삭제 */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-extrabold mt-3 tracking-tight">
+            {recipe.name}
+          </h1>
+
+          <button
+            className="bg-white/50 hover:bg-white/30 px-3 py-1 rounded-lg text-white hover:scale-105 hover:cursor-pointer mt-2"
+            onClick={() => setOpenDeleteConfirm(true)}
+          >
+            <Trash size={20} />
+          </button>
+        </div>
+
+        {/* 도수 */}
+        {recipe.abv && (
+          <p className="text-white/70 mt-2 mb-4">도수: {recipe.abv}%</p>
+        )}
+
+        {/* 코멘트 */}
+        {recipe.comment && (
+          <p
+            className="mt-4 mb-8 text-center text-base text-white/90 bg-black/20 
+                        p-4 rounded-xl border border-white/10 shadow"
+          >
+            “{recipe.comment}”
+          </p>
+        )}
+
+        {/* 요청 조건 */}
+        {(recipe.taste?.length > 0 || recipe.keywords?.length > 0) && (
+          <section className="mb-6">
+            <h2 className="text-lg font-semibold mb-2">요청 조건</h2>
+            <div className="flex flex-wrap gap-2">
+              {recipe.taste?.map((t, idx) => (
+                <span
+                  key={idx}
+                  className="px-2 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/40 text-xs text-cyan-200"
+                >
+                  #{t}
+                </span>
+              ))}
+              {recipe.keywords?.map((k, idx) => (
+                <span
+                  key={idx}
+                  className="px-2 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/40 text-xs text-emerald-200"
+                >
+                  #{k}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <div className="my-6 h-px bg-white/20"></div>
+
+        {/* 재료 */}
+        {recipe.ingredient?.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-lg font-semibold mb-2">재료</h2>
+            <ul className="pl-5 space-y-2 list-disc marker:text-white/60">
+              {recipe.ingredient.map((ing, idx) => (
+                <li key={idx} className="text-white/90">
+                  <span className="font-semibold">{ing.item}</span> —{" "}
+                  {ing.volume}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <div className="my-6 h-px bg-white/20"></div>
+
+        {/* 만드는 법 */}
+        {recipe.step?.length > 0 && (
+          <section>
+            <h2 className="text-lg font-semibold mb-2">만드는 법</h2>
+            <ol className="pl-5 space-y-2 list-decimal marker:text-white/60">
+              {recipe.step.map((s, idx) => (
+                <li key={idx} className="text-white/90 leading-relaxed">
+                  {s}
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
       </div>
 
-      {/* 기주 + 저장일 */}
-      <div className="flex flex-wrap gap-3 mt-2 text-sm text-white/70">
-        {recipe.base_spirit && (
-          <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20">
-            기주: {recipe.base_spirit}
-          </span>
-        )}
-        {recipe.created_at && (
-          <span className="text-xs">저장일: {recipe.created_at}</span>
-        )}
-      </div>
-
-      {/* ---------------- 한줄 코멘트 ---------------- */}
-      {recipe.comment && (
-        <p
-          className="mt-6 mb-8 text-center text-base text-white/90 bg-black/20 
-                      p-4 rounded-xl border border-white/10 shadow"
+      {/* ---------------- 우측 이미지 영역 ---------------- */}
+      <aside className="w-full md:w-64 shrink-0">
+        <div
+          className="rounded-xl overflow-hidden border border-white/10 bg-black/20
+                     shadow-[0_8px_24px_rgba(0,0,0,.45)]"
         >
-          “{recipe.comment}”
-        </p>
-      )}
+          <img
+            src={recipe.image_url}
+            alt={recipe.name}
+            className="object-cover w-full h-72 md:h-[340px]"
+          />
+        </div>
 
-      {recipe.abv && (
-        <p className="text-white text-lg font-semibold mb-8">
-          도수 : {recipe.abv}%
-        </p>
-      )}
+        {/* 코멘트 (보조 Box) */}
+        {recipe.comment && (
+          <p className="text-center mt-4 text-gray-300 px-3 py-2 bg-white/10 rounded-xl text-sm border border-white/10">
+            {recipe.comment}
+          </p>
+        )}
+      </aside>
 
-      {/* ---------------- 요청 조건 ---------------- */}
-      {(recipe.taste?.length > 0 || recipe.keywords?.length > 0) && (
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-2">요청 조건</h2>
-          <div className="flex flex-wrap gap-2">
-            {recipe.taste?.map((t, idx) => (
-              <span
-                key={`taste-${idx}`}
-                className="px-2 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/40 text-xs text-cyan-200"
-              >
-                #{t}
-              </span>
-            ))}
-            {recipe.keywords?.map((k, idx) => (
-              <span
-                key={`kw-${idx}`}
-                className="px-2 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/40 text-xs text-emerald-200"
-              >
-                #{k}
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ---------------- 재료 ---------------- */}
-      {recipe.ingredient?.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-2">재료</h2>
-          <ul className="pl-5 space-y-2 list-disc marker:text-white/60">
-            {recipe.ingredient.map((ing, i) => (
-              <li key={i} className="text-white/90">
-                <span className="font-semibold">{ing.item}</span> — {ing.volume}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {/* ---------------- 만드는 법 ---------------- */}
-      {recipe.step && (
-        <section>
-          <h2 className="text-lg font-semibold mb-2">만드는 법</h2>
-          <ul className="pl-5 space-y-2 list-disc marker:text-white/60">
-            {recipe.step.map((s, i) => (
-              <li key={i} className="text-sm text-white/90">
-                {s}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
+      {/* ---------------- 모달 ---------------- */}
       <CommonModal
         open={openDeleteConfirm}
         onClose={() => setOpenDeleteConfirm(false)}
