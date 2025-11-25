@@ -96,7 +96,7 @@ export default function JemeniRecommend() {
         abv: requirements.abv,
       });
 
-      setRecipe(res.data.recipe); // ✅ recipe 안에 image_url도 같이 온다고 가정
+      setRecipe(res.data.recipe); // recipe 안에 image_url도 같이 온다고 가정
     } catch (err) {
       console.error("API 호출 오류:", err);
       const msg =
@@ -136,7 +136,7 @@ export default function JemeniRecommend() {
         rawKeywords: requestTags.keywords,
         abv: requestTags.abv,
 
-        // ✅ AI 이미지 S3 URL도 같이 저장
+        // AI 이미지 S3 URL도 같이 저장
         image_url: recipe.image_url || null,
       };
 
