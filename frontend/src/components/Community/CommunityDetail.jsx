@@ -30,7 +30,7 @@ export default function CommunityDetail() {
     try {
       await axios.delete(`http://localhost:4000/api/posts/${id}`);
       setOpenDeleteConfirm(false);
-      setOpenDeleteDone(true); // ✅ 삭제 완료 모달 오픈
+      setOpenDeleteDone(true); //  제 완료 모달 오픈
     } catch (err) {
       console.log(err);
       setOpenDeleteConfirm(false);

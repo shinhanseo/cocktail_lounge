@@ -1,8 +1,18 @@
+// backend/src/routes/gemeni.js
+// -------------------------------------------------------------
+//  AI 칵테일 추천 + 이미지 생성(Flux) + S3 업로드 + 저장/조회/삭제 + 바텐더 챗
+//  이미지쪽 버그/로직 개선 포함
+//   - buildPrompt에서 ingredient 필드명 수정
+//   - garnishText를 prompt에 실제 주입
+//   - guessVisualSpec 결과를 prompt에 반영(fallback 순서 개선)
+//   - 마크다운/불필요한 기호 제거(문자/중국어 노이즈 감소)
+//   - 바텐더 답변이 레시피 형식일 때만 마이페이지 저장용 recipe 파싱
+// -------------------------------------------------------------
+
 import { GoogleGenAI } from "@google/genai";
 import { Router } from "express";
 import { authRequired } from "../middlewares/jwtauth.js";
 import db from "../db/client.js";
-import axios from "axios";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 import { HfInference } from "@huggingface/inference";
@@ -21,7 +31,9 @@ const s3 = new S3Client({
 
 const hf = new HfInference(process.env.HF_TOKEN);
 
+// -------------------------------------------------------------
 // S3 upload
+// -------------------------------------------------------------
 async function uploadImageToS3(imageBuffer, recipeName) {
   const bucket = process.env.AWS_S3_BUCKET;
 
@@ -38,35 +50,201 @@ async function uploadImageToS3(imageBuffer, recipeName) {
       Key: key,
       Body: imageBuffer,
       ContentType: "image/png",
+      // ACL: "public-read", // 버킷이 public read 정책이 아닐 때만 고려 (보안 정책에 맞게 선택)
     })
   );
 
   return `${process.env.AWS_S3_PUBLIC_BASE}/${key}`;
 }
 
-// HuggingFace image generation (free-tier friendly)
-// Returns PNG buffer
-async function generateCocktailImage(recipe) {
+// -------------------------------------------------------------
+// Visual spec guess (창작 레시피 fallback용)
+// -------------------------------------------------------------
+function guessVisualSpec(recipe) {
+  const ing = (recipe.ingredient || []).map((x) =>
+    (x.item || "").toLowerCase()
+  );
+
+  // ------- Color ------
+  let color = "amber";
+  if (
+    ing.some((x) =>
+      ["lemon", "lime", "grapefruit", "yuzu", "시트러스", "레몬", "라임", "오렌지"].some(
+        (k) => x.includes(k)
+      )
+    )
+  )
+    color = "pale yellow";
+  if (
+    ing.some((x) =>
+      ["berry", "strawberry", "raspberry", "cranberry", "체리", "딸기"].some(
+        (k) => x.includes(k)
+      )
+    )
+  )
+    color = "red / pink";
+  if (
+    ing.some((x) =>
+      ["coffee", "espresso", "cocoa", "chocolate", "커피", "초코"].some(
+        (k) => x.includes(k)
+      )
+    )
+  )
+    color = "dark brown";
+  if (
+    ing.some((x) =>
+      ["milk", "cream", "baileys", "irish cream", "우유", "크림", "베일리스"].some(
+        (k) => x.includes(k)
+      )
+    )
+  )
+    color = "creamy beige";
+
+  // ------- Glass ------
+  let glass = "highball glass";
+  const stepText = (recipe.step || []).join(" ").toLowerCase();
+  if (stepText.includes("쉐이킹") || stepText.includes("shake"))
+    glass = "coupe or martini glass";
+  if (
+    ing.some((x) =>
+      ["whisky", "bourbon", "scotch", "위스키", "버번"].some((k) =>
+        x.includes(k)
+      )
+    )
+  )
+    glass = "old fashioned glass";
+
+  // ------- Garnish ------
+  let garnishList = [];
+
+  // 커피/초코/밀크 계열은 무가니시가 기본
+  if (
+    ing.some((x) =>
+      ["coffee", "espresso", "cocoa", "chocolate", "초코", "커피"].some((k) =>
+        x.includes(k)
+      )
+    )
+  ) {
+    return { color, glass, garnish: [], noGarnish: true };
+  }
+
+  // 허용되는 경우만 가니시 추가
+  if (ing.some((x) => x.includes("mint") || x.includes("민트")))
+    garnishList.push("a small mint sprig");
+  if (ing.some((x) => x.includes("lemon") || x.includes("레몬")))
+    garnishList.push("a thin lemon peel");
+  if (ing.some((x) => x.includes("lime") || x.includes("라임")))
+    garnishList.push("a lime wheel");
+  if (ing.some((x) => x.includes("orange") || x.includes("오렌지")))
+    garnishList.push("an orange slice");
+
+  if (garnishList.length === 0)
+    return { color, glass, garnish: [], noGarnish: true };
+
+  return { color, glass, garnish: garnishList, noGarnish: false };
+}
+
+// -------------------------------------------------------------
+// Canonical overrides (대표칵테일 정확도용)
+// -------------------------------------------------------------
+const colorByCocktail = {
+  "Whiskey Sour": "pale yellow with a creamy foam top",
+  Margarita: "light green or clear depending on style",
+  Mojito: "clear with mint and lime",
+  Negroni: "deep red",
+  "Old Fashioned": "amber gold",
+  Cosmopolitan: "pink",
+  "Pina Colada": "creamy white",
+  Martini: "crystal clear",
+};
+
+const glassByCocktail = {
+  "Whiskey Sour": "old fashioned glass",
+  Margarita: "margarita glass",
+  Mojito: "highball glass",
+  Negroni: "lowball glass",
+  "Old Fashioned": "rocks glass",
+  Cosmopolitan: "martini glass",
+  "Pina Colada": "hurricane glass",
+  Martini: "martini glass",
+};
+
+function buildPrompt(recipe, garnishText = "") {
+  const guessed = guessVisualSpec(recipe);
+
+  // fallback 순서: canonical 맵 → guessed → 일반
+  const expectedColor =
+    colorByCocktail[recipe.name] ||
+    guessed.color ||
+    "natural cocktail color appropriate for the recipe";
+
+  const glass =
+    glassByCocktail[recipe.name] ||
+    guessed.glass ||
+    "cocktail glass appropriate for the style";
+
   const ingredientsText = (recipe.ingredient || [])
-    .slice(0, 5)
     .map((i) => i.item)
+    .filter(Boolean)
     .join(", ");
 
-    const prompt = `
-    Realistic cocktail product photo.
-    - Cocktail name: ${recipe.name}
-    - Main ingredients: ${ingredientsText}
-    - Natural glassware and garnish matching the recipe
-    - Dark bar mood lighting but **no visible signs, no visible text**
-    - Background must be abstract, blurry, or simple shapes
-    - Absolutely no letters, no words, no numbers, no symbols
-    - No neon signs, no logos, no stickers, no menus
-    - The image must contain ZERO text or characters of ANY language
+  return `
+    Realistic high-end cocktail product photography.
 
-    `;
+    Cocktail name: ${recipe.name}
 
+    Color and appearance:
+    - The drink color must be: ${expectedColor}
+    - Do not tint the drink based on small garnish items.
+    - Natural liquid look with correct transparency and viscosity.
 
-  // 무료에서 비교적 잘 열리는 모델(권장)
+    Glassware:
+    - Serve in a ${glass}
+    - Proper fill level, no spills.
+
+    Garnish rules:
+    ${garnishText}
+
+    Background and lighting:
+    - Dark bar mood lighting.
+    - Soft reflections.
+    - Background must be abstract, blurred, or smooth gradients.
+
+    Strict rules:
+    - Absolutely no text, letters, logos, menus, symbols, signage, neon letters.
+    - No watermark.
+    - No human hands.
+
+    Recipe context (not for color):
+    - Ingredients: ${ingredientsText}
+
+    Camera:
+    - 50mm prime lens, shallow depth of field.
+    - Professional studio product shot.
+    `.trim();
+}
+
+// -------------------------------------------------------------
+// Image generation (Flux Schnell)
+// -------------------------------------------------------------
+async function generateCocktailImage(recipe) {
+  const { garnish, noGarnish } = guessVisualSpec(recipe);
+
+  let garnishText = `
+    - The drink must have no garnish of any kind.
+    - No citrus, no fruits, no herbs, no decor on or near the glass.
+    - The surface of the drink must be perfectly clean.
+    `.trim();
+
+  if (!noGarnish) {
+    garnishText = `
+    - The only decoration allowed is: ${garnish.join(", ")}.
+    - No additional fruits, herbs, or decor beyond the allowed item(s).
+    `.trim();
+  }
+
+  const prompt = buildPrompt(recipe, garnishText);
+
   const model = "black-forest-labs/FLUX.1-schnell";
 
   const out = await hf.textToImage({
@@ -76,15 +254,17 @@ async function generateCocktailImage(recipe) {
       height: 768,
       width: 768,
       num_inference_steps: 16,
-      guidance_scale: 6.5,
+      guidance_scale: 7,
     },
   });
 
-  // out은 Blob 이라서 Buffer로 변환
   const arrayBuffer = await out.arrayBuffer();
   return Buffer.from(arrayBuffer);
 }
 
+// -------------------------------------------------------------
+// Gemini retry helper
+// -------------------------------------------------------------
 async function generateWithRetry(prompt, configOverride = {}) {
   const MAX_RETRY = 7;
 
@@ -115,6 +295,79 @@ async function generateWithRetry(prompt, configOverride = {}) {
   }
 }
 
+// -------------------------------------------------------------
+// Bartender 레시피 텍스트 파싱 (칵테일 이름/재료/제조과정/코멘트만 추출)
+// -------------------------------------------------------------
+function parseBartenderRecipe(text = "") {
+  try {
+    // 1) 칵테일 이름
+    const nameMatch = text.match(/칵테일 이름:\s*(.+)/);
+    // 2) 도수
+    const abvMatch = text.match(/도수:\s*(\d+)\s*%/);
+
+    // 3) [재료] ~ [제조 과정] 구간
+    const ingSectionMatch = text.match(/\[재료\]([\s\S]*?)\[제조 과정\]/);
+    // 4) [제조 과정] ~ [코멘트] 구간
+    const stepSectionMatch = text.match(/\[제조 과정\]([\s\S]*?)\[코멘트\]/);
+    // 5) [코멘트] 이후
+    const commentSectionMatch = text.match(/\[코멘트\]\s*([\s\S]*)/);
+
+    if (!nameMatch || !ingSectionMatch || !stepSectionMatch) {
+      // 필수 섹션이 없으면 레시피가 아니라고 판단
+      return null;
+    }
+
+    // --- 재료 파싱 ---
+    const ingredientLines = ingSectionMatch[1]
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.startsWith("-"));
+
+    const ingredient = ingredientLines.map((line) => {
+      const noDash = line.replace(/^-+/, "").trim(); // "- " 제거
+      // 마지막 공백 기준으로 "이름" / "용량" 나누기 (예: "진 45ml")
+      const idx = noDash.lastIndexOf(" ");
+      if (idx === -1) {
+        return { item: noDash, volume: "" };
+      }
+      return {
+        item: noDash.slice(0, idx).trim(),
+        volume: noDash.slice(idx + 1).trim(),
+      };
+    });
+
+    // --- 제조 과정 파싱 ---
+    const stepLines = stepSectionMatch[1]
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => /^\d+\./.test(l)); // "1. ", "2. " 등
+
+    const step = stepLines.map((l) => l.replace(/^\d+\.\s*/, "").trim());
+
+    // --- 코멘트 ---
+    let comment = "";
+    if (commentSectionMatch) {
+      comment = commentSectionMatch[1].trim().split("\n")[0];
+    }
+
+    if (!ingredient.length || !step.length) return null;
+
+    return {
+      name: nameMatch[1].trim(),
+      abv: abvMatch ? parseInt(abvMatch[1], 10) : null,
+      ingredient,
+      step,
+      comment,
+    };
+  } catch (e) {
+    console.error("바텐더 레시피 파싱 실패:", e);
+    return null;
+  }
+}
+
+// -------------------------------------------------------------
+// Recipe generation prompt
+// -------------------------------------------------------------
 async function generateCocktailRecommendation(requirements) {
   const { taste, baseSpirit, keywords, abv } = requirements;
 
@@ -134,7 +387,9 @@ async function generateCocktailRecommendation(requirements) {
   }
 
   if (keywords && keywords.length > 0) {
-    prompt += `- 포함되어야 할 특징/재료: ${keywords.join(", ")} 등의 요소를 포함해야 함.\n`;
+    prompt += `- 포함되어야 할 특징/재료: ${keywords.join(
+      ", "
+    )} 등의 요소를 포함해야 함.\n`;
   }
 
   let abvText = "";
@@ -193,7 +448,9 @@ async function generateCocktailRecommendation(requirements) {
   return response.text;
 }
 
+// -------------------------------------------------------------
 // Generate recipe + image + upload to S3
+// -------------------------------------------------------------
 router.post("/", async (req, res) => {
   const { baseSpirit, rawTaste, rawKeywords, abv } = req.body || {};
 
@@ -214,7 +471,9 @@ router.post("/", async (req, res) => {
   const requirements = { baseSpirit, taste, keywords, abv };
 
   try {
-    const jsonRecipeString = await generateCocktailRecommendation(requirements);
+    const jsonRecipeString = await generateCocktailRecommendation(
+      requirements
+    );
 
     let recipe;
     try {
@@ -247,7 +506,9 @@ router.post("/", async (req, res) => {
   }
 });
 
+// -------------------------------------------------------------
 // Save generated recipe
+// -------------------------------------------------------------
 router.post("/save", authRequired, async (req, res, next) => {
   const userId = req.user.id;
 
@@ -282,12 +543,10 @@ router.post("/save", authRequired, async (req, res, next) => {
     }
 
     const taste =
-      rawTaste &&
-      rawTaste.split(",").map((t) => t.trim()).filter(Boolean);
+      rawTaste && rawTaste.split(",").map((t) => t.trim()).filter(Boolean);
 
     const keywords =
-      rawKeywords &&
-      rawKeywords.split(",").map((k) => k.trim()).filter(Boolean);
+      rawKeywords && rawKeywords.split(",").map((k) => k.trim()).filter(Boolean);
 
     const stepArray = Array.isArray(step)
       ? step
@@ -338,7 +597,9 @@ router.post("/save", authRequired, async (req, res, next) => {
   }
 });
 
+// -------------------------------------------------------------
 // List saved recipes (with search + paging)
+// -------------------------------------------------------------
 router.get("/save", authRequired, async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -425,7 +686,9 @@ router.get("/save", authRequired, async (req, res, next) => {
   }
 });
 
+// -------------------------------------------------------------
 // Get one saved recipe
+// -------------------------------------------------------------
 router.get("/save/:id", authRequired, async (req, res, next) => {
   const userId = req.user.id;
   const { id } = req.params;
@@ -450,7 +713,9 @@ router.get("/save/:id", authRequired, async (req, res, next) => {
   }
 });
 
+// -------------------------------------------------------------
 // Delete saved recipe
+// -------------------------------------------------------------
 router.delete("/save/:id", authRequired, async (req, res, next) => {
   const userId = req.user.id;
   const { id } = req.params;
@@ -484,12 +749,14 @@ router.delete("/save/:id", authRequired, async (req, res, next) => {
   }
 });
 
-// Bartender chat
+// -------------------------------------------------------------
+// Bartender chat (레시피일 때만 recipe 객체 내려줌)
+// -------------------------------------------------------------
 router.post("/bartender-chat", authRequired, async (req, res, next) => {
   try {
     const { messages } = req.body || {};
 
-    const lastUserMessage = [...messages]
+    const lastUserMessage = [...(messages || [])]
       .reverse()
       .find((m) => m.role === "user");
     const lastContent = lastUserMessage?.content?.trim() ?? "";
@@ -540,9 +807,9 @@ router.post("/bartender-chat", authRequired, async (req, res, next) => {
       - 높은 도수(20% 이상)는 베이스 술 또는 리큐르 양을 늘립니다.
       - 재료 구성과 도수가 모순되지 않도록 합니다.
       - 가능한 경우 실존하는 칵테일을 기반으로 레시피를 구성합니다.
-      `;
+      `.trim();
 
-    const conversationText = messages
+    const conversationText = (messages || [])
       .map((m) => {
         const prefix = m.role === "user" ? "사용자" : "바텐더";
         return `${prefix}: ${m.content}`;
@@ -556,16 +823,39 @@ router.post("/bartender-chat", authRequired, async (req, res, next) => {
       ${conversationText}
 
       위 대화를 이어서, "바텐더" 역할로 자연스럽게 한 번만 답변하세요.
-      `;
+      `.trim();
 
     const response = await generateWithRetry(prompt);
     const replyText = response.text;
 
     const trimmed =
-      replyText.trim() ||
+      (replyText && replyText.trim()) ||
       "지금은 잠시 레시피를 만들기 어렵습니다. 조금 뒤에 다시 시도해 주세요.";
-
-    return res.json({ reply: trimmed });
+    
+    const parsedRecipe = parseBartenderRecipe(trimmed);
+    // 레시피 형식일 때만 파싱 → recipe 객체 생성
+    if (!parsedRecipe) {
+      return res.json({
+        reply: trimmed,
+        recipe: null,
+      });
+    }
+    
+    let imageUrl = null;
+    try {
+      const imageBuffer = await generateCocktailImage(parsedRecipe);
+      imageUrl = await uploadImageToS3(imageBuffer, parsedRecipe.name);
+    } catch (e) {
+      console.error("이미지 생성/업로드 실패:", e.message);
+    }
+    
+    // 응답용 객체에 붙이기
+    parsedRecipe.image_url = imageUrl ?? null;
+    
+    return res.json({
+      reply: trimmed,
+      recipe: parsedRecipe,
+    });
   } catch (err) {
     next(err);
   }

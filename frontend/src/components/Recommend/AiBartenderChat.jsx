@@ -1,4 +1,11 @@
 // frontend/src/components/Recipe/AiBartenderChat.jsx
+// -------------------------------------------------------------
+// 🧪 AI 바텐더 대화 컴포넌트
+// - 일반 대화 → 저장 버튼 없음
+// - 레시피 형식으로 응답 왔을 때만 "이 레시피 저장하기" 버튼 노출
+// - 저장 시 /api/gemeni/save 호출해서 ai_cocktails 테이블에 저장
+//   (백엔드에서 bartender-chat 응답에 recipe.image_url까지 내려준다고 가정)
+// -------------------------------------------------------------
 
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
@@ -11,7 +18,7 @@ export default function AiBartenderChat() {
   const isLoggedIn = !!user;
   const navigate = useNavigate();
 
-  const [showLoginModal, setShowLoginModal] = useState(false); // 비 로그인시 모달 상태 관리
+  const [showLoginModal, setShowLoginModal] = useState(false); // 비로그인 시 모달
 
   const [messages, setMessages] = useState([
     {
@@ -25,6 +32,11 @@ export default function AiBartenderChat() {
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
 
+  // 마지막 바텐더 답변에서 파싱된 레시피 (레시피가 아닐 땐 null)
+  const [lastRecipe, setLastRecipe] = useState(null);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -34,8 +46,13 @@ export default function AiBartenderChat() {
       setShowLoginModal(true);
       return;
     }
+
     const text = input.trim();
     if (!text || loading) return;
+
+    // 새로운 메시지를 보낼 때마다 이전 레시피는 초기화
+    setLastRecipe(null);
+    setSaveMessage("");
 
     const nextMessages = [
       ...messages,
@@ -61,6 +78,11 @@ export default function AiBartenderChat() {
         res.data?.reply ??
         "레시피 서버에서 응답을 받지 못했어요. 잠시 후 다시 시도해 주세요.";
 
+      // 🔥 백엔드에서 온 recipe (레시피가 아니면 null)
+      // 여기 안에 image_url도 포함되어 있다고 가정
+      const recipeFromServer = res.data?.recipe ?? null;
+      setLastRecipe(recipeFromServer);
+
       setMessages((prev) => [
         ...prev,
         { id: crypto.randomUUID(), role: "assistant", content: reply },
@@ -76,6 +98,7 @@ export default function AiBartenderChat() {
             "지금은 바텐더가 잠깐 쉬는 중이에요 🥲\n잠시 후 다시 시도해 주세요.",
         },
       ]);
+      setLastRecipe(null);
     } finally {
       setLoading(false);
     }
@@ -85,6 +108,46 @@ export default function AiBartenderChat() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  // ✅ 마이페이지 저장 (image_url까지 포함해서 저장)
+  const handleSaveRecipe = async () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (!lastRecipe) return;
+
+    try {
+      setSaveLoading(true);
+      setSaveMessage("");
+
+      await axios.post(
+        "/api/gemeni/save",
+        {
+          name: lastRecipe.name,
+          ingredient: lastRecipe.ingredient, // [{ item, volume }]
+          step: lastRecipe.step, // string[]
+          comment: lastRecipe.comment || "",
+          base: "", // 챗에서는 굳이 안 쓰면 빈 문자열
+          rawTaste: "",
+          rawKeywords: "",
+          abv: lastRecipe.abv ?? null,
+          // 🔥 여기서 lastRecipe 안의 image_url까지 같이 넘겨줌
+          image_url: lastRecipe.image_url ?? null,
+        },
+        { withCredentials: true }
+      );
+
+      setSaveMessage("마이페이지에 레시피가 저장되었습니다. 🍸");
+    } catch (err) {
+      console.error(err);
+      setSaveMessage(
+        "레시피 저장 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요."
+      );
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -158,6 +221,27 @@ export default function AiBartenderChat() {
         * 칵테일/술 관련 대화만 가능합니다. AI가 생성한 레시피는 실제 도수와
         다를 수 있으니 참고용으로 사용해 주세요.
       </p>
+
+      {/* 레시피가 감지된 경우에만 저장 영역 표시 */}
+      {lastRecipe && (
+        <div className="mt-2 flex items-center justify-between text-[11px]">
+          <span className="text-slate-500">
+            이 레시피를 마음에 들어하셨나요? 마이페이지에 저장할 수 있어요.
+          </span>
+          <button
+            type="button"
+            onClick={handleSaveRecipe}
+            disabled={saveLoading}
+            className="ml-2 px-3 py-1.5 rounded-xl text-[11px] font-medium bg-amber-400 text-slate-950 hover:bg-amber-300 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer"
+          >
+            {saveLoading ? "저장 중..." : "이 레시피 저장하기"}
+          </button>
+        </div>
+      )}
+
+      {saveMessage && (
+        <p className="mt-1 text-[11px] text-emerald-400">{saveMessage}</p>
+      )}
 
       {showLoginModal && (
         <LoginRequiredModal
