@@ -3,6 +3,7 @@ import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import ContentWriting from "./ContentWriting";
+import CommonModal from "@/components/CommonModal";
 
 export default function CommunityWriting() {
   const navigate = useNavigate();
@@ -12,6 +13,10 @@ export default function CommunityWriting() {
   const [bodyHTML, setBodyHTML] = useState(""); // ← 본문 HTML
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [openFailModal, setOpenFailModal] = useState(false);
+  const [failMsg, setFailMsg] = useState("");
 
   const parseTags = (text) =>
     text
@@ -51,17 +56,13 @@ export default function CommunityWriting() {
         tags: parsedTags,
       });
 
-      alert(
-        res.status === 201
-          ? "게시글이 등록되었습니다!"
-          : "등록이 완료되었습니다."
-      );
       setForm({ title: "", tags: "" });
       setBodyHTML("");
-      navigate("/community");
+      setOpenSuccessModal(true);
     } catch (err) {
       console.error(err);
-      alert("게시글 등록 중 오류가 발생했습니다.");
+      setFailMsg("게시글 등록 중 오류가 발생했습니다.");
+      setOpenFailModal(true);
     } finally {
       setLoading(false);
     }
@@ -150,6 +151,27 @@ export default function CommunityWriting() {
           </div>
         </form>
       </section>
+
+      <CommonModal
+        open={openSuccessModal}
+        onClose={() => {}} // 닫기 불가
+        dimClose={false} // 바깥 클릭으로 닫히지 않음
+        title="게시글 등록 완료!"
+        message="게시글이 성공적으로 등록되었습니다."
+        confirmText="커뮤니티로 이동"
+        onConfirm={() => {
+          setOpenSuccessModal(false);
+          navigate("/community");
+        }}
+      />
+
+      <CommonModal
+        open={openFailModal}
+        onClose={() => setOpenFailModal(false)}
+        title="등록 실패"
+        message={failMsg}
+        cancelText="닫기"
+      />
     </main>
   );
 }
