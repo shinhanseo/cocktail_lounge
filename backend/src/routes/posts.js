@@ -26,7 +26,7 @@ router.get("/latest", async (req, res, next) => {
     const limit = Number(req.query.limit ?? 5);
 
     const rows = await db.query(
-      `SELECT p.id, p.title, u.login_id AS author, p.created_at
+      `SELECT p.id, p.title, u.nickname AS author, p.created_at
        FROM posts p
        LEFT JOIN users u ON u.id = p.user_id
        ORDER BY p.id DESC
