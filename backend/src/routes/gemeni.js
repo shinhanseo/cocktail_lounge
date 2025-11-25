@@ -52,14 +52,19 @@ async function generateCocktailImage(recipe) {
     .map((i) => i.item)
     .join(", ");
 
-  const prompt = `
+    const prompt = `
     Realistic cocktail product photo.
     - Cocktail name: ${recipe.name}
     - Main ingredients: ${ingredientsText}
     - Natural glassware and garnish matching the recipe
-    - Dark bar mood with neon lighting
-    - No text or logo
-    `.trim();
+    - Dark bar mood lighting but **no visible signs, no visible text**
+    - Background must be abstract, blurry, or simple shapes
+    - Absolutely no letters, no words, no numbers, no symbols
+    - No neon signs, no logos, no stickers, no menus
+    - The image must contain ZERO text or characters of ANY language
+
+    `;
+
 
   // 무료에서 비교적 잘 열리는 모델(권장)
   const model = "black-forest-labs/FLUX.1-schnell";
