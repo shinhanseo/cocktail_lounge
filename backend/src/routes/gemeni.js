@@ -2,51 +2,84 @@ import { GoogleGenAI } from "@google/genai";
 import { Router } from "express";
 import { authRequired } from "../middlewares/jwtauth.js";
 import db from "../db/client.js";
+import axios from "axios";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import crypto from "crypto";
+import { HfInference } from "@huggingface/inference";
 
 const router = Router();
-const GOOGLE_GEMENI_ID = process.env.GOOGLE_GEMENI_ID;
-const ai = new GoogleGenAI({ apiKey: GOOGLE_GEMENI_ID });
 
-function isCocktailRelated(text = "") {
-  const lower = text.toLowerCase();
-  const keywords = [
-    "칵테일",
-    "cocktail",
-    "술",
-    "주류",
-    "위스키",
-    "whisky",
-    "진",
-    "gin",
-    "보드카",
-    "vodka",
-    "럼",
-    "rum",
-    "테킬라",
-    "tequila",
-    "와인",
-    "wine",
-    "하이볼",
-    "highball",
-    "샷",
-    "shot",
-    "기주",
-    "베이스",
-    "base",
-    "abv",
-    "도수",
-    "온더락",
-    "락",
-    "라임",
-    "레몬",
-    "시럽",
-    "liqueur",
-  ];
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMENI_ID });
 
-  return keywords.some((k) => lower.includes(k) || text.includes(k));
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+const hf = new HfInference(process.env.HF_TOKEN);
+
+// S3 upload
+async function uploadImageToS3(imageBuffer, recipeName) {
+  const bucket = process.env.AWS_S3_BUCKET;
+
+  const safeName = String(recipeName || "ai-cocktail")
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣-_]/g, "-")
+    .slice(0, 40);
+
+  const key = `ai_cocktails/${safeName}-${crypto.randomUUID()}.png`;
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: imageBuffer,
+      ContentType: "image/png",
+    })
+  );
+
+  return `${process.env.AWS_S3_PUBLIC_BASE}/${key}`;
 }
 
-// Ai 모델 생성이 503 오버로드가 자주 발생해서 최대 3번까진 서버에서 자체적으로 돌리기기
+// HuggingFace image generation (free-tier friendly)
+// Returns PNG buffer
+async function generateCocktailImage(recipe) {
+  const ingredientsText = (recipe.ingredient || [])
+    .slice(0, 5)
+    .map((i) => i.item)
+    .join(", ");
+
+  const prompt = `
+    Realistic cocktail product photo.
+    - Cocktail name: ${recipe.name}
+    - Main ingredients: ${ingredientsText}
+    - Natural glassware and garnish matching the recipe
+    - Dark bar mood with neon lighting
+    - No text or logo
+    `.trim();
+
+  // 무료에서 비교적 잘 열리는 모델(권장)
+  const model = "black-forest-labs/FLUX.1-schnell";
+
+  const out = await hf.textToImage({
+    model,
+    inputs: prompt,
+    parameters: {
+      height: 768,
+      width: 768,
+      num_inference_steps: 16,
+      guidance_scale: 6.5,
+    },
+  });
+
+  // out은 Blob 이라서 Buffer로 변환
+  const arrayBuffer = await out.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
 async function generateWithRetry(prompt, configOverride = {}) {
   const MAX_RETRY = 7;
 
@@ -77,31 +110,26 @@ async function generateWithRetry(prompt, configOverride = {}) {
   }
 }
 
-// AI 호출 함수
 async function generateCocktailRecommendation(requirements) {
-  const { taste, baseSpirit, keywords, abv } = requirements; 
-  
+  const { taste, baseSpirit, keywords, abv } = requirements;
+
   let tasteString = null;
   if (Array.isArray(taste) && taste.length > 0) {
-    if (taste.length === 1) {
-      tasteString = taste[0] + "한";
-    } else {
-      tasteString = taste.join(", ") + "한";
-    }
+    tasteString = taste.length === 1 ? taste[0] + "한" : taste.join(", ") + "한";
   }
 
   let prompt = "다음 요구사항에 맞춰 창의적인 칵테일 레시피를 생성해줘.\n";
 
   if (baseSpirit) {
-    prompt += `- **주요 기주(Base Spirit):** 반드시 ${baseSpirit}를(을) 사용해야 함.\n`;
+    prompt += `- 주요 기주(Base Spirit): 반드시 ${baseSpirit}를(을) 사용해야 함.\n`;
   }
 
   if (tasteString) {
-    prompt += `- **주요 맛:** ${tasteString} 느낌의 칵테일이어야 함.\n`;
+    prompt += `- 주요 맛: ${tasteString} 느낌의 칵테일이어야 함.\n`;
   }
 
   if (keywords && keywords.length > 0) {
-    prompt += `- **포함되어야 할 특징/재료:** ${keywords.join(", ")} 등의 요소를 포함해야 함.\n`;
+    prompt += `- 포함되어야 할 특징/재료: ${keywords.join(", ")} 등의 요소를 포함해야 함.\n`;
   }
 
   let abvText = "";
@@ -118,23 +146,23 @@ async function generateCocktailRecommendation(requirements) {
     }
   }
   if (abvText) {
-    prompt += `- **도수(ABV) 조건:** ${abvText} 이어야 합니다.\n`;
+    prompt += `- 도수(ABV) 조건: ${abvText} 이어야 합니다.\n`;
   }
 
   prompt += `--- 출력 형식 ---
-    아래 JSON 스키마를 **정확히** 지키세요.
+    아래 JSON 스키마를 정확히 지키세요.
     JSON 외의 설명 문장, 마크다운, 코드블록, 주석 등은 일절 포함하지 마세요.
 
     {
       "name": "칵테일 이름 (string)",
-      "abv" : 도수
+      "abv": 12,
       "ingredient": [
         {
           "item": "재료 이름 (string)",
           "volume": "용량 (string, 예: 45ml)"
         }
       ],
-      "step": ["1단계", "2단계", "3단계"]"칵테일 제조 과정을 여러 문장으로 자세히 설명했지만, 그걸 단계별로 나눠 배열로 각각 저장",
+      "step": ["1단계", "2단계", "3단계"],
       "comment": "맛을 한줄로 표현한 짧은 코멘트"
     }
 
@@ -143,83 +171,92 @@ async function generateCocktailRecommendation(requirements) {
     - 모든 텍스트는 한국어로 작성하세요.
     - ingredient 배열에는 최소 3개 이상의 재료를 포함하세요.
     - step은 2~6단계 정도로 자연스러운 문장으로 작성하세요.
-    - step의 경우 단계별로 배열로 저장해서 반환하세요.
+    - step은 단계별 배열로 반환하세요.
     - comment는 20자 이하로 간결하게 작성하세요.
     - 만약 대표적인 칵테일이 있다면 그 칵테일의 레시피를 소개하세요.
     - baseSpirit, taste, keywords, abv 조건을 반드시 반영하세요.
-    - 사용자가 입력한 abv 값이 있다면, abv 필드에는 그 값과 최대한 가까운 정수를 적으세요.
-    - 도수가 낮은 칵테일(약 5~10%)일수록 베이스 술의 양을 줄이고, 논알코올 재료의 비중을 높이세요.
+    - 사용자가 입력한 abv 값이 있다면 abv 필드에는 그 값과 최대한 가까운 정수를 적으세요.
+    - 도수가 낮은 칵테일(약 5~10%)일수록 베이스 술의 양을 줄이고 논알코올 재료의 비중을 높이세요.
     - 도수가 높은 칵테일(약 20% 이상)일수록 베이스 술이나 리큐르의 비율을 늘리세요.
     - 재료 비율과 abv 설명이 서로 모순되지 않도록 노력하세요.
     - 가급적 인터넷에 존재하는 칵테일을 기준으로 레시피를 짜세요.
     `;
-  try {
-    const response = await generateWithRetry(prompt, {
-      responseMimeType: "application/json",
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Gemini API 호출 중 오류 발생:", error);
-    throw new Error("칵테일 추천 레시피를 생성할 수 없습니다.");
-  }
+
+  const response = await generateWithRetry(prompt, {
+    responseMimeType: "application/json",
+  });
+  return response.text;
 }
 
+// Generate recipe + image + upload to S3
 router.post("/", async (req, res) => {
-  // 프론트에서 오는 형태: { baseSpirit, rawTaste, rawKeywords }
-  const { baseSpirit, rawTaste, rawKeywords } = req.body || {};
+  const { baseSpirit, rawTaste, rawKeywords, abv } = req.body || {};
 
-  // 문자열을 배열로 변환
   const taste = rawTaste
-    ? rawTaste
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean)
+    ? rawTaste.split(",").map((t) => t.trim()).filter(Boolean)
     : [];
 
   const keywords = rawKeywords
-    ? rawKeywords
-        .split(",")
-        .map((k) => k.trim())
-        .filter(Boolean)
+    ? rawKeywords.split(",").map((k) => k.trim()).filter(Boolean)
     : [];
 
-  // 검증 로직: taste 배열도 같이 고려
   if (!baseSpirit && taste.length === 0) {
     return res.status(400).json({
       error: "맛(Taste)이나 기주(Base Spirit) 중 하나는 반드시 입력해야 합니다.",
     });
   }
 
-  const requirements = { baseSpirit, taste, keywords };
+  const requirements = { baseSpirit, taste, keywords, abv };
 
   try {
     const jsonRecipeString = await generateCocktailRecommendation(requirements);
 
-    res.status(200).json({
-      recipe: JSON.parse(jsonRecipeString),
+    let recipe;
+    try {
+      recipe = JSON.parse(jsonRecipeString);
+    } catch (e) {
+      console.error("AI JSON 파싱 실패 원문:", jsonRecipeString);
+      throw new Error("AI가 올바른 JSON을 반환하지 않았습니다.");
+    }
+
+    let imageUrl = null;
+    try {
+      const imageBuffer = await generateCocktailImage(recipe);
+      imageUrl = await uploadImageToS3(imageBuffer, recipe.name);
+    } catch (e) {
+      console.error("이미지 생성/업로드 실패:", e.message);
+    }
+
+    recipe.image_url = imageUrl;
+
+    return res.status(200).json({
+      recipe,
+      imageUrl,
       taste,
       keywords,
-
+      abv,
     });
   } catch (error) {
     console.error("추천 생성 에러:", error);
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
+// Save generated recipe
 router.post("/save", authRequired, async (req, res, next) => {
   const userId = req.user.id;
 
   try {
     const {
-      name,          // AI가 만든 칵테일 이름
-      ingredient,    // [{ item, volume }, ...]
-      step,          // string[]
-      comment,       // 한줄 코멘트
-      base,    // 사용자가 입력한 기주 (optional)
-      rawTaste,      // "상큼,달콤" 이런 문자열 (optional)
-      rawKeywords,   // "레몬,민트" 이런 문자열 (optional)
-      abv, // 도수
+      name,
+      ingredient,
+      step,
+      comment,
+      base,
+      rawTaste,
+      rawKeywords,
+      abv,
+      image_url,
     } = req.body || {};
 
     const check = await db.query(
@@ -232,28 +269,21 @@ router.post("/save", authRequired, async (req, res, next) => {
         .status(400)
         .json({ error: "동일한 칵테일을 이미 저장하셨습니다." });
     }
+
     if (!name || !ingredient || !step) {
       return res
         .status(400)
         .json({ error: "name, ingredient, step 은 필수입니다." });
     }
 
-    // taste/keywords 문자열을 배열로 변환
     const taste =
       rawTaste &&
-      rawTaste
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
+      rawTaste.split(",").map((t) => t.trim()).filter(Boolean);
 
     const keywords =
       rawKeywords &&
-      rawKeywords
-        .split(",")
-        .map((k) => k.trim())
-        .filter(Boolean);
+      rawKeywords.split(",").map((k) => k.trim()).filter(Boolean);
 
-    // step이 문자열이면 줄바꿈 기준으로 배열로 변환
     const stepArray = Array.isArray(step)
       ? step
       : String(step)
@@ -261,7 +291,7 @@ router.post("/save", authRequired, async (req, res, next) => {
           .map((s) => s.trim())
           .filter(Boolean);
 
-    const row = await db.query(
+    const [row] = await db.query(
       `
       INSERT INTO ai_cocktails (
         user_id,
@@ -272,10 +302,11 @@ router.post("/save", authRequired, async (req, res, next) => {
         ingredient,
         step,
         comment,
-        abv
+        abv,
+        image_url
       )
-      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9)
-      RETURNING id, created_at
+      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10)
+      RETURNING id, created_at, image_url
       `,
       [
         userId,
@@ -286,13 +317,15 @@ router.post("/save", authRequired, async (req, res, next) => {
         JSON.stringify(ingredient),
         stepArray,
         comment || null,
-        abv || null,
+        abv ? Number(abv) : null,
+        image_url || null,
       ]
     );
 
-    res.status(201).json({
+    return res.status(201).json({
       id: row.id,
       created_at: row.created_at,
+      image_url: row.image_url,
       message: "AI 레시피가 저장되었습니다.",
     });
   } catch (err) {
@@ -300,23 +333,21 @@ router.post("/save", authRequired, async (req, res, next) => {
   }
 });
 
+// List saved recipes (with search + paging)
 router.get("/save", authRequired, async (req, res, next) => {
   try {
-    const userId = req.user.id; // 인증에서 넣어주는 값이라고 가정
+    const userId = req.user.id;
     const page = Math.max(parseInt(req.query.page ?? "1", 10), 1);
     const limit = Math.max(parseInt(req.query.limit ?? "5", 10), 1);
     const offset = (page - 1) * limit;
     const keyword = (req.query.keyword ?? "").trim();
 
-    // ------------------------------
-    // WHERE + params 구성
-    // ------------------------------
     let whereClauses = ["user_id = $1"];
     let params = [userId];
 
     if (keyword) {
       params.push(keyword);
-      const idx = params.length; // $2, $3 등
+      const idx = params.length;
 
       whereClauses.push(`
         (
@@ -336,9 +367,6 @@ router.get("/save", authRequired, async (req, res, next) => {
 
     const whereSql = "WHERE " + whereClauses.join(" AND ");
 
-    // ------------------------------
-    // 1) 전체 개수 (검색 반영)
-    // ------------------------------
     const countRows = await db.query(
       `
       SELECT COUNT(*)::int AS count
@@ -353,10 +381,7 @@ router.get("/save", authRequired, async (req, res, next) => {
     const hasPrev = page > 1;
     const hasNext = page < pageCount;
 
-    // ------------------------------
-    // 2) 실제 목록 조회 (검색 + 페이징)
-    // ------------------------------
-    params.push(limit, offset); // limit, offset 추가
+    params.push(limit, offset);
 
     const rows = await db.query(
       `
@@ -367,6 +392,8 @@ router.get("/save", authRequired, async (req, res, next) => {
         taste,
         keywords,
         comment,
+        abv,
+        image_url,
         to_char(created_at, 'YYYY-MM-DD') AS created_at
       FROM ai_cocktails
       ${whereSql}
@@ -377,10 +404,7 @@ router.get("/save", authRequired, async (req, res, next) => {
       params
     );
 
-    // ------------------------------
-    // 응답
-    // ------------------------------
-    res.json({
+    return res.json({
       items: rows,
       meta: {
         total,
@@ -396,6 +420,7 @@ router.get("/save", authRequired, async (req, res, next) => {
   }
 });
 
+// Get one saved recipe
 router.get("/save/:id", authRequired, async (req, res, next) => {
   const userId = req.user.id;
   const { id } = req.params;
@@ -403,7 +428,7 @@ router.get("/save/:id", authRequired, async (req, res, next) => {
   try {
     const [row] = await db.query(
       `
-      SELECT id, name, base, taste, keywords, ingredient, step, comment, created_at, abv
+      SELECT id, name, base, taste, keywords, ingredient, step, comment, created_at, abv, image_url
       FROM ai_cocktails
       WHERE id = $1 AND user_id = $2
       `,
@@ -414,95 +439,103 @@ router.get("/save/:id", authRequired, async (req, res, next) => {
       return res.status(404).json({ error: "레시피를 찾을 수 없습니다." });
     }
 
-    res.json(row);
+    return res.json(row);
   } catch (err) {
     next(err);
   }
 });
 
+// Delete saved recipe
 router.delete("/save/:id", authRequired, async (req, res, next) => {
   const userId = req.user.id;
   const { id } = req.params;
 
-  try{
+  try {
     const rows = await db.query(
       `
       SELECT user_id FROM ai_cocktails 
       WHERE id = $1 AND user_id = $2
-      `, [id, userId]
+      `,
+      [id, userId]
     );
 
-    if (!rows.length) return res.status(404).json({ message: "레시피피 없음" });
-    if (rows[0].user_id !== req.user.id) return res.status(403).json({ message: "권한 없음" });
+    if (!rows.length)
+      return res.status(404).json({ message: "레시피 없음" });
+
+    if (rows[0].user_id !== req.user.id)
+      return res.status(403).json({ message: "권한 없음" });
 
     await db.query(
       `
       DELETE FROM ai_cocktails 
       WHERE id = $1 AND user_id = $2
-      `, [id, userId]
+      `,
+      [id, userId]
     );
-    res.json({ message: "삭제 완료" });
-  }catch(err){
+
+    return res.json({ message: "삭제 완료" });
+  } catch (err) {
     next(err);
   }
-})
+});
 
+// Bartender chat
 router.post("/bartender-chat", authRequired, async (req, res, next) => {
   try {
     const { messages } = req.body || {};
 
-    const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
+    const lastUserMessage = [...messages]
+      .reverse()
+      .find((m) => m.role === "user");
     const lastContent = lastUserMessage?.content?.trim() ?? "";
 
     if (!lastContent) {
       return res.status(400).json({ error: "사용자 메시지가 비어 있습니다." });
     }
 
-    // 시스템 프롬프트
     const systemPrompt = `
-    당신은 한국어를 사용하는 "AI 칵테일 바텐더"입니다.
+      당신은 한국어를 사용하는 "AI 칵테일 바텐더"입니다.
 
-    [대화 규칙]
-    - 반드시 칵테일, 술, 재료, 맛, 도수, 분위기, 제조 방법과 관련된 이야기만 합니다.
-    - 다른 주제(연애, 주식, 코딩, 게임 등)가 나오면
-      "저는 칵테일 전용 바텐더라서, 술/칵테일 관련 이야기만 도와드릴 수 있어요." 라고 말한 뒤
-      사용자의 취향(기주, 맛, 도수, 분위기 등)을 자연스럽게 다시 질문합니다.
-    - 레시피가 아닌 일반 대화는 3문장 이하로 짧고 친절하게 대답합니다.
-    - 모든 답변은 한국어로 합니다.
+      [대화 규칙]
+      - 반드시 칵테일, 술, 재료, 맛, 도수, 분위기, 제조 방법과 관련된 이야기만 합니다.
+      - 다른 주제(연애, 주식, 코딩, 게임 등)가 나오면
+        "저는 칵테일 전용 바텐더라서, 술/칵테일 관련 이야기만 도와드릴 수 있어요." 라고 말한 뒤
+        사용자의 취향(기주, 맛, 도수, 분위기 등)을 자연스럽게 다시 질문합니다.
+      - 레시피가 아닌 일반 대화는 3문장 이하로 짧고 친절하게 대답합니다.
+      - 모든 답변은 한국어로 합니다.
 
-    [레시피 출력 규칙]
-    - 사용자가 레시피, 제조 방법, 만들기 등을 요청하면 반드시 아래 형식으로 "텍스트만" 출력합니다.
-    - 마크다운, 코드블록, JSON, 따옴표, 설명 문장, 부가 텍스트는 절대 포함하지 않습니다.
-    - 보기 좋은 순서와 줄바꿈을 유지해야 합니다.
+      [레시피 출력 규칙]
+      - 사용자가 레시피, 제조 방법, 만들기 등을 요청하면 반드시 아래 형식으로 "텍스트만" 출력합니다.
+      - 마크다운, 코드블록, JSON, 따옴표, 설명 문장, 부가 텍스트는 절대 포함하지 않습니다.
 
-    --- 레시피 출력 형식 ---
-    칵테일 이름: (칵테일 이름)
-    도수: (정수)% 
+      --- 레시피 출력 형식 ---
+      칵테일 이름: (칵테일 이름)
+      도수: (정수)% 
 
-    [재료]
-    - 재료1 이름 용량
-    - 재료2 이름 용량
-    - 재료3 이름 용량
-    (최소 3개 이상)
+      [재료]
+      - 재료1 이름 용량
+      - 재료2 이름 용량
+      - 재료3 이름 용량
+      (최소 3개 이상)
 
-    [제조 과정]
-    1. 첫 번째 단계
-    2. 두 번째 단계
-    3. 세 번째 단계
-    (2~6단계)
+      [제조 과정]
+      1. 첫 번째 단계
+      2. 두 번째 단계
+      3. 세 번째 단계
+      (2~6단계)
 
-    [코멘트]
-    20자 이하 짧은 맛 표현
-    ------------------------
+      [코멘트]
+      20자 이하 짧은 맛 표현
+      ------------------------
 
-    [레시피 구성 조건]
-    - 사용자의 조건(baseSpirit, taste, keywords, abv 등)을 최대한 반영합니다.
-    - 사용자가 도수(abv)를 요구하면 도수는 그 값과 가장 가까운 정수로 작성합니다.
-    - 낮은 도수(5~10%)는 베이스 술 비중을 줄이고 논알코올 비중을 높입니다.
-    - 높은 도수(20% 이상)는 베이스 술 또는 리큐르 양을 늘립니다.
-    - 재료 구성과 도수가 모순되지 않도록 합니다.
-    - 가능한 경우 실존하는 칵테일을 기반으로 레시피를 구성합니다.
-    `;
+      [레시피 구성 조건]
+      - 사용자의 조건(baseSpirit, taste, keywords, abv 등)을 최대한 반영합니다.
+      - 사용자가 도수(abv)를 요구하면 도수는 그 값과 가장 가까운 정수로 작성합니다.
+      - 낮은 도수(5~10%)는 베이스 술 비중을 줄이고 논알코올 비중을 높입니다.
+      - 높은 도수(20% 이상)는 베이스 술 또는 리큐르 양을 늘립니다.
+      - 재료 구성과 도수가 모순되지 않도록 합니다.
+      - 가능한 경우 실존하는 칵테일을 기반으로 레시피를 구성합니다.
+      `;
 
     const conversationText = messages
       .map((m) => {
@@ -512,19 +545,20 @@ router.post("/bartender-chat", authRequired, async (req, res, next) => {
       .join("\n");
 
     const prompt = `
-                    ${systemPrompt}
+      ${systemPrompt}
 
-                    --- 지금까지의 대화 ---
-                    ${conversationText}
+      --- 지금까지의 대화 ---
+      ${conversationText}
 
-                    위 대화를 이어서, "바텐더" 역할로 자연스럽게 한 번만 답변하세요.
-                    `;
+      위 대화를 이어서, "바텐더" 역할로 자연스럽게 한 번만 답변하세요.
+      `;
 
     const response = await generateWithRetry(prompt);
-
     const replyText = response.text;
 
-    const trimmed = replyText.trim() || "지금은 잠시 레시피를 만들기 어렵습니다. 조금 뒤에 다시 시도해 주세요.";
+    const trimmed =
+      replyText.trim() ||
+      "지금은 잠시 레시피를 만들기 어렵습니다. 조금 뒤에 다시 시도해 주세요.";
 
     return res.json({ reply: trimmed });
   } catch (err) {

@@ -84,7 +84,7 @@ export default function JemeniRecommend() {
       };
 
       const res = await axios.post(
-        "http://localhost:4000/api/gemeni", // ← 레시피 생성 라우터
+        "http://localhost:4000/api/gemeni",
         payload,
         { withCredentials: true }
       );
@@ -96,7 +96,7 @@ export default function JemeniRecommend() {
         abv: requirements.abv,
       });
 
-      setRecipe(res.data.recipe);
+      setRecipe(res.data.recipe); // ✅ recipe 안에 image_url도 같이 온다고 가정
     } catch (err) {
       console.error("API 호출 오류:", err);
       const msg =
@@ -128,13 +128,16 @@ export default function JemeniRecommend() {
 
       const payload = {
         name: recipe.name,
-        ingredient: recipe.ingredient, // [{ item, volume }, ...]
-        step: recipe.step, // string 또는 string[]
+        ingredient: recipe.ingredient,
+        step: recipe.step,
         comment: recipe.comment,
         base: recipe.ingredient?.[0]?.item,
         rawTaste: requestTags.taste,
         rawKeywords: requestTags.keywords,
         abv: requestTags.abv,
+
+        // ✅ AI 이미지 S3 URL도 같이 저장
+        image_url: recipe.image_url || null,
       };
 
       const res = await axios.post(
@@ -261,11 +264,9 @@ export default function JemeniRecommend() {
 
           <p className="mt-1 text-[11px] text-gray-400">
             * 기주 또는 맛 중 하나만 적어도 괜찮아요. 둘 다 적으면 더
-            정교해집니다.{" "}
-            <p className="mt-1 text-[11px] text-gray-400">
-              * 요청하신 기주와 풍미 조건을 충족하기 위해 도수(ABV)는 일부
-              달라질 수 있습니다.
-            </p>
+            정교해집니다.
+            <br />* 요청하신 기주와 풍미 조건을 충족하기 위해 도수는 일부 달라질
+            수 있습니다.
           </p>
         </form>
 
@@ -311,6 +312,33 @@ export default function JemeniRecommend() {
 
           {!loading && recipe && (
             <div className="space-y-4 text-sm md:text-[15px] text-gray-100">
+              {/* 칵테일 이미지 카드 (S3 URL) */}
+              {recipe.image_url && (
+                <div className="w-full mb-4">
+                  <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-white/10 bg-black/30">
+                    <img
+                      src={recipe.image_url}
+                      alt={recipe.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://placehold.co/800x600?text=Cocktail+Image";
+                      }}
+                    />
+                    <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/70 to-transparent" />
+                    <div className="absolute left-3 bottom-2 text-white">
+                      <p className="text-xs text-gray-200/80">
+                        AI Generated Image
+                      </p>
+                      <p className="text-base font-bold drop-shadow">
+                        {recipe.name}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* 칵테일 이름 */}
               <div>
                 <h4 className="text-2xl font-extrabold text-button drop-shadow-md mb-1">
@@ -453,7 +481,7 @@ export default function JemeniRecommend() {
         confirmText="마이페이지로 이동하기"
         onConfirm={() => {
           setOpenSaveModal(false);
-          navigate("/mypage");
+          navigate("/mypage/myaicocktails");
         }}
       />
     </div>
