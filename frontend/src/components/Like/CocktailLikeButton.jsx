@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
+import CommonModal from "@/components/CommonModal";
 
 export default function Like({ cocktailId }) {
   const user = useAuthStore((s) => s.user);
@@ -9,6 +10,8 @@ export default function Like({ cocktailId }) {
   const [liked, setLiked] = useState(false); // 좋아요 눌렀는지 여부
   const [likes, setLikes] = useState(0); // 좋아요 총 개수
   const navigate = useNavigate();
+
+  const [openLoginModal, setOpenLoginModal] = useState(false);
 
   // 초기 상태 불러오기 (카운트 + 내가 눌렀는지)
   useEffect(() => {
@@ -56,8 +59,7 @@ export default function Like({ cocktailId }) {
       }
     } catch (err) {
       if (!isLogined) {
-        alert("로그인을 하셔야 해당 기능을 이용할 수 있습니다.");
-        navigate("/login");
+        setOpenLoginModal(true);
         return;
       }
       console.log(err);
@@ -78,6 +80,18 @@ export default function Like({ cocktailId }) {
           좋아요 <span className="ml-2 text-white">{likes}</span>
         </span>
       </button>
+      <CommonModal
+        open={openLoginModal}
+        onClose={() => setOpenLoginModal(false)}
+        title="로그인이 필요합니다"
+        message="좋아요는 로그인한 사용자만 이용할 수 있어요."
+        cancelText="닫기"
+        confirmText="로그인 하러가기"
+        onConfirm={() => {
+          setOpenLoginModal(false);
+          navigate("/login");
+        }}
+      />
     </div>
   );
 }

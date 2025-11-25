@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
+import CommonModal from "@/components/CommonModal";
 
 export default function Like({ postId }) {
   const user = useAuthStore((s) => s.user);
@@ -9,6 +10,10 @@ export default function Like({ postId }) {
   const [liked, setLiked] = useState(false); // 좋아요 눌렀는지 여부
   const [likes, setLikes] = useState(0); // 좋아요 총 개수
   const navigate = useNavigate();
+
+  const [openLoginModal, setOpenLoginModal] = useState(false);
+  const [openErrorModal, setOpenErrorModal] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // 초기 상태 불러오기 (카운트 + 내가 눌렀는지)
   useEffect(() => {
@@ -52,13 +57,15 @@ export default function Like({ postId }) {
         setLikes((prev) => prev + 1);
       }
     } catch (err) {
-      if (!isLogined) {
-        alert("로그인을 하셔야 해당 기능을 이용할 수 있습니다.");
-        navigate("/login");
+      if (!isLogined || err?.response?.status === 401) {
+        setOpenLoginModal(true);
         return;
       }
       console.log(err);
-      alert("좋아요 처리 중 오류가 발생했습니다.");
+      setErrorMsg(
+        err?.response?.data?.error || "좋아요 처리 중 오류가 발생했습니다."
+      );
+      setOpenErrorModal(true);
     }
   };
 
@@ -75,6 +82,27 @@ export default function Like({ postId }) {
           좋아요 <span className="ml-2 text-white">{likes}</span>
         </span>
       </button>
+
+      <CommonModal
+        open={openLoginModal}
+        onClose={() => setOpenLoginModal(false)}
+        title="로그인이 필요합니다"
+        message="좋아요 기능은 로그인한 사용자만 이용할 수 있어요."
+        cancelText="닫기"
+        confirmText="로그인 하러가기"
+        onConfirm={() => {
+          setOpenLoginModal(false);
+          navigate("/login");
+        }}
+      />
+
+      <CommonModal
+        open={openErrorModal}
+        onClose={() => setOpenErrorModal(false)}
+        title="오류 발생"
+        message={errorMsg}
+        cancelText="닫기"
+      />
     </div>
   );
 }

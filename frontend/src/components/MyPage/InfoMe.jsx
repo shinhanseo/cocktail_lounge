@@ -1,9 +1,12 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import { useState } from "react";
 import axios from "axios";
+import CommonModal from "@/components/CommonModal";
 
 export default function InfoMe() {
   const { user, setUser } = useAuthStore();
+
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
 
   //수정 모드
   const [editMode, setEditMode] = useState(false);
@@ -16,11 +19,10 @@ export default function InfoMe() {
     try {
       const res = await axios.put("http://localhost:4000/api/auth/me", form);
       setUser(res.data.user); // Zustand 전역 업데이트
-      alert("수정이 완료되었습니다!");
+      setOpenSuccessModal(true);
       setEditMode(false);
     } catch (err) {
       console.error(err);
-      alert("수정 중 오류가 발생했습니다.");
     }
   };
 
@@ -104,6 +106,16 @@ export default function InfoMe() {
       ) : (
         <p className="text-center text-gray-400 mt-6">로그인이 필요합니다.</p>
       )}
+      <CommonModal
+        open={openSuccessModal}
+        onClose={() => {
+          setOpenSuccessModal(false);
+          navigate(`/posts/${id}`);
+        }}
+        title="수정 완료!"
+        message="게시글이 수정되었습니다."
+        cancelText="확인"
+      />
     </div>
   );
 }

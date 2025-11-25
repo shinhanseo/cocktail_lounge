@@ -7,6 +7,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Trash } from "lucide-react";
+import CommonModal from "@/components/CommonModal";
 
 export default function AiCocktailsRecipe() {
   const { id } = useParams();
@@ -15,6 +16,11 @@ export default function AiCocktailsRecipe() {
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
+  const [openDeleteDone, setOpenDeleteDone] = useState(false);
+  const [openDeleteFail, setOpenDeleteFail] = useState(false);
+  const [deleteFailMsg, setDeleteFailMsg] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -36,19 +42,25 @@ export default function AiCocktailsRecipe() {
     })();
   }, [id]);
 
-  const handleDelete = async () => {
-    if (!window.confirm("정말 삭제하시겠습니까?")) return;
-
+  const doDelete = async () => {
     try {
       await axios.delete(`http://localhost:4000/api/gemeni/save/${id}`, {
         withCredentials: true,
       });
-      alert("레시피가 삭제되었습니다.");
-      navigate("/mypage/myaicocktails");
+      setOpenDeleteConfirm(false);
+      setOpenDeleteDone(true);
     } catch (err) {
       console.log(err);
-      alert("삭제 도중 오류가 발생했습니다.");
+      setOpenDeleteConfirm(false);
+      setDeleteFailMsg(
+        err?.response?.data?.error || "삭제 도중 오류가 발생했습니다."
+      );
+      setOpenDeleteFail(true);
     }
+  };
+
+  const handleDelete = () => {
+    setOpenDeleteConfirm(true);
   };
 
   const handleBack = () => {
@@ -180,6 +192,36 @@ export default function AiCocktailsRecipe() {
           </ul>
         </section>
       )}
+
+      <CommonModal
+        open={openDeleteConfirm}
+        onClose={() => setOpenDeleteConfirm(false)}
+        title="정말 삭제하시겠습니까?"
+        message="삭제하면 되돌릴 수 없습니다."
+        cancelText="취소"
+        confirmText="삭제"
+        confirmVariant="danger"
+        onConfirm={doDelete}
+      />
+
+      <CommonModal
+        open={openDeleteDone}
+        onClose={() => {
+          setOpenDeleteDone(false);
+          navigate("/mypage/myaicocktails");
+        }}
+        title="삭제 완료!"
+        message="레시피가 삭제되었습니다."
+        cancelText="목록으로"
+      />
+
+      <CommonModal
+        open={openDeleteFail}
+        onClose={() => setOpenDeleteFail(false)}
+        title="삭제 실패"
+        message={deleteFailMsg}
+        cancelText="닫기"
+      />
     </article>
   );
 }

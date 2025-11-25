@@ -4,6 +4,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { LoaderCircle } from "lucide-react";
 import GuideModal from "@/components/Recommend/GuideModal";
+import CommonModal from "@/components/CommonModal";
 
 export default function JemeniRecommend() {
   const user = useAuthStore((s) => s.user);
@@ -39,6 +40,15 @@ export default function JemeniRecommend() {
     abv: "",
   });
 
+  //마이페이지 모달 상태 관리
+  const [openSaveModal, setOpenSaveModal] = useState(false);
+
+  const [openLoginModal, setOpenLoginModal] = useState(false);
+  const [openInfoModal, setOpenInfoModal] = useState(false);
+  const [infoMsg, setInfoMsg] = useState("");
+  const [openSaveFailModal, setOpenSaveFailModal] = useState(false);
+  const [saveFailMsg, setSaveFailMsg] = useState("");
+
   // 입력값 변경
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -54,9 +64,8 @@ export default function JemeniRecommend() {
     setSaveMessage("");
 
     if (!isLoggedIn) {
-      alert("로그인을 하셔야 해당 기능이 이용가능합니다.");
-      navigate("/login");
       setLoading(false);
+      setOpenLoginModal(true);
       return;
     }
 
@@ -103,13 +112,13 @@ export default function JemeniRecommend() {
   // 레시피 저장
   const handleSave = async () => {
     if (!isLoggedIn) {
-      alert("로그인을 하셔야 레시피를 저장할 수 있습니다.");
-      navigate("/login");
+      setOpenLoginModal(true);
       return;
     }
 
     if (!recipe) {
-      alert("저장할 레시피가 없습니다.");
+      setInfoMsg("저장할 레시피가 없습니다.");
+      setOpenInfoModal(true);
       return;
     }
 
@@ -134,16 +143,17 @@ export default function JemeniRecommend() {
         { withCredentials: true }
       );
 
-      alert("AI 레시피가 저장되었습니다.");
       setSaveMessage(
         res.data?.message || "마이페이지에 레시피가 저장되었습니다."
       );
+      setOpenSaveModal(true);
     } catch (err) {
       console.error("레시피 저장 오류:", err);
       const msg =
         err.response?.data?.error || "레시피 저장 중 오류가 발생했습니다.";
       setSaveMessage(msg);
-      alert(msg);
+      setSaveFailMsg(msg);
+      setOpenSaveFailModal(true);
     } finally {
       setSaveLoading(false);
     }
@@ -402,7 +412,50 @@ export default function JemeniRecommend() {
           )}
         </div>
       </div>
+
       <GuideModal open={openGuide} onClose={() => setOpenGuide(false)} />
+
+      <CommonModal
+        open={openLoginModal}
+        onClose={() => setOpenLoginModal(false)}
+        title="로그인이 필요합니다"
+        message="이 기능은 로그인한 사용자만 이용할 수 있어요."
+        cancelText="닫기"
+        confirmText="로그인 하러가기"
+        onConfirm={() => {
+          setOpenLoginModal(false);
+          navigate("/login");
+        }}
+      />
+
+      <CommonModal
+        open={openInfoModal}
+        onClose={() => setOpenInfoModal(false)}
+        title="알림"
+        message={infoMsg}
+        cancelText="확인"
+      />
+
+      <CommonModal
+        open={openSaveFailModal}
+        onClose={() => setOpenSaveFailModal(false)}
+        title="저장 실패"
+        message={saveFailMsg}
+        cancelText="닫기"
+      />
+
+      <CommonModal
+        open={openSaveModal}
+        onClose={() => setOpenSaveModal(false)}
+        title="마이페이지 저장완료!"
+        message="마이페이지에서 해당 레시피를 확인해보세요!"
+        cancelText="닫기"
+        confirmText="마이페이지로 이동하기"
+        onConfirm={() => {
+          setOpenSaveModal(false);
+          navigate("/mypage");
+        }}
+      />
     </div>
   );
 }
