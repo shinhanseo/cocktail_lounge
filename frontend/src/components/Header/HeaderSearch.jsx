@@ -22,8 +22,8 @@ export default function HeaderSearch() {
         onChange={(e) => setKeyword(e.target.value)}
         placeholder="오늘의 한잔을 찾아보세요."
         className="
-          w-96 h-11                            
-          bg-white/90 text-slate-900          
+          w-80 h-11                            
+          bg-white/80 text-slate-900          
           border border-white/40
           rounded-3xl
           px-4 pr-11
