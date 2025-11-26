@@ -58,7 +58,7 @@ async function uploadImageToS3(imageBuffer, recipeName) {
 }
 
 // -------------------------------------------------------------
-// Visual spec guess (창작 레시피 fallback용)
+// Visual spec guess (창작 레시피 fallback용) - 색상 강도 기반 개선
 // -------------------------------------------------------------
 function guessVisualSpec(recipe) {
   const ing = (recipe.ingredient || []).map((x) =>
@@ -66,77 +66,89 @@ function guessVisualSpec(recipe) {
   );
 
   // ------- Color ------
-  let color = "amber";
-  if (
-    ing.some((x) =>
-      ["lemon", "lime", "grapefruit", "yuzu", "시트러스", "레몬", "라임", "오렌지"].some(
-        (k) => x.includes(k)
-      )
-    )
-  )
-    color = "pale yellow";
-  if (
-    ing.some((x) =>
-      ["berry", "strawberry", "raspberry", "cranberry", "체리", "딸기"].some(
-        (k) => x.includes(k)
-      )
-    )
-  )
-    color = "red / pink";
-  if (
-    ing.some((x) =>
-      ["coffee", "espresso", "cocoa", "chocolate", "커피", "초코"].some(
-        (k) => x.includes(k)
-      )
-    )
-  )
+  // 색상 강도 우선순위 맵: [색상 키워드 리스트, 결정될 색상]
+  // 순서가 강한 색상부터 약한 색상/기본 색상 순서로 배치됩니다.
+  // 1. 커피/초코 (가장 강한 어두운 색)
+  const coffeeKeywords = ["coffee", "espresso", "cocoa", "chocolate", "커피", "초코"];
+  // 2. 베리/레드 계열 (강한 붉은색/분홍색)
+  const berryKeywords = ["berry", "strawberry", "raspberry", "cranberry", "wine", "체리", "딸기", "수박", "워터멜론", "크랜베리", "와인"];
+  // 3. 위스키/호박색 (중간 정도의 호박색)
+  const amberKeywords = ["whisky", "bourbon", "scotch", "위스키", "버번"]; 
+  // 4. 밀크/크림 (불투명하고 옅은 색)
+  const creamKeywords = ["milk", "cream", "baileys", "irish cream", "우유", "크림", "베일리스", "깔루아"];
+  // 5. 시트러스/옅은색 (가장 약한 색, 기본값)
+  const citrusKeywords = ["lemon", "lime", "grapefruit", "yuzu", "시트러스", "레몬", "라임", "오렌지"];
+  
+  let color = "clear or pale yellow"; // 기본값 (진, 보드카, 투명 럼 등)
+
+  // 1. 강한 붉은색/분홍색 계열 확인
+  if (ing.some(x => berryKeywords.some(k => x.includes(k)))) {
+    color = "vibrant red or pink";
+  }
+  
+  // 2. 가장 강한 어두운 색 확인
+  if (ing.some(x => coffeeKeywords.some(k => x.includes(k)))) {
     color = "dark brown";
-  if (
-    ing.some((x) =>
-      ["milk", "cream", "baileys", "irish cream", "우유", "크림", "베일리스"].some(
-        (k) => x.includes(k)
-      )
-    )
-  )
-    color = "creamy beige";
+  }
+  
+  // 3. 불투명하고 옅은 색 확인 (크림은 다른 색을 덮음)
+  if (ing.some(x => creamKeywords.some(k => x.includes(k)))) {
+    color = "creamy white or beige";
+  }
+  
+  // 4. 호박색 계열 확인 (다른 강한 색이 없을 경우만)
+  // 위스키는 다른 강한 색 (베리, 커피)이 섞이지 않았을 때 앰버색을 결정합니다.
+  if (color === "clear or pale yellow" && ing.some(x => amberKeywords.some(k => x.includes(k)))) {
+    color = "amber gold or deep amber";
+  }
+  
+  // 5. 시트러스 계열은 옅은 노란색으로 (주로 클리어 베이스일 때)
+  if (color === "clear or pale yellow" && ing.some(x => citrusKeywords.some(k => x.includes(k)))) {
+      color = "pale yellow with correct transparency";
+  }
 
   // ------- Glass ------
   let glass = "highball glass";
   const stepText = (recipe.step || []).join(" ").toLowerCase();
+  
   if (stepText.includes("쉐이킹") || stepText.includes("shake"))
     glass = "coupe or martini glass";
-  if (
-    ing.some((x) =>
-      ["whisky", "bourbon", "scotch", "위스키", "버번"].some((k) =>
-        x.includes(k)
-      )
-    )
-  )
+    
+  if (ing.some(x => amberKeywords.some(k => x.includes(k))))
     glass = "old fashioned glass";
 
   // ------- Garnish ------
   let garnishList = [];
 
-  // 커피/초코/밀크 계열은 무가니시가 기본
-  if (
-    ing.some((x) =>
-      ["coffee", "espresso", "cocoa", "chocolate", "초코", "커피"].some((k) =>
-        x.includes(k)
-      )
-    )
-  ) {
+  // 커피/크림 계열은 무가니시가 기본
+  if (ing.some(x => coffeeKeywords.some(k => x.includes(k))) || ing.some(x => creamKeywords.some(k => x.includes(k)))) {
     return { color, glass, garnish: [], noGarnish: true };
   }
 
   // 허용되는 경우만 가니시 추가
-  if (ing.some((x) => x.includes("mint") || x.includes("민트")))
+  if (ing.some(x => x.includes("mint") || x.includes("민트")))
     garnishList.push("a small mint sprig");
-  if (ing.some((x) => x.includes("lemon") || x.includes("레몬")))
+    
+  if (ing.some(x => x.includes("lemon") || x.includes("레몬")))
     garnishList.push("a thin lemon peel");
-  if (ing.some((x) => x.includes("lime") || x.includes("라임")))
+    
+  if (ing.some(x => x.includes("lime") || x.includes("라임")))
     garnishList.push("a lime wheel");
-  if (ing.some((x) => x.includes("orange") || x.includes("오렌지")))
-    garnishList.push("an orange slice");
+    
+  // 오렌지 - 재료 언급 시 가니시로 추가
+  if (ing.some(x => x.includes("orange") || x.includes("오렌지"))) {
+    // 칵테일 이름이 Old Fashioned처럼 명확하거나, 위스키 베이스인 경우 peel/twist를 기본으로,
+    // 그렇지 않으면 레시피에 명시된 "오렌지 슬라이스"를 더 우선하는 로직을 고려할 수 있지만,
+    // 우선은 더 세련된 'peel or twist'로 유지하고, 프롬프트에서 'slice'를 유도합니다.
+    garnishList.push("an orange peel or twist");
+  }
+
+  // 체리 - 위스키 조건 없이 추가
+  if (ing.some(x => x.includes("cherry") || x.includes("체리")) || recipe.step.join(" ").toLowerCase().includes("체리로 장식")) {
+     // 피치 크러쉬 레시피처럼 '체리로 장식'이 언급되면 추가합니다.
+     garnishList.push("a maraschino cherry on a skewer");
+  }
+
 
   if (garnishList.length === 0)
     return { color, glass, garnish: [], noGarnish: true };
@@ -246,6 +258,7 @@ async function generateCocktailImage(recipe) {
   const prompt = buildPrompt(recipe, garnishText);
 
   const model = "black-forest-labs/FLUX.1-schnell";
+  const negativePrompt = "too yellow, bright orange, amber color, yellow tint, bad crop, blurry, ugly, messy, bad composition";
 
   const out = await hf.textToImage({
     model,
@@ -255,6 +268,7 @@ async function generateCocktailImage(recipe) {
       width: 768,
       num_inference_steps: 16,
       guidance_scale: 7,
+      negative_prompt : negativePrompt,
     },
   });
 
