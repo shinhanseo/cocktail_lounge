@@ -94,16 +94,22 @@ export default function RecipePreView() {
                         group-hover:bg-white/15 group-hover:shadow-lg"
         >
           {/* 2-1. 이미지 섹션 (왼쪽) */}
-          <div className="flex-shrink-0 w-2/5 max-w-[140px] md:max-w-[160px] relative overflow-hidden rounded-xl">
+          <div
+            className="flex-shrink-0 w-2/5 max-w-[140px] md:max-w-[160px] 
+                       relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-700/30 to-gray-900/30 // 그라데이션 배경 추가
+                       flex items-center justify-center p-2" // 이미지를 중앙에 배치하고 패딩 추가
+          >
             <img
               src={imgSrc}
               alt={name}
-              className="w-full h-full object-cover rounded-xl transition-transform duration-500
-                         group-hover:scale-110" // 호버 시 이미지 확대 효과
+              className="object-cover w-full h-full rounded-xl // w-full h-full 추가
+                       transition-transform duration-500
+                       group-hover:scale-105
+                       drop-shadow-lg" // 이미지 자체에 은은한 그림자 추가
               loading="lazy"
             />
-            {/* 이미지 위에 약간의 오버레이 효과 추가 */}
-            <div className="absolute inset-0 bg-black/10"></div>
+            {/* 이미지 위에 약간의 오버레이 효과는 유지 */}
+            <div className="absolute inset-0 bg-black/10 rounded-xl"></div>
           </div>
 
           {/* 2-2. 텍스트 섹션 (오른쪽) */}

@@ -9,6 +9,7 @@
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { UserRoundPen } from "lucide-react";
 
 // 커뮤니티 최신글 5개 미리보기 (요청은 limit=6)
 export default function CommunityPreview() {
@@ -116,8 +117,13 @@ export default function CommunityPreview() {
             </NavLink>
 
             {/* 작성자 (오른쪽 정렬) */}
-            <span className="text-white/70 text-sm w-[90px] text-right truncate overflow-hidden whitespace-nowrap">
-              {p.user}
+            <span
+              className="text-white/70 text-sm w-[90px] text-right truncate overflow-hidden whitespace-nowrap 
+                        flex items-center justify-end gap-1 // **추가**: flex로 아이콘-텍스트 인라인 배치, justify-end로 오른쪽 정렬
+                        flex-shrink-0"
+            >
+              <UserRoundPen size={14} className="flex-shrink-0" />
+              <span className="truncate">{p.user}</span>{" "}
             </span>
           </li>
         ))}
