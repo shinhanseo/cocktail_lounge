@@ -40,15 +40,21 @@ export default function AIBartenderPreview() {
 
           <div className="flex flex-wrap gap-1.5 mt-2 text-[10px] text-gray-200">
             <span className="px-2 py-1 rounded-full bg-white/10">
-              Gin · Rum
+              <span className="text-amber-400 font-bold">기주</span> : Gin · Rum
+              · Wiskey
             </span>
             <span className="px-2 py-1 rounded-full bg-white/10">
-              상큼 · 달콤
+              <span className="text-amber-400 font-bold">원하는 맛</span> : 상큼
+              · 달콤
             </span>
             <span className="px-2 py-1 rounded-full bg-white/10">
-              레몬, 토닉워터
+              <span className="text-amber-400 font-bold">키워드</span> : 레몬 ·
+              탄산 · 클래식
             </span>
-            <span className="px-2 py-1 rounded-full bg-white/10">15도수</span>
+            <span className="px-2 py-1 rounded-full bg-white/10">
+              <span className="text-amber-400 font-bold">도수</span> : 30도 이상
+              · 15도
+            </span>
           </div>
 
           <NavLink
@@ -79,6 +85,16 @@ export default function AIBartenderPreview() {
             <div className="flex justify-end">
               <div className="text-[9px] px-2 py-1 rounded-lg bg-button/20">
                 상큼하게!
+              </div>
+            </div>
+            <div className="flex gap-1">
+              <div className="text-[9px] px-2 py-1 rounded-lg bg-white/10">
+                레몬을 넣는건 어때?
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <div className="text-[9px] px-2 py-1 rounded-lg bg-button/20">
+                레몬보단 라임으로!
               </div>
             </div>
           </div>
