@@ -6,7 +6,6 @@ import { optionalAuth } from "../middlewares/jwtauth.js";
 const router = Router();
 
 // 전체 칵테일 목록
-// 전체 칵테일 목록
 router.get("/", async (req, res, next) => {
   try {
     // 정렬 기준 쿼리: latest / likes / abv
