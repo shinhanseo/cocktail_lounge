@@ -61,7 +61,7 @@ export default function CommunityPreview() {
           <h2 className="text-xl font-bold">💬 커뮤니티 최신글</h2>
           <NavLink
             to="/community"
-            className="text-sm underline underline-offset-4 decoration-2 decoration-underline hover:font-bold"
+            className="text-amber-300 text-sm font-semibold hover:text-white transition-colors"
           >
             더보기 →
           </NavLink>
