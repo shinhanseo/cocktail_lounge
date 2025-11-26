@@ -67,11 +67,10 @@ function guessVisualSpec(recipe) {
 
   // ------- Color ------
   // 색상 강도 우선순위 맵: [색상 키워드 리스트, 결정될 색상]
-  // 순서가 강한 색상부터 약한 색상/기본 색상 순서로 배치됩니다.
   // 1. 커피/초코 (가장 강한 어두운 색)
-  const coffeeKeywords = ["coffee", "espresso", "cocoa", "chocolate", "커피", "초코"];
+  const coffeeKeywords = ["coffee", "espresso", "cocoa", "chocolate", "커피", "초코", "초콜릿", "초콜렛", "블랙체리"];
   // 2. 베리/레드 계열 (강한 붉은색/분홍색)
-  const berryKeywords = ["berry", "strawberry", "raspberry", "cranberry", "wine", "체리", "딸기", "수박", "워터멜론", "크랜베리", "와인"];
+  const berryKeywords = ["berry", "strawberry", "raspberry", "cranberry", "wine", "peach", "체리", "딸기", "수박", "워터멜론", "크랜베리", "와인", "피치", "복숭아"];
   // 3. 위스키/호박색 (중간 정도의 호박색)
   const amberKeywords = ["whisky", "bourbon", "scotch", "위스키", "버번"]; 
   // 4. 밀크/크림 (불투명하고 옅은 색)
@@ -87,23 +86,23 @@ function guessVisualSpec(recipe) {
   }
   
   // 2. 가장 강한 어두운 색 확인
-  if (ing.some(x => coffeeKeywords.some(k => x.includes(k)))) {
+  else if (ing.some(x => coffeeKeywords.some(k => x.includes(k)))) {
     color = "dark brown";
   }
   
   // 3. 불투명하고 옅은 색 확인 (크림은 다른 색을 덮음)
-  if (ing.some(x => creamKeywords.some(k => x.includes(k)))) {
+  else if (ing.some(x => creamKeywords.some(k => x.includes(k)))) {
     color = "creamy white or beige";
   }
   
   // 4. 호박색 계열 확인 (다른 강한 색이 없을 경우만)
   // 위스키는 다른 강한 색 (베리, 커피)이 섞이지 않았을 때 앰버색을 결정합니다.
-  if (color === "clear or pale yellow" && ing.some(x => amberKeywords.some(k => x.includes(k)))) {
+  else if (color === "clear or pale yellow" && ing.some(x => amberKeywords.some(k => x.includes(k)))) {
     color = "amber gold or deep amber";
   }
   
   // 5. 시트러스 계열은 옅은 노란색으로 (주로 클리어 베이스일 때)
-  if (color === "clear or pale yellow" && ing.some(x => citrusKeywords.some(k => x.includes(k)))) {
+  else if (color === "clear or pale yellow" && ing.some(x => citrusKeywords.some(k => x.includes(k)))) {
       color = "pale yellow with correct transparency";
   }
 
@@ -111,12 +110,17 @@ function guessVisualSpec(recipe) {
   let glass = "highball glass";
   const stepText = (recipe.step || []).join(" ").toLowerCase();
   
-  if (stepText.includes("쉐이킹") || stepText.includes("shake"))
+  if (stepText.includes("쉐이킹") || stepText.includes("shake") || recipe.name.includes("마티니"))
     glass = "coupe or martini glass";
     
-  if (ing.some(x => amberKeywords.some(k => x.includes(k))))
+  else if (ing.some(x => amberKeywords.some(k => x.includes(k))))
     glass = "old fashioned glass";
 
+  else if(recipe.name.includes("뮬") || stepText.includes("구리"))
+    glass = "a copper Moscow Mule Mug";
+
+  else if(recipe.name.includes("마가리타"))
+    glass = "Margarita Glass and salt lip";
   // ------- Garnish ------
   let garnishList = [];
 
@@ -137,9 +141,6 @@ function guessVisualSpec(recipe) {
     
   // 오렌지 - 재료 언급 시 가니시로 추가
   if (ing.some(x => x.includes("orange") || x.includes("오렌지"))) {
-    // 칵테일 이름이 Old Fashioned처럼 명확하거나, 위스키 베이스인 경우 peel/twist를 기본으로,
-    // 그렇지 않으면 레시피에 명시된 "오렌지 슬라이스"를 더 우선하는 로직을 고려할 수 있지만,
-    // 우선은 더 세련된 'peel or twist'로 유지하고, 프롬프트에서 'slice'를 유도합니다.
     garnishList.push("an orange peel or twist");
   }
 
@@ -160,25 +161,25 @@ function guessVisualSpec(recipe) {
 // Canonical overrides (대표칵테일 정확도용)
 // -------------------------------------------------------------
 const colorByCocktail = {
-  "Whiskey Sour": "pale yellow with a creamy foam top",
-  Margarita: "light green or clear depending on style",
-  Mojito: "clear with mint and lime",
-  Negroni: "deep red",
-  "Old Fashioned": "amber gold",
-  Cosmopolitan: "pink",
-  "Pina Colada": "creamy white",
-  Martini: "crystal clear",
+  "위스키 사워": "pale yellow with a creamy foam top",
+  "마가리타": "light green or clear depending on style",
+  "모히또": "clear with mint and lime",
+  "네그로니": "deep red",
+  "올드 패션드": "amber gold",
+  "코스모폴리탄": "pink",
+  "피나콜라다": "creamy white",
+  "마티니": "crystal clear",
 };
 
 const glassByCocktail = {
-  "Whiskey Sour": "old fashioned glass",
-  Margarita: "margarita glass",
-  Mojito: "highball glass",
-  Negroni: "lowball glass",
-  "Old Fashioned": "rocks glass",
-  Cosmopolitan: "martini glass",
-  "Pina Colada": "hurricane glass",
-  Martini: "martini glass",
+  "위스키 사워": "old fashioned glass",
+  "마가리타": "margarita glass",
+  "모히또": "highball glass",
+  "네그로니": "lowball glass",
+  "올드 패션드": "rocks glass",
+  "코스모폴리탄": "martini glass",
+  "피나콜라다": "hurricane glass",
+  "마티니": "martini glass",
 };
 
 function buildPrompt(recipe, garnishText = "") {
