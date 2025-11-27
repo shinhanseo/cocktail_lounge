@@ -67,7 +67,7 @@ export default function RamdomBarList() {
           <div className="flex-1 min-w-0">
             <div className="font-bold text-sm truncate">{bar.name}</div>
             <div className="text-xs text-gray-400 truncate">
-              {bar.city} • {bar.desc}
+              <span className="text-amber-400/80">{bar.city}</span> • {bar.desc}
             </div>
           </div>
 
