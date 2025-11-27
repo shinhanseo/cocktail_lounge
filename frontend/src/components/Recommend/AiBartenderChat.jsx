@@ -134,7 +134,7 @@ export default function AiBartenderChat() {
           ingredient: lastRecipe.ingredient, // [{ item, volume }]
           step: lastRecipe.step, // string[]
           comment: lastRecipe.comment || "",
-          base: "", // 챗에서는 굳이 안 쓰면 빈 문자열
+          base: lastRecipe.ingredient[0].item,
           rawTaste: "",
           rawKeywords: "",
           abv: lastRecipe.abv ?? null,

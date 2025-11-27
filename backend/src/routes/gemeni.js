@@ -121,6 +121,10 @@ function guessVisualSpec(recipe) {
 
   else if(recipe.name.includes("마가리타"))
     glass = "Margarita Glass and salt lip";
+
+  else if(recipe.name.includes("샹그리아") || ing.some(x => x.includes("와인")))
+    glass = "Wine Glass";
+
   // ------- Garnish ------
   let garnishList = [];
 
@@ -146,10 +150,8 @@ function guessVisualSpec(recipe) {
 
   // 체리 - 위스키 조건 없이 추가
   if (ing.some(x => x.includes("cherry") || x.includes("체리")) || recipe.step.join(" ").toLowerCase().includes("체리로 장식")) {
-     // 피치 크러쉬 레시피처럼 '체리로 장식'이 언급되면 추가합니다.
      garnishList.push("a maraschino cherry on a skewer");
   }
-
 
   if (garnishList.length === 0)
     return { color, glass, garnish: [], noGarnish: true };
@@ -185,7 +187,6 @@ const glassByCocktail = {
 function buildPrompt(recipe, garnishText = "") {
   const guessed = guessVisualSpec(recipe);
 
-  // fallback 순서: canonical 맵 → guessed → 일반
   const expectedColor =
     colorByCocktail[recipe.name] ||
     guessed.color ||
@@ -613,7 +614,7 @@ router.post("/save", authRequired, async (req, res, next) => {
 });
 
 // -------------------------------------------------------------
-// List saved recipes (with search + paging)
+// get save
 // -------------------------------------------------------------
 router.get("/save", authRequired, async (req, res, next) => {
   try {
