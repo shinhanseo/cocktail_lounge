@@ -12,6 +12,7 @@ import axios from "axios";
 import { LoaderCircle, Send, Bot, User } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
+import CommonModal from "@/components/CommonModal";
 
 export default function AiBartenderChat() {
   const user = useAuthStore((s) => s.user);
@@ -36,6 +37,11 @@ export default function AiBartenderChat() {
   const [lastRecipe, setLastRecipe] = useState(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+
+  // 저장 성공/실패 모달 상태
+  const [openSaveModal, setOpenSaveModal] = useState(false);
+  const [openSaveFailModal, setOpenSaveFailModal] = useState(false);
+  const [saveFailMsg, setSaveFailMsg] = useState("");
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -79,7 +85,6 @@ export default function AiBartenderChat() {
         "레시피 서버에서 응답을 받지 못했어요. 잠시 후 다시 시도해 주세요.";
 
       // 🔥 백엔드에서 온 recipe (레시피가 아니면 null)
-      // 여기 안에 image_url도 포함되어 있다고 가정
       const recipeFromServer = res.data?.recipe ?? null;
       setLastRecipe(recipeFromServer);
 
@@ -111,7 +116,6 @@ export default function AiBartenderChat() {
     }
   };
 
-  // ✅ 마이페이지 저장 (image_url까지 포함해서 저장)
   const handleSaveRecipe = async () => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
@@ -123,7 +127,7 @@ export default function AiBartenderChat() {
       setSaveLoading(true);
       setSaveMessage("");
 
-      await axios.post(
+      const res = await axios.post(
         "/api/gemeni/save",
         {
           name: lastRecipe.name,
@@ -134,122 +138,160 @@ export default function AiBartenderChat() {
           rawTaste: "",
           rawKeywords: "",
           abv: lastRecipe.abv ?? null,
-          // 🔥 여기서 lastRecipe 안의 image_url까지 같이 넘겨줌
           image_url: lastRecipe.image_url ?? null,
         },
         { withCredentials: true }
       );
 
-      setSaveMessage("마이페이지에 레시피가 저장되었습니다. 🍸");
+      if (res.data?.error) {
+        const msg = res.data.error;
+        setSaveMessage(msg);
+        setSaveFailMsg(msg);
+        setOpenSaveFailModal(true);
+        return;
+      }
+
+      const msg =
+        res.data?.message || "마이페이지에 레시피가 저장되었습니다. 🍸";
+      setSaveMessage(msg);
+      setOpenSaveModal(true);
     } catch (err) {
       console.error(err);
-      setSaveMessage(
-        "레시피 저장 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요."
-      );
+      const msg =
+        err.response?.data?.error ||
+        "레시피 저장 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.";
+      setSaveMessage(msg);
+      setSaveFailMsg(msg);
+      setOpenSaveFailModal(true);
     } finally {
       setSaveLoading(false);
     }
   };
 
   return (
-    <section className="w-full max-w-3xl mx-auto rounded-3xl bg-slate-900/70 border border-slate-700/70 shadow-xl px-6 py-5 flex flex-col h-[560px]">
-      <header className="flex items-center justify-between mb-3">
-        <div>
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-400/20 border border-amber-400/60">
-              🍸
-            </span>
-            AI 바텐더와 대화하기
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            예: “진 베이스에 상큼하고 쌉쌀한 칵테일 만들어줘”, “알콜도수 10%
-            정도로 부드럽게”
-          </p>
-        </div>
-      </header>
+    <>
+      <section className="w-full max-w-3xl mx-auto rounded-3xl bg-slate-900/70 border border-slate-700/70 shadow-xl px-6 py-5 flex flex-col h-[560px]">
+        <header className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-400/20 border border-amber-400/60">
+                🍸
+              </span>
+              AI 바텐더와 대화하기
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              예: “진 베이스에 상큼하고 쌉쌀한 칵테일 만들어줘”, “알콜도수 10%
+              정도로 부드럽게”
+            </p>
+          </div>
+        </header>
 
-      <div className="flex-1 min-h-0 bg-slate-950/40 rounded-2xl border border-slate-800/70 px-4 py-3 overflow-y-auto space-y-3 text-sm">
-        {messages.map((m) => (
-          <ChatBubble key={m.id} role={m.role} content={m.content} />
-        ))}
+        <div className="flex-1 min-h-0 bg-slate-950/40 rounded-2xl border border-slate-800/70 px-4 py-3 overflow-y-auto space-y-3 text-sm">
+          {messages.map((m) => (
+            <ChatBubble key={m.id} role={m.role} content={m.content} />
+          ))}
 
-        {loading && (
-          <div className="flex justify-start">
-            <div className="max-w-[75%] rounded-2xl rounded-tl-sm bg-slate-800/80 border border-slate-700 px-3 py-2 text-xs text-slate-200 flex items-center gap-2">
-              <LoaderCircle className="w-4 h-4 animate-spin" />
-              바텐더가 레시피를 고민하는 중이에요...
+          {loading && (
+            <div className="flex justify-start">
+              <div className="max-w-[75%] rounded-2xl rounded-tl-sm bg-slate-800/80 border border-slate-700 px-3 py-2 text-xs text-slate-200 flex items-center gap-2">
+                <LoaderCircle className="w-4 h-4 animate-spin" />
+                바텐더가 레시피를 고민하는 중이에요...
+              </div>
             </div>
+          )}
+
+          <div ref={bottomRef} />
+        </div>
+
+        <form
+          className="mt-3 flex items-end gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSend();
+          }}
+        >
+          <textarea
+            className="flex-1 resize-none rounded-2xl bg-slate-950/60 border border-slate-700/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-button focus:border-transparent max-h-32"
+            rows={2}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="원하는 기주, 맛, 분위기, 도수 등을 자유롭게 적어주세요."
+          />
+
+          <button
+            type="submit"
+            disabled={loading || !input.trim()}
+            className="inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-medium bg-button text-slate-950 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-hover-button transition hover:cursor-pointer"
+          >
+            {loading ? (
+              <LoaderCircle className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <span className="mr-1">전송</span>
+                <Send className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </form>
+
+        <p className="mt-2 text-[11px] text-slate-500">
+          * 칵테일/술 관련 대화만 가능합니다. AI가 생성한 레시피는 실제 도수와
+          다를 수 있으니 참고용으로 사용해 주세요.
+        </p>
+
+        {/* 레시피가 감지된 경우에만 저장 영역 표시 */}
+        {lastRecipe && (
+          <div className="mt-2 flex items-center justify-between text-[11px]">
+            <span className="text-slate-500">
+              이 레시피를 마음에 들어하셨나요? 마이페이지에 저장할 수 있어요.
+            </span>
+            <button
+              type="button"
+              onClick={handleSaveRecipe}
+              disabled={saveLoading}
+              className="ml-2 px-3 py-1.5 rounded-xl text-[11px] font-medium bg-amber-400 text-slate-950 hover:bg-amber-300 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer"
+            >
+              {saveLoading ? "저장 중..." : "이 레시피 저장하기"}
+            </button>
           </div>
         )}
 
-        <div ref={bottomRef} />
-      </div>
+        {saveMessage && (
+          <p className="mt-1 text-[11px] text-emerald-400">{saveMessage}</p>
+        )}
 
-      <form
-        className="mt-3 flex items-end gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSend();
+        {showLoginModal && (
+          <LoginRequiredModal
+            onClose={() => setShowLoginModal(false)}
+            onGoLogin={() => navigate("/login")}
+          />
+        )}
+      </section>
+
+      {/* 저장 성공 모달 */}
+      <CommonModal
+        open={openSaveModal}
+        onClose={() => setOpenSaveModal(false)}
+        title="마이페이지 저장완료!"
+        message="마이페이지에서 해당 레시피를 확인해보세요!"
+        cancelText="닫기"
+        confirmText="마이페이지로 이동하기"
+        onConfirm={() => {
+          setOpenSaveModal(false);
+          navigate("/mypage/myaicocktails");
         }}
-      >
-        <textarea
-          className="flex-1 resize-none rounded-2xl bg-slate-950/60 border border-slate-700/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-button focus:border-transparent max-h-32"
-          rows={2}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="원하는 기주, 맛, 분위기, 도수 등을 자유롭게 적어주세요."
-        />
+      />
 
-        <button
-          type="submit"
-          disabled={loading || !input.trim()}
-          className="inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-medium bg-button text-slate-950 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-hover-button transition hover:cursor-pointer"
-        >
-          {loading ? (
-            <LoaderCircle className="w-4 h-4 animate-spin" />
-          ) : (
-            <>
-              <span className="mr-1">전송</span>
-              <Send className="w-4 h-4" />
-            </>
-          )}
-        </button>
-      </form>
-
-      <p className="mt-2 text-[11px] text-slate-500">
-        * 칵테일/술 관련 대화만 가능합니다. AI가 생성한 레시피는 실제 도수와
-        다를 수 있으니 참고용으로 사용해 주세요.
-      </p>
-
-      {/* 레시피가 감지된 경우에만 저장 영역 표시 */}
-      {lastRecipe && (
-        <div className="mt-2 flex items-center justify-between text-[11px]">
-          <span className="text-slate-500">
-            이 레시피를 마음에 들어하셨나요? 마이페이지에 저장할 수 있어요.
-          </span>
-          <button
-            type="button"
-            onClick={handleSaveRecipe}
-            disabled={saveLoading}
-            className="ml-2 px-3 py-1.5 rounded-xl text-[11px] font-medium bg-amber-400 text-slate-950 hover:bg-amber-300 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer"
-          >
-            {saveLoading ? "저장 중..." : "이 레시피 저장하기"}
-          </button>
-        </div>
-      )}
-
-      {saveMessage && (
-        <p className="mt-1 text-[11px] text-emerald-400">{saveMessage}</p>
-      )}
-
-      {showLoginModal && (
-        <LoginRequiredModal
-          onClose={() => setShowLoginModal(false)}
-          onGoLogin={() => navigate("/login")}
-        />
-      )}
-    </section>
+      {/* 저장 실패(중복 포함) 모달 */}
+      <CommonModal
+        open={openSaveFailModal}
+        onClose={() => setOpenSaveFailModal(false)}
+        title="저장 실패"
+        message={saveFailMsg || "레시피 저장 중 오류가 발생했습니다."}
+        cancelText="닫기"
+      />
+    </>
   );
 }
 
