@@ -134,7 +134,7 @@ export default function JemeniRecommend() {
         base: recipe.ingredient?.[0]?.item,
         rawTaste: requestTags.taste,
         rawKeywords: requestTags.keywords,
-        abv: requestTags.abv,
+        abv: recipe.abv,
 
         // AI 이미지 S3 URL도 같이 저장
         image_url: recipe.image_url || null,
