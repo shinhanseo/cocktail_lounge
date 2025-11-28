@@ -16,6 +16,7 @@ import db from "../db/client.js";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 import { HfInference } from "@huggingface/inference";
+import sharp from "sharp"; // 이미지 픽셀 줄이기
 
 const router = Router();
 
@@ -32,11 +33,11 @@ const s3 = new S3Client({
 const hf = new HfInference(process.env.HF_TOKEN);
 
 // -------------------------------------------------------------
-// S3 upload
+// S3 upload (원본 이미지)
 // -------------------------------------------------------------
 async function uploadImageToS3(imageBuffer, recipeName) {
   const bucket = process.env.AWS_S3_BUCKET;
-
+  
   const safeName = String(recipeName || "ai-cocktail")
     .toLowerCase()
     .replace(/[^a-z0-9가-힣-_]/g, "-")
@@ -50,7 +51,33 @@ async function uploadImageToS3(imageBuffer, recipeName) {
       Key: key,
       Body: imageBuffer,
       ContentType: "image/png",
-      // ACL: "public-read", // 버킷이 public read 정책이 아닐 때만 고려 (보안 정책에 맞게 선택)
+    })
+  );
+
+  return `${process.env.AWS_S3_PUBLIC_BASE}/${key}`;
+}
+
+async function uploadImageThumbnailToS3(imageBuffer, recipeName) {
+  const bucket = process.env.AWS_S3_BUCKET;
+
+  const resizedBuffer = await sharp(imageBuffer)
+    .resize({ width: 300 }) 
+    .png({ quality: 80 }) 
+    .toBuffer();
+
+  const safeName = String(`${recipeName}-thumbnail`)
+  .toLowerCase()
+  .replace(/[^a-z0-9가-힣-_]/g, "-")
+  .slice(0, 40);
+
+  const key = `ai_cocktails_thumbnail/${safeName}-${crypto.randomUUID()}.png`;
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: resizedBuffer,
+      ContentType: "image/png",
     })
   );
 
@@ -147,6 +174,9 @@ function guessVisualSpec(recipe) {
   if (ing.some(x => x.includes("orange") || x.includes("오렌지"))) {
     garnishList.push("an orange peel or twist");
   }
+
+  if (ing.some(x => x.includes("휘핑크림")))
+    garnishList.push("Top with whipped cream");
 
   // 체리 - 위스키 조건 없이 추가
   if (ing.some(x => x.includes("cherry") || x.includes("체리")) || recipe.step.join(" ").toLowerCase().includes("체리로 장식")) {
@@ -356,7 +386,7 @@ function parseBartenderRecipe(text = "") {
     const stepLines = stepSectionMatch[1]
       .split("\n")
       .map((l) => l.trim())
-      .filter((l) => /^\d+\./.test(l)); // "1. ", "2. " 등
+      .filter((l) => /^\d+\./.test(l));
 
     const step = stepLines.map((l) => l.replace(/^\d+\.\s*/, "").trim());
 
@@ -500,18 +530,22 @@ router.post("/", async (req, res) => {
     }
 
     let imageUrl = null;
+    let imageThumbnailUrl = null;
     try {
       const imageBuffer = await generateCocktailImage(recipe);
       imageUrl = await uploadImageToS3(imageBuffer, recipe.name);
+      imageThumbnailUrl = await uploadImageThumbnailToS3(imageBuffer, recipe.name);
     } catch (e) {
       console.error("이미지 생성/업로드 실패:", e.message);
     }
 
     recipe.image_url = imageUrl;
+    recipe.imageThumbnail_url = imageThumbnailUrl;
 
     return res.status(200).json({
       recipe,
       imageUrl,
+      imageThumbnailUrl,
       taste,
       keywords,
       abv,
@@ -539,6 +573,7 @@ router.post("/save", authRequired, async (req, res, next) => {
       rawKeywords,
       abv,
       image_url,
+      imageThumbnail_url,
     } = req.body || {};
 
     const check = await db.query(
@@ -583,9 +618,10 @@ router.post("/save", authRequired, async (req, res, next) => {
         step,
         comment,
         abv,
-        image_url
+        image_url,
+        imageThumbnail_url
       )
-      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10)
+      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11)
       RETURNING id, created_at, image_url
       `,
       [
@@ -599,6 +635,7 @@ router.post("/save", authRequired, async (req, res, next) => {
         comment || null,
         abv ? Number(abv) : null,
         image_url || null,
+        imageThumbnail_url || null,
       ]
     );
 
@@ -676,6 +713,7 @@ router.get("/save", authRequired, async (req, res, next) => {
         comment,
         abv,
         image_url,
+        imagethumbnail_url,
         to_char(created_at, 'YYYY-MM-DD') AS created_at
       FROM ai_cocktails
       ${whereSql}
@@ -858,16 +896,19 @@ router.post("/bartender-chat", authRequired, async (req, res, next) => {
     }
     
     let imageUrl = null;
+    let imageThumbnailUrl = null;
     try {
       const imageBuffer = await generateCocktailImage(parsedRecipe);
       imageUrl = await uploadImageToS3(imageBuffer, parsedRecipe.name);
+      imageThumbnailUrl = await uploadImageThumbnailToS3(imageBuffer, parsedRecipe.name);
     } catch (e) {
       console.error("이미지 생성/업로드 실패:", e.message);
     }
     
     // 응답용 객체에 붙이기
     parsedRecipe.image_url = imageUrl ?? null;
-    
+    parsedRecipe.imageThumbnail_url = imageThumbnailUrl ?? null;
+
     return res.json({
       reply: trimmed,
       recipe: parsedRecipe,

@@ -138,6 +138,7 @@ export default function JemeniRecommend() {
 
         // AI 이미지 S3 URL도 같이 저장
         image_url: recipe.image_url || null,
+        imageThumbnail_url: recipe.imageThumbnail_url || null,
       };
 
       const res = await axios.post(

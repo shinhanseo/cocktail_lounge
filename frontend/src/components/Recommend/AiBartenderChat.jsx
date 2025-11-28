@@ -84,7 +84,7 @@ export default function AiBartenderChat() {
         res.data?.reply ??
         "레시피 서버에서 응답을 받지 못했어요. 잠시 후 다시 시도해 주세요.";
 
-      // 🔥 백엔드에서 온 recipe (레시피가 아니면 null)
+      // 백엔드에서 온 recipe (레시피가 아니면 null)
       const recipeFromServer = res.data?.recipe ?? null;
       setLastRecipe(recipeFromServer);
 
@@ -139,6 +139,7 @@ export default function AiBartenderChat() {
           rawKeywords: "",
           abv: lastRecipe.abv ?? null,
           image_url: lastRecipe.image_url ?? null,
+          imageThumbnail_url: lastRecipe.imageThumbnail_url || null,
         },
         { withCredentials: true }
       );
