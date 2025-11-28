@@ -138,9 +138,9 @@ export default function AiCocktails() {
               <div className="flex gap-4 items-start">
                 {/* 썸네일 */}
                 <div className="w-28 h-28 rounded-lg overflow-hidden bg-white/5 border border-white/10 shrink-0">
-                  {c.image_url ? (
+                  {c.imagethumbnail_url ? (
                     <img
-                      src={c.image_url}
+                      src={c.imagethumbnail_url}
                       alt={c.name}
                       className="w-full h-full object-cover"
                       loading="lazy"
