@@ -9,6 +9,9 @@ const pool =
   globalForPg.pgPool ||
   new Pool({
     connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false, // RDS 인증서 검증을 생략 (개발용)
+    },
   });
 
 if (process.env.NODE_ENV !== 'production') globalForPg.pgPool = pool;

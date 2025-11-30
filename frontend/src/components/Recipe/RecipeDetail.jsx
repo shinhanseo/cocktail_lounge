@@ -47,9 +47,7 @@ export default function RecipeDetail() {
 
   // --- 목록으로 돌아가기 (정렬 상태 유지) ---
   const handleBack = () => {
-    // RecipeList에서 NavLink state로 넘긴 from 값 우선 사용
-    // 없으면 기본 목록 경로(/recipe)로
-    const fallback = "/recipe";
+    const fallback = "/cocktails";
     const from = location.state?.from || fallback;
     navigate(from);
   };
