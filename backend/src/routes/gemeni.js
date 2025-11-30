@@ -103,8 +103,10 @@ function guessVisualSpec(recipe) {
   // 4. 밀크/크림 (불투명하고 옅은 색)
   const creamKeywords = ["milk", "cream", "baileys", "irish cream", "우유", "크림", "베일리스", "깔루아"];
   // 5. 시트러스/옅은색 (가장 약한 색, 기본값)
-  const citrusKeywords = ["lemon", "lime", "grapefruit", "yuzu", "시트러스", "레몬", "라임", "오렌지"];
-  
+  const citrusKeywords = ["lemon", "lime", "grapefruit", "yuzu", "시트러스", "레몬", "라임", "오렌지", "자몽"];
+  // 6. 초록색 
+  const greenKeywords = ["melon", "mint", "chocolate mint", "kiwi", "메론", "민트초코", "키위", "청포도"];
+
   let color = "clear or pale yellow"; // 기본값 (진, 보드카, 투명 럼 등)
 
   // 1. 강한 붉은색/분홍색 계열 확인
@@ -130,7 +132,12 @@ function guessVisualSpec(recipe) {
   
   // 5. 시트러스 계열은 옅은 노란색으로 (주로 클리어 베이스일 때)
   else if (color === "clear or pale yellow" && ing.some(x => citrusKeywords.some(k => x.includes(k)))) {
-      color = "pale yellow with correct transparency";
+    color = "pale yellow with correct transparency";
+  }
+  
+  // green 계열이면 밝은 초록색
+  else if (color === "clear or pale yellow" && ing.some(x => greenKeywords.some(k => x.includes(k)))) {
+    color = "light fresh green with correct transparency";
   }
 
   // ------- Glass ------
@@ -175,6 +182,14 @@ function guessVisualSpec(recipe) {
     garnishList.push("an orange peel or twist");
   }
 
+  if (ing.some(x => x.includes("grapefruit") || x.includes("자몽"))) {
+    garnishList.push("a grapefruit");
+  }
+
+  if (ing.some(x => x.includes("basil") || x.includes("바질"))) {
+    garnishList.push("a basil");
+  }
+  
   if (ing.some(x => x.includes("휘핑크림")))
     garnishList.push("Top with whipped cream");
 
