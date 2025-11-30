@@ -108,7 +108,7 @@ export default function CommunityPreview() {
 
             {/* 제목: 15자 초과 시 ... 처리 */}
             <NavLink
-              to={`/posts/${p.id}`}
+              to={`/community/${p.id}`}
               state={{ posts: p }}
               className="flex-1 hover:cursor-pointer hover:font-bold"
               title={p.title}

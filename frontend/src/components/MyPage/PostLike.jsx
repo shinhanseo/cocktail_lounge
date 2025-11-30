@@ -86,7 +86,7 @@ export default function MyPosts() {
           {items.map((p) => (
             <li
               key={p.id}
-              onClick={() => navigate(`/posts/${p.id}`)}
+              onClick={() => navigate(`/community/${p.id}`)}
               className="flex justify-between items-center border-b border-white/10 pb-3 hover:bg-white/5 hover:cursor-pointer rounded-lg px-3 py-2 transition"
               style={{
                 width: "700px",

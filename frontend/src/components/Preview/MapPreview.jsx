@@ -22,7 +22,7 @@ export default function MapPreView() {
 
         {/* 지도 전체보기 링크 */}
         <NavLink
-          to="/map"
+          to="/bars"
           className="text-amber-300 text-sm font-semibold hover:text-white transition-colors"
         >
           더보기 →

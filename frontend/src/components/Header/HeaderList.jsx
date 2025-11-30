@@ -7,8 +7,8 @@ export default function HeaderList() {
   const navItems = [
     { to: "/community", label: "커뮤니티", icon: <Users size={16} /> },
     { to: "/today", label: "AI 바텐더", icon: <Bot size={16} /> },
-    { to: "/recipe", label: "칵테일 도감", icon: <Wine size={16} /> },
-    { to: "/map", label: "칵테일여지도", icon: <MapPinned size={16} /> },
+    { to: "/cocktails", label: "칵테일 도감", icon: <Wine size={16} /> },
+    { to: "/bars", label: "칵테일여지도", icon: <MapPinned size={16} /> },
   ];
 
   return (
