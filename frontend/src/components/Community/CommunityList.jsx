@@ -221,7 +221,7 @@ export default function CommunityList() {
 
             {/* 제목 */}
             <NavLink
-              to={`/posts/${p.id}`}
+              to={`/community/${p.id}`}
               state={{
                 posts: p, // 기존에 쓰던 거 유지
                 from: location.pathname + location.search, // 리스트 상태 보존용

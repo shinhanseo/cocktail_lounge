@@ -77,7 +77,7 @@ export default function RecipePreView() {
           <Icon className="text-amber-400">🥂</Icon> 오늘의 추천 한잔
         </h2>
         <NavLink
-          to="/recipe"
+          to="/cocktails"
           className="text-amber-300 text-sm font-semibold hover:text-white transition-colors"
         >
           레시피 도감 →

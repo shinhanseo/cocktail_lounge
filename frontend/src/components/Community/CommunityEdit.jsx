@@ -127,7 +127,7 @@ export default function CommunityEdit() {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl md:text-3xl font-bold">✏️ 게시글 수정</h1>
           <NavLink
-            to={`/posts/${id}`}
+            to={`/community/${id}`}
             className="text-sm text-white/70 hover:font-bold"
           >
             ← 돌아가기
@@ -214,7 +214,7 @@ export default function CommunityEdit() {
         open={openForbiddenModal}
         onClose={() => {
           setOpenForbiddenModal(false);
-          navigate(`/posts/${id}`);
+          navigate(`/community/${id}`);
         }}
         title="수정할 수 없습니다"
         message="본인 게시글만 수정할 수 있어요."
@@ -238,7 +238,7 @@ export default function CommunityEdit() {
         open={openSuccessModal}
         onClose={() => {
           setOpenSuccessModal(false);
-          navigate(`/posts/${id}`);
+          navigate(`/community/${id}`);
         }}
         title="수정 완료!"
         message="게시글이 수정되었습니다."

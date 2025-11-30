@@ -36,12 +36,12 @@ createRoot(document.getElementById("root")).render(
             {/* 기본 페이지들 */}
             <Route index element={<Home />} />
             <Route path="community" element={<Community />} />
-            <Route path="posts/:id" element={<CommunityDetail />} />
+            <Route path="community/:id" element={<CommunityDetail />} />
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<SignUp />} />
             <Route path="today" element={<Today />} />
-            <Route path="map" element={<Map />} />
-            <Route path="recipe" element={<Recipe />} />
+            <Route path="bars" element={<Map />} />
+            <Route path="cocktails" element={<Recipe />} />
             <Route path="cocktails/:id" element={<RecipeDetail />} />
             <Route path="bars/:city" element={<BarDetail />} />
             <Route path="communitywriting" element={<CommunityWriting />} />

@@ -110,7 +110,7 @@ export default function InfoMe() {
         open={openSuccessModal}
         onClose={() => {
           setOpenSuccessModal(false);
-          navigate(`/posts/${id}`);
+          navigate(`/community/${id}`);
         }}
         title="수정 완료!"
         message="게시글이 수정되었습니다."

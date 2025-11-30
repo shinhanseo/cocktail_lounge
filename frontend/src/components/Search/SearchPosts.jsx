@@ -81,7 +81,7 @@ export default function SearchPosts({ keyword }) {
                 <li
                   key={p.id}
                   className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition hover:cursor-pointer"
-                  onClick={() => navigate(`/posts/${p.id}`)}
+                  onClick={() => navigate(`/community/${p.id}`)}
                 >
                   <h4 className="font-bold text-lg mb-1 text-white">
                     {p.title}
