@@ -102,7 +102,7 @@ export default function AIBartenderPreview() {
           <NavLink
             to="/today?mode=chat"
             className="
-              mt-3 block w-full text-center text-[12px] font-semibold
+              mt-4.5 block w-full text-center text-[12px] font-semibold
               bg-amber-400/90 hover:bg-amber-500/90 py-1.5 rounded-lg
               border border-white/10
               transition shadow-md hover:shadow-lg
