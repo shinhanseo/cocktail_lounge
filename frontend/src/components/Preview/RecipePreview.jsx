@@ -51,11 +51,10 @@ export default function RecipePreView() {
   }, [cocktails]);
 
   if (loading)
-    return <div className="text-white">🍹 오늘의 추천 한잔... 불러오는 중</div>;
+    return <div className="text-white">🥂 오늘의 추천 한잔... 불러오는 중</div>;
   if (error) return <div className="text-red-400">🚨 {error}</div>;
-  if (!pick) return <div className="text-white">🍹 레시피가 없습니다.</div>;
+  if (!pick) return <div className="text-white">🥂 레시피가 없습니다.</div>;
 
-  // --- 안전 가드 및 데이터 추출 ---
   const slug = pick.slug ?? pick.id;
   const imgSrc = pick.image || "/static/cocktails/default.jpg";
   const name = pick.name || "이름 없는 칵테일";
@@ -71,7 +70,7 @@ export default function RecipePreView() {
                  shadow-[0_4px_10px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.4)] 
                  transition-shadow duration-300 h-full flex flex-col" // flex-col 및 h-full 추가
     >
-      {/* 1. 헤더: 제목 + 더보기 버튼 (디자인 변경 없음) */}
+      {/* 1. 헤더: 제목 + 더보기 버튼*/}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <Icon className="text-amber-400">🥂</Icon> 오늘의 추천 한잔
@@ -80,7 +79,7 @@ export default function RecipePreView() {
           to="/cocktails"
           className="text-amber-300 text-sm font-semibold hover:text-white transition-colors"
         >
-          레시피 도감 →
+          칵테일 도감 →
         </NavLink>
       </div>
 
