@@ -1,10 +1,9 @@
 // src/App.jsx
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Outlet } from "react-router-dom";
+import Main from "@/components/Main";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
-
 // 앱 컴포넌트
 export default function App() {
   const hydrateFromServer = useAuthStore((s) => s.hydrateFromServer);
@@ -16,7 +15,7 @@ export default function App() {
   return (
     <div className="bg-bg flex flex-col min-h-screen">
       <Header /> {/* 헤더 컴포넌트 */}
-      <Outlet /> {/* 하위 라우트 렌더링 */}
+      <Main /> {/* 하위 라우트 렌더링 */}
       <Footer /> {/* 푸터 컴포넌트 */}
     </div>
   );
