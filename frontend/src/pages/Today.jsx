@@ -8,10 +8,9 @@ import AiBartenderChat from "@/components/Recommend/AiBartenderChat";
 export default function Today() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialMode = searchParams.get("mode") || "form";
-
   const [mode, setMode] = useState(initialMode);
 
-  // URL이 바뀌면 모드도 바뀌도록
+  // URL 변경 시 모드 동기화
   useEffect(() => {
     const newMode = searchParams.get("mode") || "form";
     setMode(newMode);
@@ -22,36 +21,48 @@ export default function Today() {
   };
 
   return (
-    <div className="mt-8 max-w-5xl mx-auto">
-      {/* 선택 버튼 영역 */}
-      <div className="flex justify-center gap-3 mb-6">
-        <button
-          onClick={() => handleModeChange("form")}
-          className={`px-4 py-2 rounded-2xl text-sm font-medium border transition hover:cursor-pointer
-            ${
-              mode === "form"
-                ? "bg-amber-400 text-slate-950 border-amber-300"
-                : "bg-slate-900/70 text-slate-200 border-slate-700 hover:bg-slate-800"
-            }`}
+    <div className="mt-4">
+      {/* 메인 컨테이너: 항상 중앙 */}
+      <div className="relative max-w-5xl mx-auto px-3">
+        {/* 메인 내용 */}
+        <div>{mode === "form" ? <JemeniRecommend /> : <AiBartenderChat />}</div>
+        <div
+          className="
+            hidden md:block
+            absolute top-10 -right-45
+          "
         >
-          📋 입력해서 레시피 받기
-        </button>
+          <div className="rounded-2xl bg-slate-900/90 border border-slate-700/70 px-3 py-3 flex flex-col gap-2 shadow-lg">
+            <button
+              onClick={() => handleModeChange("form")}
+              className={`
+                w-full px-3 py-2 rounded-xl text-xs font-medium border text-left transition hover:cursor-pointer
+                ${
+                  mode === "form"
+                    ? "bg-amber-400 text-slate-950 border-amber-300 shadow-sm"
+                    : "bg-slate-950/70 text-slate-100 border-slate-700 hover:bg-slate-800"
+                }
+              `}
+            >
+              📋 키워드 입력
+            </button>
 
-        <button
-          onClick={() => handleModeChange("chat")}
-          className={`px-4 py-2 rounded-2xl text-sm font-medium border transition hover:cursor-pointer
-            ${
-              mode === "chat"
-                ? "bg-amber-400 text-slate-950 border-amber-300"
-                : "bg-slate-900/70 text-slate-200 border-slate-700 hover:bg-slate-800"
-            }`}
-        >
-          🍸 바텐더와 대화하며 만들기
-        </button>
+            <button
+              onClick={() => handleModeChange("chat")}
+              className={`
+                w-full px-3 py-2 rounded-xl text-xs font-medium border text-left transition hover:cursor-pointer
+                ${
+                  mode === "chat"
+                    ? "bg-amber-400 text-slate-950 border-amber-300 shadow-sm"
+                    : "bg-slate-950/70 text-slate-100 border-slate-700 hover:bg-slate-800"
+                }
+              `}
+            >
+              🍸 바텐더와 대화
+            </button>
+          </div>
+        </div>
       </div>
-
-      {/* 내용 영역 */}
-      <div>{mode === "form" ? <JemeniRecommend /> : <AiBartenderChat />}</div>
     </div>
   );
 }

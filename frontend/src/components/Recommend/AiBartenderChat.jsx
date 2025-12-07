@@ -164,11 +164,11 @@ export default function AiBartenderChat() {
 
   return (
     <>
-      {/* 🔥 상위 컨테이너만 확장한 버전 (채팅창은 그대로) */}
+      {/* 상위 컨테이너만 확장한 버전 */}
       <section
         className="
-          w-full max-w-5xl mx-auto 
-          h-[620px]
+          w-[800px] max-w-5xl mx-auto 
+          h-[700px]
           px-8 py-5
           rounded-3xl 
           bg-slate-900/80 
