@@ -37,7 +37,7 @@ const hf = new HfInference(process.env.HF_TOKEN);
 // -------------------------------------------------------------
 async function uploadImageToS3(imageBuffer, recipeName) {
   const bucket = process.env.AWS_S3_BUCKET;
-  
+
   const safeName = String(recipeName || "ai-cocktail")
     .toLowerCase()
     .replace(/[^a-z0-9가-힣-_]/g, "-")
@@ -61,14 +61,14 @@ async function uploadImageThumbnailToS3(imageBuffer, recipeName) {
   const bucket = process.env.AWS_S3_BUCKET;
 
   const resizedBuffer = await sharp(imageBuffer)
-    .resize({ width: 300 }) 
-    .png({ quality: 80 }) 
+    .resize({ width: 300 })
+    .png({ quality: 80 })
     .toBuffer();
 
   const safeName = String(`${recipeName}-thumbnail`)
-  .toLowerCase()
-  .replace(/[^a-z0-9가-힣-_]/g, "-")
-  .slice(0, 40);
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣-_]/g, "-")
+    .slice(0, 40);
 
   const key = `ai_cocktails_thumbnail/${safeName}-${crypto.randomUUID()}.png`;
 
@@ -92,110 +92,153 @@ function guessVisualSpec(recipe) {
     (x.item || "").toLowerCase()
   );
 
-  // ------- Color ------
-  // 색상 강도 우선순위 맵: [색상 키워드 리스트, 결정될 색상]
-  // 1. 커피/초코 (가장 강한 어두운 색)
-  const coffeeKeywords = ["coffee", "espresso", "cocoa", "chocolate", "커피", "초코", "초콜릿", "초콜렛", "블랙체리"];
-  // 2. 베리/레드 계열 (강한 붉은색/분홍색)
-  const berryKeywords = ["berry", "strawberry", "raspberry", "cranberry", "wine", "peach", "체리", "딸기", "수박", "워터멜론", "크랜베리", "와인", "피치", "복숭아"];
-  // 3. 위스키/호박색 (중간 정도의 호박색)
-  const amberKeywords = ["whisky", "bourbon", "scotch", "위스키", "버번"]; 
-  // 4. 밀크/크림 (불투명하고 옅은 색)
-  const creamKeywords = ["milk", "cream", "baileys", "irish cream", "우유", "크림", "베일리스", "깔루아"];
-  // 5. 시트러스/옅은색 (가장 약한 색, 기본값)
-  const citrusKeywords = ["lemon", "lime", "grapefruit", "yuzu", "시트러스", "레몬", "라임", "오렌지", "자몽"];
-  // 6. 초록색 
-  const greenKeywords = ["melon", "mint", "chocolate mint", "kiwi", "메론", "민트초코", "키위", "청포도"];
+  const coffeeKeywords = [
+    "coffee",
+    "espresso",
+    "cocoa",
+    "chocolate",
+    "커피",
+    "초코",
+    "초콜릿",
+    "초콜렛",
+    "블랙체리",
+  ];
+  const berryKeywords = [
+    "berry",
+    "strawberry",
+    "raspberry",
+    "cranberry",
+    "wine",
+    "peach",
+    "체리",
+    "딸기",
+    "수박",
+    "워터멜론",
+    "크랜베리",
+    "와인",
+    "피치",
+    "복숭아",
+  ];
+  const amberKeywords = ["whisky", "bourbon", "scotch", "위스키", "버번"];
+  const creamKeywords = [
+    "milk",
+    "cream",
+    "baileys",
+    "irish cream",
+    "우유",
+    "크림",
+    "베일리스",
+    "깔루아",
+  ];
+  const citrusKeywords = [
+    "lemon",
+    "lime",
+    "grapefruit",
+    "yuzu",
+    "시트러스",
+    "레몬",
+    "라임",
+    "오렌지",
+    "자몽",
+  ];
+  const greenKeywords = [
+    "melon",
+    "mint",
+    "chocolate mint",
+    "kiwi",
+    "메론",
+    "민트초코",
+    "키위",
+    "청포도",
+  ];
 
-  let color = "clear or pale yellow"; // 기본값 (진, 보드카, 투명 럼 등)
+  let color = "clear or pale yellow";
 
-  // 1. 강한 붉은색/분홍색 계열 확인
-  if (ing.some(x => berryKeywords.some(k => x.includes(k)))) {
+  if (ing.some((x) => berryKeywords.some((k) => x.includes(k)))) {
     color = "vibrant red or pink";
-  }
-  
-  // 2. 가장 강한 어두운 색 확인
-  else if (ing.some(x => coffeeKeywords.some(k => x.includes(k)))) {
+  } else if (ing.some((x) => coffeeKeywords.some((k) => x.includes(k)))) {
     color = "dark brown";
-  }
-  
-  // 3. 불투명하고 옅은 색 확인 (크림은 다른 색을 덮음)
-  else if (ing.some(x => creamKeywords.some(k => x.includes(k)))) {
+  } else if (ing.some((x) => creamKeywords.some((k) => x.includes(k)))) {
     color = "creamy white or beige";
-  }
-  
-  // 4. 호박색 계열 확인 (다른 강한 색이 없을 경우만)
-  // 위스키는 다른 강한 색 (베리, 커피)이 섞이지 않았을 때 앰버색을 결정합니다.
-  else if (color === "clear or pale yellow" && ing.some(x => amberKeywords.some(k => x.includes(k)))) {
+  } else if (
+    color === "clear or pale yellow" &&
+    ing.some((x) => amberKeywords.some((k) => x.includes(k)))
+  ) {
     color = "amber gold or deep amber";
-  }
-  
-  // 5. 시트러스 계열은 옅은 노란색으로 (주로 클리어 베이스일 때)
-  else if (color === "clear or pale yellow" && ing.some(x => citrusKeywords.some(k => x.includes(k)))) {
+  } else if (
+    color === "clear or pale yellow" &&
+    ing.some((x) => citrusKeywords.some((k) => x.includes(k)))
+  ) {
     color = "pale yellow with correct transparency";
-  }
-  
-  // green 계열이면 밝은 초록색
-  else if (color === "clear or pale yellow" && ing.some(x => greenKeywords.some(k => x.includes(k)))) {
+  } else if (
+    color === "clear or pale yellow" &&
+    ing.some((x) => greenKeywords.some((k) => x.includes(k)))
+  ) {
     color = "light fresh green with correct transparency";
   }
 
-  // ------- Glass ------
   let glass = "highball glass";
   const stepText = (recipe.step || []).join(" ").toLowerCase();
-  
-  if (stepText.includes("쉐이킹") || stepText.includes("shake") || recipe.name.includes("마티니"))
+
+  if (
+    stepText.includes("쉐이킹") ||
+    stepText.includes("shake") ||
+    recipe.name.includes("마티니")
+  )
     glass = "coupe or martini glass";
-    
-  else if (ing.some(x => amberKeywords.some(k => x.includes(k))))
+  else if (ing.some((x) => amberKeywords.some((k) => x.includes(k))))
     glass = "old fashioned glass";
-
-  else if(recipe.name.includes("뮬") || stepText.includes("구리"))
+  else if (
+    recipe.name.includes("뮬") ||
+    stepText.includes("구리")
+  )
     glass = "a copper Moscow Mule Mug";
-
-  else if(recipe.name.includes("마가리타"))
+  else if (recipe.name.includes("마가리타"))
     glass = "Margarita Glass and salt lip";
-
-  else if(recipe.name.includes("샹그리아") || ing.some(x => x.includes("와인")))
+  else if (
+    recipe.name.includes("샹그리아") ||
+    ing.some((x) => x.includes("와인"))
+  )
     glass = "Wine Glass";
 
-  // ------- Garnish ------
   let garnishList = [];
 
-  // 커피/크림 계열은 무가니시가 기본
-  if (ing.some(x => coffeeKeywords.some(k => x.includes(k))) || ing.some(x => creamKeywords.some(k => x.includes(k)))) {
+  if (
+    ing.some((x) => coffeeKeywords.some((k) => x.includes(k))) ||
+    ing.some((x) => creamKeywords.some((k) => x.includes(k)))
+  ) {
     return { color, glass, garnish: [], noGarnish: true };
   }
 
-  // 허용되는 경우만 가니시 추가
-  if (ing.some(x => x.includes("mint") || x.includes("민트")))
+  if (ing.some((x) => x.includes("mint") || x.includes("민트")))
     garnishList.push("a small mint sprig");
-    
-  if (ing.some(x => x.includes("lemon") || x.includes("레몬")))
+
+  if (ing.some((x) => x.includes("lemon") || x.includes("레몬")))
     garnishList.push("a thin lemon peel");
-    
-  if (ing.some(x => x.includes("lime") || x.includes("라임")))
+
+  if (ing.some((x) => x.includes("lime") || x.includes("라임")))
     garnishList.push("a lime wheel");
-    
-  // 오렌지 - 재료 언급 시 가니시로 추가
-  if (ing.some(x => x.includes("orange") || x.includes("오렌지"))) {
+
+  if (ing.some((x) => x.includes("orange") || x.includes("오렌지"))) {
     garnishList.push("an orange peel or twist");
   }
 
-  if (ing.some(x => x.includes("grapefruit") || x.includes("자몽"))) {
+  if (ing.some((x) => x.includes("grapefruit") || x.includes("자몽"))) {
     garnishList.push("a grapefruit");
   }
 
-  if (ing.some(x => x.includes("basil") || x.includes("바질"))) {
+  if (ing.some((x) => x.includes("basil") || x.includes("바질"))) {
     garnishList.push("a basil");
   }
-  
-  if (ing.some(x => x.includes("휘핑크림")))
+
+  if (ing.some((x) => x.includes("휘핑크림")))
     garnishList.push("Top with whipped cream");
 
-  // 체리 - 위스키 조건 없이 추가
-  if (ing.some(x => x.includes("cherry") || x.includes("체리")) || recipe.step.join(" ").toLowerCase().includes("체리로 장식")) {
-     garnishList.push("a maraschino cherry on a skewer");
+  if (
+    ing.some((x) => x.includes("cherry") || x.includes("체리")) ||
+    recipe.step.join(" ").toLowerCase().includes("체리로 장식")
+  ) {
+    garnishList.push("a maraschino cherry on a skewer");
   }
 
   if (garnishList.length === 0)
@@ -305,7 +348,8 @@ async function generateCocktailImage(recipe) {
   const prompt = buildPrompt(recipe, garnishText);
 
   const model = "black-forest-labs/FLUX.1-schnell";
-  const negativePrompt = "too yellow, bright orange, amber color, yellow tint, bad crop, blurry, ugly, messy, bad composition";
+  const negativePrompt =
+    "too yellow, bright orange, amber color, yellow tint, bad crop, blurry, ugly, messy, bad composition";
 
   const out = await hf.textToImage({
     model,
@@ -315,7 +359,7 @@ async function generateCocktailImage(recipe) {
       width: 768,
       num_inference_steps: 16,
       guidance_scale: 7,
-      negative_prompt : negativePrompt,
+      negative_prompt: negativePrompt,
     },
   });
 
@@ -361,32 +405,24 @@ async function generateWithRetry(prompt, configOverride = {}) {
 // -------------------------------------------------------------
 function parseBartenderRecipe(text = "") {
   try {
-    // 1) 칵테일 이름
     const nameMatch = text.match(/칵테일 이름:\s*(.+)/);
-    // 2) 도수
     const abvMatch = text.match(/도수:\s*(\d+)\s*%/);
 
-    // 3) [재료] ~ [제조 과정] 구간
     const ingSectionMatch = text.match(/\[재료\]([\s\S]*?)\[제조 과정\]/);
-    // 4) [제조 과정] ~ [코멘트] 구간
     const stepSectionMatch = text.match(/\[제조 과정\]([\s\S]*?)\[코멘트\]/);
-    // 5) [코멘트] 이후
     const commentSectionMatch = text.match(/\[코멘트\]\s*([\s\S]*)/);
 
     if (!nameMatch || !ingSectionMatch || !stepSectionMatch) {
-      // 필수 섹션이 없으면 레시피가 아니라고 판단
       return null;
     }
 
-    // --- 재료 파싱 ---
     const ingredientLines = ingSectionMatch[1]
       .split("\n")
       .map((l) => l.trim())
       .filter((l) => l.startsWith("-"));
 
     const ingredient = ingredientLines.map((line) => {
-      const noDash = line.replace(/^-+/, "").trim(); // "- " 제거
-      // 마지막 공백 기준으로 "이름" / "용량" 나누기 (예: "진 45ml")
+      const noDash = line.replace(/^-+/, "").trim();
       const idx = noDash.lastIndexOf(" ");
       if (idx === -1) {
         return { item: noDash, volume: "" };
@@ -397,7 +433,6 @@ function parseBartenderRecipe(text = "") {
       };
     });
 
-    // --- 제조 과정 파싱 ---
     const stepLines = stepSectionMatch[1]
       .split("\n")
       .map((l) => l.trim())
@@ -405,7 +440,6 @@ function parseBartenderRecipe(text = "") {
 
     const step = stepLines.map((l) => l.replace(/^\d+\.\s*/, "").trim());
 
-    // --- 코멘트 ---
     let comment = "";
     if (commentSectionMatch) {
       comment = commentSectionMatch[1].trim().split("\n")[0];
@@ -510,6 +544,137 @@ async function generateCocktailRecommendation(requirements) {
 }
 
 // -------------------------------------------------------------
+// visual tool-call 파싱 + 비주얼 기반 레시피/이미지 생성
+// -------------------------------------------------------------
+function parseVisualToolCall(text = "") {
+  const callMatch = text.match(
+    /generate_visual_cocktail\s*\(([^)]*)\)/i
+  );
+  if (!callMatch) return null;
+
+  const argsStr = callMatch[1];
+
+  const visualMatch = argsStr.match(
+    /visualDescription\s*=\s*['"]([^'"]+)['"]/
+  );
+  const baseSpiritMatch = argsStr.match(
+    /baseSpirit\s*=\s*['"]([^'"]+)['"]/
+  );
+  const abvMatch = argsStr.match(/abv\s*=\s*(\d+(\.\d+)?)/);
+
+  const visualDescription = visualMatch?.[1]?.trim();
+  if (!visualDescription) return null;
+
+  const baseSpirit = baseSpiritMatch?.[1]?.trim() || null;
+  const abv = abvMatch ? Number(abvMatch[1]) : null;
+
+  return { visualDescription, baseSpirit, abv };
+}
+
+function buildRecipeTextFromObject(recipe) {
+  const lines = [];
+  lines.push(`칵테일 이름: ${recipe.name}`);
+  if (typeof recipe.abv === "number") {
+    lines.push(`도수: ${recipe.abv}%`);
+  } else {
+    lines.push(`도수: 정보 없음`);
+  }
+
+  lines.push("");
+  lines.push("[재료]");
+  (recipe.ingredient || []).forEach((ing) => {
+    const item = ing.item || "";
+    const volume = ing.volume || "";
+    const line = volume ? `- ${item} ${volume}` : `- ${item}`;
+    lines.push(line);
+  });
+
+  lines.push("");
+  lines.push("[제조 과정]");
+  (recipe.step || []).forEach((step, idx) => {
+    lines.push(`${idx + 1}. ${step}`);
+  });
+
+  lines.push("");
+  lines.push("[코멘트]");
+  lines.push(recipe.comment || "");
+
+  return lines.join("\n");
+}
+
+async function generateVisualCocktailFromDescription({
+  visualDescription,
+  baseSpirit,
+  abv,
+}) {
+  let prompt = `
+    너는 시각적인 비주얼 설명을 기반으로 칵테일 레시피를 만들어주는 한국어 바텐더다.
+
+    [입력]
+    - 비주얼 설명: "${visualDescription}"
+    - 기주(Base Spirit) 요구: ${
+      baseSpirit ? baseSpirit : "별도 요구 없음"
+    }
+    - 도수(ABV) 요구: ${abv ? String(abv) : "별도 요구 없음"}
+
+    위 비주얼에 가장 잘 어울리는 칵테일 레시피를 아래 JSON 형식으로만 출력해라.
+    JSON 이외의 설명문, 마크다운, 코드블록은 절대 출력하지 말 것.
+
+    {
+      "name": "칵테일 이름 (string)",
+      "abv": 12,
+      "ingredient": [
+        {
+          "item": "재료 이름 (string)",
+          "volume": "용량 (string, 예: 45ml)"
+        }
+      ],
+      "step": ["1단계", "2단계", "3단계"],
+      "comment": "맛을 한줄로 표현한 짧은 코멘트"
+    }
+
+    조건:
+    - 모든 텍스트는 한국어.
+    - ingredient 는 최소 3개 이상.
+    - step 은 2~6단계.
+    - comment 는 20자 이하.
+    - baseSpirit, abv 요구가 있으면 최대한 반영.
+    - 비주얼(색감, 잔 모양, 장식, 분위기)에 잘 맞는 칵테일로 구성.
+  `.trim();
+
+  const response = await generateWithRetry(prompt, {
+    responseMimeType: "application/json",
+  });
+
+  const json = response.text;
+  let recipe;
+  try {
+    recipe = JSON.parse(json);
+  } catch (e) {
+    console.error("비주얼 레시피 JSON 파싱 실패:", json);
+    throw new Error("비주얼 레시피 JSON 파싱 실패");
+  }
+
+  let imageUrl = null;
+  let imageThumbnailUrl = null;
+  try {
+    const imageBuffer = await generateCocktailImage(recipe);
+    imageUrl = await uploadImageToS3(imageBuffer, recipe.name);
+    imageThumbnailUrl = await uploadImageThumbnailToS3(
+      imageBuffer,
+      recipe.name
+    );
+  } catch (e) {
+    console.error("비주얼 이미지 생성/업로드 실패:", e.message);
+  }
+
+  recipe.image_url = imageUrl ?? null;
+  recipe.imageThumbnail_url = imageThumbnailUrl ?? null;
+
+  return { recipe, imageUrl, imageThumbnailUrl };
+}
+
+// -------------------------------------------------------------
 // Generate recipe + image + upload to S3
 // -------------------------------------------------------------
 router.post("/", async (req, res) => {
@@ -549,7 +714,10 @@ router.post("/", async (req, res) => {
     try {
       const imageBuffer = await generateCocktailImage(recipe);
       imageUrl = await uploadImageToS3(imageBuffer, recipe.name);
-      imageThumbnailUrl = await uploadImageThumbnailToS3(imageBuffer, recipe.name);
+      imageThumbnailUrl = await uploadImageThumbnailToS3(
+        imageBuffer,
+        recipe.name
+      );
     } catch (e) {
       console.error("이미지 생성/업로드 실패:", e.message);
     }
@@ -612,7 +780,8 @@ router.post("/save", authRequired, async (req, res, next) => {
       rawTaste && rawTaste.split(",").map((t) => t.trim()).filter(Boolean);
 
     const keywords =
-      rawKeywords && rawKeywords.split(",").map((k) => k.trim()).filter(Boolean);
+      rawKeywords &&
+      rawKeywords.split(",").map((k) => k.trim()).filter(Boolean);
 
     const stepArray = Array.isArray(step)
       ? step
@@ -798,8 +967,7 @@ router.delete("/save/:id", authRequired, async (req, res, next) => {
       [id, userId]
     );
 
-    if (!rows.length)
-      return res.status(404).json({ message: "레시피 없음" });
+    if (!rows.length) return res.status(404).json({ message: "레시피 없음" });
 
     if (rows[0].user_id !== req.user.id)
       return res.status(403).json({ message: "권한 없음" });
@@ -820,6 +988,7 @@ router.delete("/save/:id", authRequired, async (req, res, next) => {
 
 // -------------------------------------------------------------
 // Bartender chat (레시피일 때만 recipe 객체 내려줌)
+// + generate_visual_cocktail(...) 가 나왔을 때는 비주얼 툴 호출처럼 처리
 // -------------------------------------------------------------
 router.post("/bartender-chat", authRequired, async (req, res, next) => {
   try {
@@ -844,6 +1013,19 @@ router.post("/bartender-chat", authRequired, async (req, res, next) => {
         사용자의 취향(기주, 맛, 도수, 분위기 등)을 자연스럽게 다시 질문합니다.
       - 레시피가 아닌 일반 대화는 3문장 이하로 짧고 친절하게 대답합니다.
       - 모든 답변은 한국어로 합니다.
+
+      [툴 사용 규칙]
+      - 사용자가 칵테일의 색, 잔 모양, 장식, 비주얼을 묘사하면
+        다음과 같이 함수 호출 형태의 문자열을 한 줄로 출력합니다.
+
+        예)
+        generate_visual_cocktail(visualDescription='와인잔에 딸기가 들어간 칵테일')
+
+      - visualDescription 인자에는 사용자의 비주얼 묘사를 한국어로 자연스럽게 넣습니다.
+      - baseSpirit, abv 를 명확히 요구하면
+        generate_visual_cocktail(visualDescription='...', baseSpirit='진', abv=10)
+        이런 식으로 함께 적습니다.
+      - 이 함수를 한 줄로 출력할 때는 다른 문장, 설명, 마크다운, 따옴표를 붙이지 않습니다.
 
       [레시피 출력 규칙]
       - 사용자가 레시피, 제조 방법, 만들기 등을 요청하면 반드시 아래 형식으로 "텍스트만" 출력합니다.
@@ -876,6 +1058,12 @@ router.post("/bartender-chat", authRequired, async (req, res, next) => {
       - 높은 도수(20% 이상)는 베이스 술 또는 리큐르 양을 늘립니다.
       - 재료 구성과 도수가 모순되지 않도록 합니다.
       - 가능한 경우 실존하는 칵테일을 기반으로 레시피를 구성합니다.
+
+      [응답 선택 규칙]
+      - 사용자의 메시지가 비주얼 묘사(색, 잔, 장식 등)에 가깝다면
+        레시피 형식으로 바로 답변하지 말고,
+        generate_visual_cocktail(...) 한 줄만 출력합니다.
+      - 그 외에는 위의 레시피 출력 형식 또는 짧은 대화로 바로 답변합니다.
       `.trim();
 
     const conversationText = (messages || [])
@@ -900,27 +1088,53 @@ router.post("/bartender-chat", authRequired, async (req, res, next) => {
     const trimmed =
       (replyText && replyText.trim()) ||
       "지금은 잠시 레시피를 만들기 어렵습니다. 조금 뒤에 다시 시도해 주세요.";
-    
+
+    // 1) generate_visual_cocktail(...) 형태면 → 비주얼 툴 호출로 처리
+    const visualArgs = parseVisualToolCall(trimmed);
+    if (visualArgs) {
+      try {
+        const { recipe } = await generateVisualCocktailFromDescription(
+          visualArgs
+        );
+        const replyRecipeText = buildRecipeTextFromObject(recipe);
+
+        return res.json({
+          reply: replyRecipeText,
+          recipe,
+        });
+      } catch (e) {
+        console.error("비주얼 툴 처리 실패:", e);
+        return res.json({
+          reply:
+            "비주얼을 기반으로 레시피를 만들다가 오류가 발생했어요. 다시 한 번만 설명해 주실래요?",
+          recipe: null,
+        });
+      }
+    }
+
+    // 2) 일반 레시피 형식 텍스트면 → 파싱해서 이미지 생성
     const parsedRecipe = parseBartenderRecipe(trimmed);
-    // 레시피 형식일 때만 파싱 → recipe 객체 생성
+
     if (!parsedRecipe) {
       return res.json({
         reply: trimmed,
         recipe: null,
       });
     }
-    
+
     let imageUrl = null;
     let imageThumbnailUrl = null;
     try {
       const imageBuffer = await generateCocktailImage(parsedRecipe);
       imageUrl = await uploadImageToS3(imageBuffer, parsedRecipe.name);
-      imageThumbnailUrl = await uploadImageThumbnailToS3(imageBuffer, parsedRecipe.name);
+      imageThumbnailUrl = await uploadImageThumbnailToS3(
+        imageBuffer,
+        parsedRecipe.name
+      );
     } catch (e) {
       console.error("이미지 생성/업로드 실패:", e.message);
     }
-    
-    // 응답용 객체에 붙이기
+
     parsedRecipe.image_url = imageUrl ?? null;
     parsedRecipe.imageThumbnail_url = imageThumbnailUrl ?? null;
 
