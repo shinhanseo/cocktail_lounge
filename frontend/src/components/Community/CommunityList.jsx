@@ -11,7 +11,7 @@ import { NavLink, useSearchParams, useLocation } from "react-router-dom";
 import api from "@/lib/api";
 
 // 리스트 헤더(번호/제목/작성자/날짜)
-import CommunityHeader from "@/components/community/CommunityHeader";
+import CommunityHeader from "@/components/Community/CommunityHeader";
 
 export default function CommunityList() {
   // --- 쿼리스트링(page, limit, sort) 파싱 ---
