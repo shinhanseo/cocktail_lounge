@@ -1,4 +1,3 @@
-import CommunityHeader from "@/components/Community/CommunityHeader";
 import CommunityList from "@/components/Community/CommunityList";
 import CommunityButton from "@/components/Community/CommunityButton";
 
