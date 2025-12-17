@@ -45,7 +45,7 @@ export default function BarBookmarkButton({ id, onDelta }) {
         setCount((p) => Math.max(0, p - 1));
         onDelta?.(-1);
       } else {
-        await api.post(`bars/${id}/bookmark`);
+        await api.post(`/api/bars/${id}/bookmark`);
         setBookmarked(true);
         setCount((p) => p + 1);
         onDelta?.(+1);
