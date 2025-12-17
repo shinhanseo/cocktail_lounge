@@ -9,8 +9,8 @@
 
 import { NavLink, useSearchParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import RecipeFilter from "@/components/Recipe/RecipeFilter";
+import api from "@/lib/api";
 
 export default function RecipeList() {
   // --- 쿼리스트링(sort) 관리 ---
@@ -42,7 +42,7 @@ export default function RecipeList() {
         setError("");
 
         // 서버에서 칵테일 데이터 요청 (정렬 기준 전달)
-        const res = await axios.get("http://localhost:4000/api/cocktails", {
+        const res = await api.get("/api/cocktails", {
           params: {
             sort,
             bases,

@@ -1,12 +1,12 @@
 // src/pages/CommunityDetail.jsx
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import Comment from "@/components/Comment/Comment";
 import PostLikeButton from "@/components/Like/PostLikeButton";
 import DOMPurify from "dompurify";
 import CommonModal from "@/components/CommonModal";
+import api from "@/lib/api";
 
 export default function CommunityDetail() {
   const { id } = useParams();
@@ -28,7 +28,7 @@ export default function CommunityDetail() {
 
   const doDelete = async () => {
     try {
-      await axios.delete(`http://localhost:4000/api/posts/${id}`);
+      await api.delete(`/api/posts/${id}`);
       setOpenDeleteConfirm(false);
       setOpenDeleteDone(true); //  제 완료 모달 오픈
     } catch (err) {
@@ -53,7 +53,7 @@ export default function CommunityDetail() {
       try {
         setLoading(true);
         setError("");
-        const res = await axios.get(`http://localhost:4000/api/posts/${id}`);
+        const res = await api.get(`/api/posts/${id}`);
         setPost(res.data);
       } catch {
         setError("게시글을 불러오는 중 오류가 발생했습니다.");

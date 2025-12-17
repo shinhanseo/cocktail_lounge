@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
+import api from "@/lib/api";
 
 export default function AiCocktails() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -47,9 +47,8 @@ export default function AiCocktails() {
         setLoading(true);
         setError("");
 
-        const res = await axios.get("/api/gemeni/save", {
+        const res = await api.get("/api/gemeni/save", {
           params: { page, limit, keyword },
-          withCredentials: true,
         });
 
         if (ignore) return;

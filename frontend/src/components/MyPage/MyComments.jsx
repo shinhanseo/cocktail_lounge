@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import api from "@/lib/api";
 
 export default function MyComments() {
   // --- 쿼리스트링(page, limit) 파싱 ---
@@ -31,7 +31,7 @@ export default function MyComments() {
         setError("");
 
         // 서버 페이징 요청
-        const res = await axios.get("/api/comment/mycomment", {
+        const res = await api.get("/api/comment/mycomment", {
           params: { page, limit },
         });
         if (ignore) return;

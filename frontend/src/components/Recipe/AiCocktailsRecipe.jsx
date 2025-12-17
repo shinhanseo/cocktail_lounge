@@ -5,9 +5,9 @@
 
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Trash } from "lucide-react";
 import CommonModal from "@/components/CommonModal";
+import api from "@/lib/api";
 
 export default function AiCocktailsRecipe() {
   const { id } = useParams();
@@ -26,9 +26,7 @@ export default function AiCocktailsRecipe() {
     (async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`/api/gemeni/save/${id}`, {
-          withCredentials: true,
-        });
+        const res = await api.get(`/api/gemeni/save/${id}`);
         setRecipe(res.data || null);
       } catch (err) {
         console.error(err);
@@ -41,9 +39,7 @@ export default function AiCocktailsRecipe() {
 
   const doDelete = async () => {
     try {
-      await axios.delete(`/api/gemeni/save/${id}`, {
-        withCredentials: true,
-      });
+      await api.delete(`/api/gemeni/save/${id}`);
       setOpenDeleteConfirm(false);
       setOpenDeleteDone(true);
     } catch (err) {

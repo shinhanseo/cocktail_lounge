@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { NavLink } from "react-router-dom";
+import api from "@/lib/api";
 
 export default function SearchCocktails({ keyword }) {
   const [count, setCount] = useState(0);
@@ -16,12 +16,9 @@ export default function SearchCocktails({ keyword }) {
         setLoading(true);
         setError(null);
 
-        const res = await axios.get(
-          "http://localhost:4000/api/search/cocktails",
-          {
-            params: { keyword },
-          }
-        );
+        const res = await api.get("/api/search/cocktails", {
+          params: { keyword },
+        });
         setCount(Number(res.data.count ?? 0));
         setCocktails(Array.isArray(res.data?.items) ? res.data.items : []);
       } catch (err) {
