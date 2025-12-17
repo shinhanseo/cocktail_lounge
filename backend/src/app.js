@@ -57,7 +57,6 @@ app.options(/.*/, cors(corsOptions));
 app.use(
   "/static",
   express.static("C:/Users/imkar/OneDrive/바탕 화면/Project/backend/public")
-  // ✅ 배포용 권장: express.static("public")
 );
 
 /** 4) 헬스체크 */

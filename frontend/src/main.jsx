@@ -24,7 +24,7 @@ import PostLike from "@/components/MyPage/PostLike";
 import CocktailLike from "@/components/MyPage/CocktailLike";
 import SearchResult from "@/pages/SearchResult";
 import MyBars from "@/components/MyPage/MyBars";
-import MyAiCocktails from "@/components/MyPage/AiCocktails";
+import MyAiCocktails from "@/components/MyPage/Aicocktails";
 import AiCocktailsRecipe from "@/components/Recipe/AiCocktailsRecipe";
 
 createRoot(document.getElementById("root")).render(
