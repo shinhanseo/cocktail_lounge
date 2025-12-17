@@ -24,23 +24,24 @@ app.use(cookieParser());
  * - 로컬 개발: http://localhost:5173
  * - 배포 프런트: process.env.FRONTEND_URL (예: https://xxxx.vercel.app)
  */
-const ALLOWED_ORIGINS = new Set(
-  [
-    "http://localhost:5173",
-    process.env.FRONTEND_URL, // 배포 프런트 주소가 있으면 여기에 들어감
-  ].filter(Boolean)
-);
+const parseOrigins = (value) =>
+  (value || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+const ALLOWED_ORIGINS = new Set([
+  "http://localhost:5173",
+  ...parseOrigins(process.env.FRONTEND_URLS),
+]);
 
 const corsOptions = {
   origin(origin, callback) {
-    // 서버-서버, curl 등 Origin 없는 요청은 허용
     if (!origin) return callback(null, true);
 
     if (ALLOWED_ORIGINS.has(origin)) return callback(null, true);
 
-    // CORS 디버깅용: 어떤 origin이 막혔는지 서버 로그로 남김
     console.warn("[CORS BLOCKED]", origin, "allowed:", [...ALLOWED_ORIGINS]);
-
     return callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
