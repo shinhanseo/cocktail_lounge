@@ -113,7 +113,7 @@ export default function InfoMe() {
           navigate(`/community/${id}`);
         }}
         title="수정 완료!"
-        message="게시글이 수정되었습니다."
+        message="닉네임이 수정되었습니다."
         cancelText="확인"
       />
     </div>

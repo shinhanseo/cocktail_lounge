@@ -51,7 +51,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // ✅ Preflight 요청은 여기서 바로 종료(중요)
-app.options("*", cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 /** 3) 정적 파일 */
 app.use(
