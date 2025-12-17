@@ -9,8 +9,8 @@
 
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import CocktailLikeButton from "@/components/Like/CocktailLikeButton";
+import api from "@/lib/api";
 
 export default function RecipeDetail() {
   // --- URL 파라미터(id) 추출 ---
@@ -32,9 +32,7 @@ export default function RecipeDetail() {
         setLoading(true);
         setError("");
 
-        const res = await axios.get(
-          `http://localhost:4000/api/cocktails/${id}`
-        );
+        const res = await api.get(`/api/cocktails/${id}`);
         setCocktail(res.data || null);
       } catch (err) {
         console.error(err);

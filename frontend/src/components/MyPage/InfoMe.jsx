@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import { useState } from "react";
-import axios from "axios";
 import CommonModal from "@/components/CommonModal";
+import api from "@/lib/api";
 
 export default function InfoMe() {
   const { user, setUser } = useAuthStore();
@@ -17,7 +17,7 @@ export default function InfoMe() {
 
   const handleSave = async () => {
     try {
-      const res = await axios.put("http://localhost:4000/api/auth/me", form);
+      const res = await api.put("/api/auth/me", form);
       setUser(res.data.user); // Zustand 전역 업데이트
       setOpenSuccessModal(true);
       setEditMode(false);

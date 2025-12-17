@@ -8,7 +8,7 @@
 
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 
 export default function BarCity() {
   // --- 상태 관리 ---
@@ -24,7 +24,7 @@ export default function BarCity() {
         setError("");
 
         // 도시 목록 조회
-        const res = await axios.get("http://localhost:4000/api/citys");
+        const res = await api.get("/api/citys");
         setCitys(Array.isArray(res.data?.items) ? res.data.items : []);
       } catch (err) {
         // 요청 취소 이외 에러만 노출 (axios 취소 코드 보강)

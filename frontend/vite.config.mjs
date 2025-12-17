@@ -4,12 +4,6 @@ import react from '@vitejs/plugin-react'
 import path from "path"
 
 export default defineConfig({
-  server: {
-    proxy: {
-      "/api": "http://localhost:4000",
-      "/static": "http://localhost:4000",
-    },
-  },
   plugins: [
     react(),
     tailwindcss()

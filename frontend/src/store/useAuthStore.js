@@ -1,11 +1,6 @@
 // src/store/useAuthStore.js
 import { create } from "zustand";
-import axios from "axios";
-
-axios.defaults.withCredentials = true;
-
-// 백엔드 기본 URL
-const API_BASE_URL = "http://localhost:4000/api";
+import api from "@/lib/api";
 
 // 인증 상태 관리 스토어
 export const useAuthStore = create((set) => ({ // create -> 생성자 훅 생성, set -> 상태 변경에 사용
@@ -20,11 +15,7 @@ export const useAuthStore = create((set) => ({ // create -> 생성자 훅 생성
   logout: async () => { // 로그아웃 함수생성
     try {
       // 서버에도 로그아웃 알려주기 (쿠키 삭제용)
-      await axios.post(
-        `${API_BASE_URL}/auth/logout`,
-        null,
-        { withCredentials: true }
-      ); // 백엔드 로그아웃 라우터 호출
+      await api.post("auth/logout", null); // 백엔드 로그아웃 라우터 호출
     } catch (e) {
       console.error("logout error:", e);
     } finally {
@@ -36,9 +27,7 @@ export const useAuthStore = create((set) => ({ // create -> 생성자 훅 생성
   async hydrateFromServer() { // 서버에서 현재 로그인 정보를 동기화해서, 프론트의 user 상태를 맞춰주기(App.js에서 시작하자마 한번실행)
     try {
       // 1차: 그냥 access 토큰으로 /me 호출
-      const r = await axios.get(`${API_BASE_URL}/auth/me`, {
-        withCredentials: true,
-      });
+      const r = await api.get("auth/me");
       
       const user = r.data?.user || null;
       set({ user });
@@ -57,16 +46,10 @@ export const useAuthStore = create((set) => ({ // create -> 생성자 훅 생성
       // ========= 여기서 refresh 시도 =========
       try {
         // refresh 토큰으로 access 재발급 요청
-        await axios.post(
-          `${API_BASE_URL}/auth/refresh`,
-          null,
-          { withCredentials: true }
-        );
+        await api.post("auth/refresh", null);
 
         // 재발급 성공했으면 /me 다시 호출
-        const r2 = await axios.get(`${API_BASE_URL}/auth/me`, {
-          withCredentials: true,
-        });
+        const r2 = await api.get("auth/me");
 
         const user = r2.data?.user || null;
         set({ user });

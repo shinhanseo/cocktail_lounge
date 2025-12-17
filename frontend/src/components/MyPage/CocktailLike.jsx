@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import api from "@/lib/api";
 
 export default function CocktailLike() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,13 +25,9 @@ export default function CocktailLike() {
       try {
         setLoading(true);
         setError("");
-        const { data } = await axios.get(
-          "http://localhost:4000/api/cocktails/mylike",
-          {
-            params: { page, limit },
-            withCredentials: true,
-          }
-        );
+        const { data } = await api.get("/api/cocktails/mylike", {
+          params: { page, limit },
+        });
         if (ignore) return;
         setItems(Array.isArray(data?.items) ? data.items : []);
         setMeta(

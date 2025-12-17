@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from "react";
 import { NavLink, useSearchParams, useLocation } from "react-router-dom";
-import axios from "axios";
+import api from "@/lib/api";
 
 // 리스트 헤더(번호/제목/작성자/날짜)
 import CommunityHeader from "@/components/community/CommunityHeader";
@@ -45,7 +45,7 @@ export default function CommunityList() {
         setError("");
 
         // 서버 페이징 + 정렬 요청
-        const res = await axios.get("/api/posts", {
+        const res = await api.get("/api/posts", {
           params: { page, limit, sort },
         });
         if (ignore) return;

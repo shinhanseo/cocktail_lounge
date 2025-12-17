@@ -8,7 +8,7 @@
 
 import { NavLink } from "react-router-dom";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 
 export default function RamdomBarList() {
   // --- 상태 관리 ---
@@ -24,7 +24,7 @@ export default function RamdomBarList() {
         setError("");
 
         // API 요청: 인기 바 4개 조회
-        const res = await axios.get("http://localhost:4000/api/bars/hot", {
+        const res = await api.get("/api/bars/hot", {
           params: { limit: 4 },
         });
 

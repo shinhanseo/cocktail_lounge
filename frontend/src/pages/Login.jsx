@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import naverLogin from "@/assets/naver.svg";
 import kakaoLogin from "@/assets/kakao.png";
 import gogleLogin from "@/assets/google.png";
+import api from "@/lib/api";
 
 axios.defaults.withCredentials = true;
 
@@ -17,6 +18,7 @@ export default function Login() {
   const [fieldErr, setFieldErr] = useState({}); // 필드 에러
   const navigate = useNavigate();
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
   const setUser = useAuthStore((s) => s.setUser); // 사용자 정보 설정
 
   const onChange = (e) => {
@@ -35,21 +37,16 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    // 구글 로그인 처리
     const next = encodeURIComponent("/");
-    window.location.href = `http://localhost:4000/api/oauth/google?next=${next}`;
+    window.location.href = `${API_BASE}/api/oauth/google?next=${next}`;
   };
-
   const handleNaverLogin = () => {
-    // 네이버 로그인 처리
     const next = encodeURIComponent("/");
-    window.location.href = `http://localhost:4000/api/oauth/naver?next=${next}`;
+    window.location.href = `${API_BASE}/api/oauth/naver?next=${next}`;
   };
-
   const handleKakaoLogin = () => {
-    // 카카오 로그인 처리
     const next = encodeURIComponent("/");
-    window.location.href = `http://localhost:4000/api/oauth/kakao?next=${next}`;
+    window.location.href = `${API_BASE}/api/oauth/kakao?next=${next}`;
   };
 
   const onSubmit = async (e) => {
@@ -60,14 +57,7 @@ export default function Login() {
       setLoading(true); // 로딩 상태 업데이트
       setMsg("");
 
-      const res = await axios.post(
-        "http://localhost:4000/api/auth/login",
-        form,
-        {
-          withCredentials: true,
-        }
-      );
-
+      const res = await api.post("/api/auth/login", form);
       setUser(res.data.user); // 사용자 정보 설정
 
       navigate("/"); // 루트 페이지로 이동

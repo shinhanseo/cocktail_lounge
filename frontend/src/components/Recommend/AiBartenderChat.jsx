@@ -5,11 +5,11 @@
 // -------------------------------------------------------------
 
 import { useState, useRef, useEffect } from "react";
-import axios from "axios";
 import { LoaderCircle, Send, Bot, User } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import CommonModal from "@/components/CommonModal";
+import api from "@/lib/api";
 
 export default function AiBartenderChat() {
   const user = useAuthStore((s) => s.user);
@@ -63,16 +63,12 @@ export default function AiBartenderChat() {
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        "/api/gemeni/bartender-chat",
-        {
-          messages: nextMessages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-        },
-        { withCredentials: true }
-      );
+      const res = await api.post("/api/gemeni/bartender-chat", {
+        messages: nextMessages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+      });
 
       const reply =
         res.data?.reply ??
@@ -120,22 +116,18 @@ export default function AiBartenderChat() {
       setSaveLoading(true);
       setSaveMessage("");
 
-      const res = await axios.post(
-        "/api/gemeni/save",
-        {
-          name: lastRecipe.name,
-          ingredient: lastRecipe.ingredient,
-          step: lastRecipe.step,
-          comment: lastRecipe.comment || "",
-          base: lastRecipe.ingredient[0].item,
-          rawTaste: "",
-          rawKeywords: "",
-          abv: lastRecipe.abv ?? null,
-          image_url: lastRecipe.image_url ?? null,
-          imageThumbnail_url: lastRecipe.imageThumbnail_url || null,
-        },
-        { withCredentials: true }
-      );
+      const res = await api.post("/api/gemeni/save", {
+        name: lastRecipe.name,
+        ingredient: lastRecipe.ingredient,
+        step: lastRecipe.step,
+        comment: lastRecipe.comment || "",
+        base: lastRecipe.ingredient[0].item,
+        rawTaste: "",
+        rawKeywords: "",
+        abv: lastRecipe.abv ?? null,
+        image_url: lastRecipe.image_url ?? null,
+        imageThumbnail_url: lastRecipe.imageThumbnail_url || null,
+      });
 
       if (res.data?.error) {
         const msg = res.data.error;

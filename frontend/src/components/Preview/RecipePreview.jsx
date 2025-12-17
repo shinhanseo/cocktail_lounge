@@ -2,7 +2,7 @@
 
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 
 // 새로운 타입 정보를 추가 (도수, 주재료 등)
 // *주의: 서버 데이터(pick)에 'base', 'ABV' 등의 필드가 있다고 가정하고 추가했습니다.*
@@ -28,7 +28,7 @@ export default function RecipePreView() {
       try {
         setLoading(true);
         setError("");
-        const res = await axios.get("http://localhost:4000/api/cocktails");
+        const res = await api.get("/api/cocktails");
         const items = Array.isArray(res.data?.items) ? res.data.items : [];
         setCocktails(items);
       } catch (err) {

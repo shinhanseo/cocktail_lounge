@@ -8,8 +8,8 @@
 
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { UserRoundPen } from "lucide-react";
+import api from "@/lib/api";
 
 // 커뮤니티 최신글 5개 미리보기 (요청은 limit=6)
 export default function CommunityPreview() {
@@ -26,7 +26,7 @@ export default function CommunityPreview() {
         setError("");
 
         // 최신 글 조회 (limit=6) — 서버에서 최신순으로 반환된다고 가정
-        const res = await axios.get("http://localhost:4000/api/posts/latest", {
+        const res = await api.get("/api/posts/latest", {
           params: { limit: 6 },
         });
 

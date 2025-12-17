@@ -1,10 +1,10 @@
 import { useState } from "react";
-import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { LoaderCircle } from "lucide-react";
 import GuideModal from "@/components/Recommend/GuideModal";
 import CommonModal from "@/components/CommonModal";
+import api from "@/lib/api";
 
 export default function JemeniRecommend() {
   const user = useAuthStore((s) => s.user);
@@ -83,11 +83,7 @@ export default function JemeniRecommend() {
         abv: requirements.abv,
       };
 
-      const res = await axios.post(
-        "http://localhost:4000/api/gemeni",
-        payload,
-        { withCredentials: true }
-      );
+      const res = await api.post("/api/gemeni", payload);
 
       // 이 시점의 요청 조건을 스냅샷으로 고정
       setRequestTags({
@@ -141,11 +137,7 @@ export default function JemeniRecommend() {
         imageThumbnail_url: recipe.imageThumbnail_url || null,
       };
 
-      const res = await axios.post(
-        "http://localhost:4000/api/gemeni/save",
-        payload,
-        { withCredentials: true }
-      );
+      const res = await api.post("/api/gemeni/save", payload);
 
       setSaveMessage(
         res.data?.message || "마이페이지에 레시피가 저장되었습니다."

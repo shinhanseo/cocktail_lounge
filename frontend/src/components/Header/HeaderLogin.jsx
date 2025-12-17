@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
-import axios from "axios";
+import api from "@/lib/api";
 
 export default function HeaderLogin() {
   const { user, logout } = useAuthStore();
@@ -13,9 +13,7 @@ export default function HeaderLogin() {
 
   const onLogout = async () => {
     try {
-      await axios.post("http://localhost:4000/api/auth/logout", null, {
-        withCredentials: true,
-      });
+      await api.post("/api/auth/logout", null);
     } finally {
       logout();
       setOpen(false);

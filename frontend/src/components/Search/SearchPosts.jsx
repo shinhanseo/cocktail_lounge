@@ -1,7 +1,7 @@
 // src/components/Search/SearchPosts.jsx
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "@/lib/api";
 
 function stripHtml(html) {
   if (!html) return "";
@@ -38,7 +38,7 @@ export default function SearchPosts({ keyword }) {
         setLoading(true);
         setError(null);
 
-        const res = await axios.get("http://localhost:4000/api/search/posts", {
+        const res = await api.get("/api/search/posts", {
           params: { keyword, page, limit: 5 },
         });
 

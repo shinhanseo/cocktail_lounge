@@ -2,8 +2,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Pencil, Trash } from "lucide-react";
-import axios from "axios";
 import CommonModal from "@/components/CommonModal";
+import api from "@/lib/api";
 
 export default function Comment({ postId }) {
   const user = useAuthStore((s) => s.user);
@@ -49,10 +49,9 @@ export default function Comment({ postId }) {
       setLoading(true);
       setError("");
 
-      const res = await axios.get(
-        `http://localhost:4000/api/comment/${postId}`,
-        { params: { page, limit } }
-      );
+      const res = await api.get(`/api/comment/${postId}`, {
+        params: { page, limit },
+      });
 
       const commentsData = Array.isArray(res.data?.comments)
         ? res.data.comments
@@ -63,9 +62,7 @@ export default function Comment({ postId }) {
       const subMap = {};
       await Promise.all(
         commentsData.map(async (comment) => {
-          const subRes = await axios.get(
-            `http://localhost:4000/api/comment/subcomment/${comment.id}`
-          );
+          const subRes = await api.get(`/api/comment/subcomment/${comment.id}`);
           subMap[comment.id] = Array.isArray(subRes.data?.subcomments)
             ? subRes.data.subcomments
             : [];
@@ -98,11 +95,10 @@ export default function Comment({ postId }) {
       return;
     }
     try {
-      const res = await axios.post(
-        "http://localhost:4000/api/comment",
-        { postId, body: postComment.trim() },
-        { withCredentials: true }
-      );
+      const res = await api.post("/api/comment", {
+        postId,
+        body: postComment.trim(),
+      });
       if (res.status === 201) {
         setPostComment("");
         goPage(1);
@@ -127,11 +123,7 @@ export default function Comment({ postId }) {
       return;
     }
     try {
-      await axios.put(
-        `http://localhost:4000/api/comment/${commentId}`,
-        { body: editText },
-        { withCredentials: true }
-      );
+      await api.put(`/api/comment/${commentId}`, { body: editText });
       setComments((prev) =>
         prev.map((c) => (c.id === commentId ? { ...c, body: editText } : c))
       );
@@ -169,11 +161,11 @@ export default function Comment({ postId }) {
       return;
     }
     try {
-      await axios.post(
-        "http://localhost:4000/api/comment/subcomment",
-        { postId, body: replyText.trim(), commentId },
-        { withCredentials: true }
-      );
+      await api.post("/api/comment/subcomment", {
+        postId,
+        body: replyText.trim(),
+        commentId,
+      });
       setReplyCommentId(null);
       setReplyText("");
       await fetchComments();
@@ -196,11 +188,7 @@ export default function Comment({ postId }) {
       return;
     }
     try {
-      await axios.put(
-        `http://localhost:4000/api/comment/subcomment/${subId}`,
-        { body: editSubText },
-        { withCredentials: true }
-      );
+      await api.put(`/api/comment/subcomment/${subId}`, { body: editSubText });
       setSubcommentsMap((prev) => ({
         ...prev,
         [parentId]: prev[parentId].map((s) =>
@@ -226,13 +214,11 @@ export default function Comment({ postId }) {
     try {
       if (deleteTarget.type === "comment") {
         const commentId = deleteTarget.commentId;
-        await axios.delete(`http://localhost:4000/api/comment/${commentId}`);
+        await api.delete(`/api/comment/${commentId}`);
         setComments((prev) => prev.filter((c) => c.id !== commentId));
       } else {
         const { subId, parentId } = deleteTarget;
-        await axios.delete(
-          `http://localhost:4000/api/comment/subcomment/${subId}`
-        );
+        await api.delete(`/api/comment/subcomment/${subId}`);
         setSubcommentsMap((prev) => ({
           ...prev,
           [parentId]: prev[parentId].filter((s) => s.id !== subId),

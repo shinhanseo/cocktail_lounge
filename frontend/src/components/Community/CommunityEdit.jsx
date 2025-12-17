@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
-import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate, useParams, NavLink } from "react-router-dom";
 import ContentWriting from "./ContentWriting";
 import CommonModal from "@/components/CommonModal";
+import api from "@/lib/api";
 
 export default function CommunityEdit() {
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ export default function CommunityEdit() {
     (async () => {
       try {
         setLoadingInit(true);
-        const res = await axios.get(`http://localhost:4000/api/posts/${id}`);
+        const res = await api.get(`/api/posts/${id}`);
         const p = res.data;
 
         if (user && p.user && user.nickname !== p.user) {
@@ -97,10 +97,7 @@ export default function CommunityEdit() {
         tags: parsedTags,
       };
 
-      const res = await axios.put(
-        `http://localhost:4000/api/posts/${id}`,
-        payload
-      );
+      const res = await api.put(`/api/posts/${id}`, payload);
 
       if (res.status === 200) {
         setOpenSuccessModal(true);

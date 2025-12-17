@@ -7,9 +7,9 @@
 // -------------------------------------------------------------
 
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import CommonModal from "@/components/CommonModal";
+import api from "@/lib/api";
 
 // 간단한 정규식들
 const ID_RE = /^[a-zA-Z0-9_]{4,20}$/; // 영문/숫자/밑줄 4~20자
@@ -133,7 +133,7 @@ export default function SignUp() {
     try {
       setLoading(true);
 
-      await axios.post("http://localhost:4000/api/signup", {
+      await api.post("/api/signup", {
         login_id: form.id,
         password: form.password,
         email: form.email,

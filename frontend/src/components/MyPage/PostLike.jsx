@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import api from "@/lib/api";
 
 export default function MyPosts() {
   // --- 쿼리스트링(page, limit) 파싱 ---
@@ -31,7 +31,7 @@ export default function MyPosts() {
         setError("");
 
         // 서버 페이징 요청
-        const res = await axios.get("/api/posts/mylike", {
+        const res = await api.get("/api/posts/mylike", {
           params: { page, limit },
         });
         if (ignore) return;

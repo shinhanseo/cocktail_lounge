@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import CommonModal from "@/components/CommonModal";
+import api from "@/lib/api";
 
 export default function Like({ cocktailId }) {
   const user = useAuthStore((s) => s.user);
@@ -17,12 +17,7 @@ export default function Like({ cocktailId }) {
   useEffect(() => {
     const fetchLikeStatus = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:4000/api/cocktails/${cocktailId}/like`,
-          {
-            withCredentials: true,
-          }
-        );
+        const res = await api.get(`/api/cocktails/${cocktailId}/like`);
         setLiked(res.data.liked);
         setLikes(res.data.like_count);
       } catch (err) {
@@ -37,23 +32,12 @@ export default function Like({ cocktailId }) {
     try {
       if (liked) {
         // 이미 눌렀으면 → 취소
-        await axios.delete(
-          `http://localhost:4000/api/cocktails/${cocktailId}/like`,
-          {
-            withCredentials: true,
-          }
-        );
+        await api.delete(`/api/cocktails/${cocktailId}/like`);
         setLiked(false);
         setLikes((prev) => prev - 1);
       } else {
         // 안 눌렀으면 → 좋아요
-        await axios.post(
-          `http://localhost:4000/api/cocktails/${cocktailId}/like`,
-          null,
-          {
-            withCredentials: true,
-          }
-        );
+        await api.post(`/api/cocktails/${cocktailId}/like`);
         setLiked(true);
         setLikes((prev) => prev + 1);
       }

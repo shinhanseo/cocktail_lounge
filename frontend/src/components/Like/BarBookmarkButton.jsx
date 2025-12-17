@@ -1,10 +1,10 @@
 // src/components/Like/BarBookmarkButton.jsx
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import CommonModal from "@/components/CommonModal";
+import api from "@/lib/api";
 
 export default function BarBookmarkButton({ id, onDelta }) {
   const user = useAuthStore((s) => s.user);
@@ -22,10 +22,7 @@ export default function BarBookmarkButton({ id, onDelta }) {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:4000/api/bars/${id}/bookmark`,
-          { withCredentials: true }
-        );
+        const res = await api.get(`/api/bars/${id}/bookmark`);
         setBookmarked(Boolean(res.data?.bookmarked));
         setCount(Number(res.data?.total_bookmark ?? 0));
       } catch (err) {
@@ -43,18 +40,12 @@ export default function BarBookmarkButton({ id, onDelta }) {
 
     try {
       if (bookmarked) {
-        await axios.delete(`http://localhost:4000/api/bars/${id}/bookmark`, {
-          withCredentials: true,
-        });
+        await api.delete(`/api/bars/${id}/bookmark`);
         setBookmarked(false);
         setCount((p) => Math.max(0, p - 1));
         onDelta?.(-1);
       } else {
-        await axios.post(
-          `http://localhost:4000/api/bars/${id}/bookmark`,
-          null,
-          { withCredentials: true }
-        );
+        await api.post(`bars/${id}/bookmark`);
         setBookmarked(true);
         setCount((p) => p + 1);
         onDelta?.(+1);

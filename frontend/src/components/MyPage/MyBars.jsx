@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { BookmarkCheck } from "lucide-react";
+import api from "@/lib/api";
 
 export default function MyBars() {
   const navigate = useNavigate();
@@ -17,9 +17,8 @@ export default function MyBars() {
     try {
       setLoading(true);
       setError("");
-      const res = await axios.get("http://localhost:4000/api/bars/mybars", {
+      const res = await api.get("/api/bars/mybars", {
         params: { page, limit: 6 },
-        withCredentials: true,
       });
 
       setItems(Array.isArray(res.data?.items) ? res.data.items : []);

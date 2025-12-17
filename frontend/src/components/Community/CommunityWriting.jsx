@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import ContentWriting from "./ContentWriting";
 import CommonModal from "@/components/CommonModal";
+import api from "@/lib/api";
 
 export default function CommunityWriting() {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ export default function CommunityWriting() {
 
     try {
       setLoading(true);
-      const res = await axios.post("http://localhost:4000/api/posts", {
+      const res = await api.post("/api/posts", {
         title: form.title.trim(),
         body: bodyHTML, // ← HTML로 보냄
         tags: parsedTags,

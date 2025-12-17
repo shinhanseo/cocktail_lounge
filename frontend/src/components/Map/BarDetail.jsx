@@ -9,9 +9,9 @@
 
 import { useState, useEffect } from "react";
 import { useParams, NavLink } from "react-router-dom";
-import axios from "axios";
 import MapCard from "@/components/Map/MapCard";
 import BarBookmarkButton from "@/components/Like/BarBookmarkButton";
+import api from "@/lib/api";
 
 export default function BarDetail() {
   // --- URL 파라미터 ---
@@ -34,7 +34,7 @@ export default function BarDetail() {
       try {
         setLoading(true);
         setError("");
-        const res = await axios.get(`http://localhost:4000/api/bars/${city}`);
+        const res = await api.get(`/api/bars/${city}`);
         setBars(Array.isArray(res.data?.items) ? res.data.items : []);
       } catch (err) {
         if (!(err?.name === "CanceledError" || err?.code === "ERR_CANCELED")) {
