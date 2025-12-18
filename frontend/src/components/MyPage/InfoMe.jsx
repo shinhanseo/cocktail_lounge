@@ -7,6 +7,7 @@ export default function InfoMe() {
   const { user, setUser } = useAuthStore();
 
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [openFailureModal, setOpenFailureModal] = useState(false);
 
   //수정 모드
   const [editMode, setEditMode] = useState(false);
@@ -23,6 +24,11 @@ export default function InfoMe() {
       setEditMode(false);
     } catch (err) {
       console.error(err);
+      if (err.response?.status === 409) {
+        setOpenFailureModal(true);
+      } else {
+        alert("알 수 없는 오류가 발생했습니다.");
+      }
     }
   };
 
@@ -114,6 +120,13 @@ export default function InfoMe() {
         }}
         title="수정 완료!"
         message="닉네임이 수정되었습니다."
+        cancelText="확인"
+      />
+      <CommonModal
+        open={openFailureModal}
+        onClose={() => setOpenFailureModal(false)}
+        title="수정 실패"
+        message="이미 사용 중인 닉네임입니다."
         cancelText="확인"
       />
     </div>
