@@ -24,11 +24,7 @@ export default function InfoMe() {
       setEditMode(false);
     } catch (err) {
       console.error(err);
-      if (err.response?.status === 409) {
-        setOpenFailureModal(true);
-      } else {
-        alert("알 수 없는 오류가 발생했습니다.");
-      }
+      setOpenFailureModal(true);
     }
   };
 
