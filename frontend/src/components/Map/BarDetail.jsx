@@ -60,10 +60,7 @@ export default function BarDetail() {
           <h2 className="text-2xl font-bold">{city}</h2>
         </div>
         <div className="mb-4">
-          <NavLink
-            to="/cocktails"
-            className="text-sm text-white/70 hover:font-bold"
-          >
+          <NavLink to="/bars" className="text-sm text-white/70 hover:font-bold">
             ← 목록으로
           </NavLink>
         </div>
@@ -84,10 +81,7 @@ export default function BarDetail() {
 
       {/* 상단 네비게이션 */}
       <div className="mb-4">
-        <NavLink
-          to="/cocktails"
-          className="text-sm text-white/70 hover:font-bold"
-        >
+        <NavLink to="/bars" className="text-sm text-white/70 hover:font-bold">
           ← 목록으로
         </NavLink>
       </div>

@@ -93,7 +93,7 @@ export default function CommunityList() {
   // --- 상태별 UI ---
   if (loading) {
     return (
-      <section className="w-full max-w-[960px] mx-auto mt-12 text-white bg-white/5 border border-white/10 rounded-2xl p-6 animate-pulse shadow-[0_6px_20px_rgba(0,0,0,.35)]">
+      <section className="w-full max-w-[960px] mx-auto mt-4 md:mt-12 text-white bg-white/5 border border-white/10 rounded-2xl p-4 md:p-6 animate-pulse shadow-[0_6px_20px_rgba(0,0,0,.35)]">
         불러오는 중...
       </section>
     );
@@ -109,12 +109,14 @@ export default function CommunityList() {
                    transition-shadow duration-300"
       >
         {/* 상단 타이틀 + 정렬 버튼 + 총 개수 */}
-        <div className="flex items-center justify-between px-6 py-4">
-          <h2 className="text-xl font-bold">💬 커뮤니티 게시글 목록</h2>
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 md:px-6 py-4">
+          <h2 className="text-lg md:text-xl font-bold">
+            💬 커뮤니티 게시글 목록
+          </h2>
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => changeSort("latest")}
-              className={`px-3 py-1 text-xs rounded-full border hover:cursor-pointer${
+              className={`px-2 md:px-3 py-1 text-xs rounded-full border hover:cursor-pointer${
                 sort === "latest"
                   ? "bg-white text-black border-white"
                   : "border-white/30 text-white/70 hover:bg-white/10"
@@ -124,7 +126,7 @@ export default function CommunityList() {
             </button>
             <button
               onClick={() => changeSort("likes")}
-              className={`px-3 py-1 text-xs rounded-full border hover:cursor-pointer ${
+              className={`px-2 md:px-3 py-1 text-xs rounded-full border hover:cursor-pointer ${
                 sort === "likes"
                   ? "bg-white text-black border-white"
                   : "border-white/30 text-white/70 hover:bg-white/10"
@@ -134,7 +136,7 @@ export default function CommunityList() {
             </button>
             <button
               onClick={() => changeSort("comments")}
-              className={`px-3 py-1 text-xs rounded-full border hover:cursor-pointer ${
+              className={`px-2 md:px-3 py-1 text-xs rounded-full border hover:cursor-pointer ${
                 sort === "comments"
                   ? "bg-white text-black border-white"
                   : "border-white/30 text-white/70 hover:bg-white/10"
@@ -143,11 +145,13 @@ export default function CommunityList() {
               댓글순
             </button>
 
-            <span className="text-sm text-white/70 ml-3">총 0개 게시글</span>
+            <span className="text-xs md:text-sm text-white/70 md:ml-3 w-full md:w-auto">
+              총 0개 게시글
+            </span>
           </div>
         </div>
 
-        <div className="px-6 pb-6 text-sm text-white/60">
+        <div className="px-4 md:px-6 pb-6 text-sm text-white/60">
           아직 작성된 게시글이 없습니다. 첫 번째 글의 주인공이 되어보세요!
         </div>
       </section>
@@ -162,14 +166,16 @@ export default function CommunityList() {
                  transition-shadow duration-300"
     >
       {/* 상단 타이틀/정렬/총 개수 */}
-      <div className="flex items-center justify-between px-6 py-4">
-        <h2 className="text-xl font-bold">💬 커뮤니티 게시글 목록</h2>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 md:px-6 py-4">
+        <h2 className="text-lg md:text-xl font-bold">
+          💬 커뮤니티 게시글 목록
+        </h2>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* 정렬 버튼들 */}
           <button
             onClick={() => changeSort("latest")}
-            className={`px-3 py-1 text-xs rounded-full border ${
+            className={`px-2 md:px-3 py-1 text-xs rounded-full border ${
               sort === "latest"
                 ? "bg-white text-black border-white"
                 : "border-white/30 text-white/70 hover:bg-white/10 hover:cursor-pointer"
@@ -198,7 +204,7 @@ export default function CommunityList() {
             댓글순
           </button>
           {/* 총 개수 */}
-          <span className="text-sm text-white/70 ml-3">
+          <span className="text-xs md:text-sm text-white/70 md:ml-3 w-full md:w-auto">
             총 {meta.total}개 게시글
           </span>
         </div>
@@ -206,66 +212,104 @@ export default function CommunityList() {
 
       {/* 리스트: 첫 행에 헤더 렌더 */}
       <ul className="divide-y divide-white/10">
-        <CommunityHeader />
+        {/* 데스크탑 헤더 */}
+        <div className="hidden md:block">
+          <CommunityHeader />
+        </div>
 
         {items.map((p, idx) => (
           <li
             key={p.id}
-            className="grid grid-cols-[70px_1fr_140px_120px_60px] items-center px-6 py-3
-                       hover:bg-white/10 transition-colors"
+            className="md:grid md:grid-cols-[70px_1fr_140px_120px_60px] md:items-center 
+                       px-4 md:px-6 py-3 md:py-3
+                       hover:bg-white/10 transition-colors
+                       flex flex-col md:flex-row gap-2"
           >
-            {/* 번호: 최신이 위이므로 역순 번호 계산 */}
-            <div className="text-center text-white/70">
-              {meta.total - (meta.page - 1) * meta.limit - idx}.
+            {/* 모바일: 카드 형태 */}
+            <div className="md:hidden w-full">
+              <div className="flex items-start justify-between mb-2">
+                <NavLink
+                  to={`/community/${p.id}`}
+                  state={{
+                    posts: p,
+                    from: location.pathname + location.search,
+                  }}
+                  className="flex-1 hover:font-semibold hover:text-white cursor-pointer"
+                >
+                  <div className="font-semibold text-white mb-1 line-clamp-2">
+                    {p.title}
+                  </div>
+                </NavLink>
+                <span className="text-xs text-white/50 ml-2 shrink-0">
+                  #{meta.total - (meta.page - 1) * meta.limit - idx}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-white/60">
+                <span>{p.user}</span>
+                <span>{p.date}</span>
+                <span className="flex items-center gap-1">
+                  <span>❤️</span>
+                  {p.like_count ?? 0}
+                </span>
+                <span className="text-white/50">💬 {p.comment_count ?? 0}</span>
+              </div>
             </div>
 
-            {/* 제목 */}
-            <NavLink
-              to={`/community/${p.id}`}
-              state={{
-                posts: p, // 기존에 쓰던 거 유지
-                from: location.pathname + location.search, // 리스트 상태 보존용
-              }}
-              className="truncate hover:font-semibold hover:text-white cursor-pointer"
-              title={p.title}
-            >
-              {p.title}
-              <span className="text-center text-white/50 text-sm ml-2">
-                [{p.comment_count}개]
-              </span>
-            </NavLink>
+            {/* 데스크탑: 그리드 형태 */}
+            <div className="hidden md:contents">
+              {/* 번호: 최신이 위이므로 역순 번호 계산 */}
+              <div className="text-center text-white/70">
+                {meta.total - (meta.page - 1) * meta.limit - idx}.
+              </div>
 
-            {/* 작성자 / 작성일 */}
-            <div className="text-center text-white/70 text-sm">{p.user}</div>
-            <div className="text-center text-white/50 text-sm">{p.date}</div>
+              {/* 제목 */}
+              <NavLink
+                to={`/community/${p.id}`}
+                state={{
+                  posts: p,
+                  from: location.pathname + location.search,
+                }}
+                className="truncate hover:font-semibold hover:text-white cursor-pointer"
+                title={p.title}
+              >
+                {p.title}
+                <span className="text-center text-white/50 text-sm ml-2">
+                  [{p.comment_count}개]
+                </span>
+              </NavLink>
 
-            {/* 좋아요 수 */}
-            <div className="text-center text-white/50 text-sm">
-              <span className="mr-2">❤️</span>
-              {p.like_count ?? 0}
+              {/* 작성자 / 작성일 */}
+              <div className="text-center text-white/70 text-sm">{p.user}</div>
+              <div className="text-center text-white/50 text-sm">{p.date}</div>
+
+              {/* 좋아요 수 */}
+              <div className="text-center text-white/50 text-sm">
+                <span className="mr-2">❤️</span>
+                {p.like_count ?? 0}
+              </div>
             </div>
           </li>
         ))}
       </ul>
 
       {/* 페이지네이션 */}
-      <div className="flex items-center justify-center gap-3 mt-8 mb-8">
+      <div className="flex items-center justify-center gap-2 md:gap-3 mt-6 md:mt-8 mb-6 md:mb-8 px-4">
         <button
           onClick={() => goPage(meta.page - 1)}
           disabled={!meta.hasPrev}
-          className={`px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
+          className={`px-3 md:px-4 py-2 md:py-1 rounded-lg border border-white/10 text-xs md:text-sm text-white/80
                       disabled:opacity-40 hover:bg-white/10 transition
                       ${meta.hasPrev ? "cursor-pointer" : "cursor-default"}`}
         >
           ← 이전
         </button>
-        <span className="text-sm text-white/70">
+        <span className="text-xs md:text-sm text-white/70">
           {meta.page} / {meta.pageCount}
         </span>
         <button
           onClick={() => goPage(meta.page + 1)}
           disabled={!meta.hasNext}
-          className={`px-3 py-1 rounded-lg border border-white/10 text-sm text-white/80
+          className={`px-3 md:px-4 py-2 md:py-1 rounded-lg border border-white/10 text-xs md:text-sm text-white/80
                       disabled:opacity-40 hover:bg-white/10 transition
                       ${meta.hasNext ? "cursor-pointer" : "cursor-default"}`}
         >
