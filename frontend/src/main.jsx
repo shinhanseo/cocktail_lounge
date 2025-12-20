@@ -29,13 +29,6 @@ import MyBars from "@/components/MyPage/MyBars";
 import MyAiCocktails from "@/components/MyPage/AiCocktails";
 import AiCocktailsRecipe from "@/components/Recipe/AiCocktailsRecipe";
 
-console.log("href", location.href);
-console.log("MODE", import.meta.env.MODE);
-console.log("PROD", import.meta.env.PROD);
-console.log("DSN", import.meta.env.VITE_SENTRY_DSN);
-console.log("API", import.meta.env.VITE_API_BASE_URL);
-console.log("VITE_SENTRY_DSN =", import.meta.env.VITE_SENTRY_DSN);
-console.log("VITE_APP_RELEASE =", import.meta.env.VITE_APP_RELEASE);
 // Sentry는 앱 생명주기에서 가능한 한 빨리 초기화
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
