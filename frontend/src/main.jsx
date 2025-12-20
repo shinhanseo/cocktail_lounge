@@ -29,6 +29,8 @@ import MyBars from "@/components/MyPage/MyBars";
 import MyAiCocktails from "@/components/MyPage/AiCocktails";
 import AiCocktailsRecipe from "@/components/Recipe/AiCocktailsRecipe";
 
+console.log("VITE_SENTRY_DSN =", import.meta.env.VITE_SENTRY_DSN);
+console.log("VITE_APP_RELEASE =", import.meta.env.VITE_APP_RELEASE);
 // Sentry는 앱 생명주기에서 가능한 한 빨리 초기화
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
