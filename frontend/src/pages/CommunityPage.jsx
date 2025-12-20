@@ -7,6 +7,14 @@ export default function Community() {
       <ul className="w-full max-w-[1000px] text-white max-h-[80vh] border-white/10 rounded-lg px-2 md:px-0">
         {/* 글 작성 버튼 */}
         <CommunityButton />
+        <button
+          onClick={() => {
+            throw new Error("Sentry works");
+          }}
+        >
+          Test Sentry
+        </button>
+
         {/* 글 헤더 및 목록 */}
         <CommunityList />
       </ul>
