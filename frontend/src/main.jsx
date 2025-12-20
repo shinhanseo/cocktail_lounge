@@ -1,6 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import * as Sentry from "@sentry/react";
+
 import "@/index.css";
 import App from "@/App";
 import Main from "@/components/Main";
@@ -26,6 +28,28 @@ import SearchResult from "@/pages/SearchResult";
 import MyBars from "@/components/MyPage/MyBars";
 import MyAiCocktails from "@/components/MyPage/AiCocktails";
 import AiCocktailsRecipe from "@/components/Recipe/AiCocktailsRecipe";
+
+// Sentry는 앱 생명주기에서 가능한 한 빨리 초기화
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE, // production / development
+  release: import.meta.env.VITE_APP_RELEASE, // vercel commit sha 등으로 주입
+
+  // 운영 서비스에서는 개인정보(PII) 수집을 보수적으로
+  sendDefaultPii: false,
+
+  // 성능(트레이싱)까지 보고 싶으면 켜기
+  integrations: [Sentry.browserTracingIntegration()],
+
+  // 운영에서 1.0(100%)는 비용/노이즈 커질 수 있음
+  tracesSampleRate: 0.1,
+
+  // 원하면 여기서 민감정보 제거/가공 가능
+  beforeSend(event) {
+    // 예: event.request?.headers에서 Authorization/Cookie 제거 등
+    return event;
+  },
+});
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
