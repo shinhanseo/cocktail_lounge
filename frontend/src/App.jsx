@@ -4,9 +4,13 @@ import Footer from "@/components/Footer";
 import Main from "@/components/Main";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
+import usePageView from "@/analytics/usePageView";
+
 // 앱 컴포넌트
 export default function App() {
   const hydrateFromServer = useAuthStore((s) => s.hydrateFromServer);
+
+  usePageView();
 
   useEffect(() => {
     hydrateFromServer(); // 서버에서 전달된 사용자 정보 로드
