@@ -1,7 +1,10 @@
+// src/app.js
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import * as Sentry from "@sentry/node";
 
+// routers
 import postsRouter from "./routes/posts.js";
 import cocktailsRouter from "./routes/cocktails.js";
 import citysRouter from "./routes/citys.js";
@@ -15,15 +18,21 @@ import GemeniRouter from "./routes/gemeni.js";
 
 const app = express();
 
+/* =========================
+   0) Sentry init (최상단)
+========================= */
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV || "development",
+  release: process.env.SENTRY_RELEASE,
+  tracesSampleRate: 0.1,
+});
+
 /** 1) 기본 미들웨어 */
 app.use(express.json());
 app.use(cookieParser());
 
-/**
- * 2) CORS (라우터보다 먼저!)
- * - 로컬 개발: http://localhost:5173
- * - 배포 프런트: process.env.FRONTEND_URL (예: https://xxxx.vercel.app)
- */
+/** 2) CORS */
 const parseOrigins = (value) =>
   (value || "")
     .split(",")
@@ -38,10 +47,7 @@ const ALLOWED_ORIGINS = new Set([
 const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true);
-
     if (ALLOWED_ORIGINS.has(origin)) return callback(null, true);
-
-    console.warn("[CORS BLOCKED]", origin, "allowed:", [...ALLOWED_ORIGINS]);
     return callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
@@ -50,18 +56,20 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-// ✅ Preflight 요청은 여기서 바로 종료(중요)
 app.options(/.*/, cors(corsOptions));
 
-/** 3) 정적 파일 */
-app.use(
-  "/static",
-  express.static("C:/Users/imkar/OneDrive/바탕 화면/Project/backend/public")
-);
-
-/** 4) 헬스체크 */
+/** 3) 헬스체크 */
 app.get("/healthz", (_, res) => res.send("ok"));
+
+/** 4) Sentry 테스트 */
+app.get("/__sentry_test", () => {
+  throw new Error("Backend Sentry test " + Date.now());
+});
+
+app.get("/__sentry_message_test", (_, res) => {
+  Sentry.captureMessage("Backend Sentry message " + Date.now(), "info");
+  res.json({ ok: true });
+});
 
 /** 5) 라우터 */
 app.use("/api/posts", postsRouter);
@@ -78,10 +86,18 @@ app.use("/api/gemeni", GemeniRouter);
 /** 6) 404 */
 app.use((req, res) => res.status(404).json({ message: "Not Found" }));
 
-/** 7) 에러 핸들러 */
+/* =========================
+   ✅ 최신 Sentry Express 에러 핸들러
+   ❗️ app.use(...)로 감싸지 말고, app을 인자로 전달해야 함
+========================= */
+Sentry.setupExpressErrorHandler(app);
+
+/** 7) 최종 에러 핸들러 */
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(err.status || 500).json({ message: err.message || "Server Error" });
+  res.status(err.status || 500).json({
+    message: err.message || "Server Error",
+  });
 });
 
 export default app;
