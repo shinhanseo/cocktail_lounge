@@ -1,0 +1,71 @@
+name: Deploy Backend to ECS
+
+on:
+  push:
+    branches: ["main"]
+    # ✅ 백엔드(또는 배포 관련 파일) 변경될 때만 워크플로 실행
+    paths:
+      - "backend/**"
+      - ".aws/**"
+      - ".github/workflows/deploy-backend.yml"
+
+env:
+  AWS_REGION: ap-northeast-2
+
+  # ✅ 너 ECR 리포지토리 이름으로 바꿔야 할 수도 있음
+  ECR_REPOSITORY: cocktail-backend
+
+  # ✅ 너 ECS 정보(캡처 기준)
+  ECS_CLUSTER: cocktail-cluster
+  ECS_SERVICE: cocktail-backend-service
+
+  # ✅ 태스크 정의 JSON 파일 경로
+  TASK_DEFINITION: .aws/task-definition.json
+
+  # ⚠️ task-definition.json 안 containerDefinitions[].name 과 '완전 동일'해야 함
+  CONTAINER_NAME: cocktail-backend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push Docker image to ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Render ECS task definition (replace image)
+        id: render-task
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.TASK_DEFINITION }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy ECS task definition (rolling update)
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-task.outputs.task-definition }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.ECS_SERVICE }}
+          wait-for-service-stability: true
